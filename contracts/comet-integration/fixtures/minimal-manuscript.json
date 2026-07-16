@@ -6,19 +6,19 @@
   "canonicalizationProfile": "nireco-canonical-json-0.1",
   "hashAlgorithm": "sha256",
   "hashInput": "payload",
-  "expectedCanonicalSha256": "sha256:f402fd9772e707d94103bcbe9be8ff883b57c09f54ccb5b1992de42a9189d9b4",
+  "expectedCanonicalSha256": "sha256:81486a15d4a6f2c7f214cb2c9eaea6bb0b0b6fe47c6885f168fd77b42d4748a2",
   "payload": {
     "format": "nireco-document",
     "formatVersion": "1.0.0-preview.1",
     "schemaId": "nireco.manuscript",
     "schemaVersion": "1.0.0-preview.1",
-    "revisionId": "rev-0001",
-    "documentHash": "sha256:c533e6231ea69ee996a58115af45cea798c788c6158559c30256c43b32b2f3e4",
+    "revisionId": "018f0000-0000-7000-8000-000000000001",
+    "documentHash": "sha256:6789e729fc0211ad97a052f37b9a834ec4b32df5f666e796b20b07cd1c28f96c",
     "metadata": {
       "title": "Gate 0 Manuscript",
       "authors": [
         {
-          "id": "author-0001",
+          "id": "018f0000-0000-7000-8000-000000000010",
           "name": "Test Author"
         }
       ],
@@ -26,41 +26,41 @@
       "keywords": ["contract", "fixture"]
     },
     "root": {
-      "id": "manuscript-0001",
+      "id": "018f0000-0000-7000-8000-000000000101",
       "type": "manuscript",
       "attrs": {},
       "children": [
         {
-          "id": "frontmatter-0001",
+          "id": "018f0000-0000-7000-8000-000000000102",
           "type": "frontMatter",
           "attrs": {},
           "children": []
         },
         {
-          "id": "body-0001",
+          "id": "018f0000-0000-7000-8000-000000000103",
           "type": "body",
           "attrs": {},
           "children": [
             {
-              "id": "paragraph-0001",
+              "id": "018f0000-0000-7000-8000-000000000104",
               "type": "paragraph",
               "attrs": {
                 "alignment": "start"
               },
               "children": [
                 {
-                  "id": "text-0001",
+                  "id": "018f0000-0000-7000-8000-000000000105",
                   "type": "text",
                   "value": "Hello 🌍",
                   "marks": []
                 },
                 {
-                  "id": "break-0001",
+                  "id": "018f0000-0000-7000-8000-000000000106",
                   "type": "hardBreak",
                   "attrs": {}
                 },
                 {
-                  "id": "text-0002",
+                  "id": "018f0000-0000-7000-8000-000000000107",
                   "type": "text",
                   "value": "Gate 0.",
                   "marks": [
@@ -70,35 +70,35 @@
                   ]
                 },
                 {
-                  "id": "footnote-ref-0001",
+                  "id": "018f0000-0000-7000-8000-000000000108",
                   "type": "footnoteReference",
                   "attrs": {
-                    "footnoteNodeId": "footnote-0001"
+                    "footnoteNodeId": "018f0000-0000-7000-8000-000000000110"
                   }
                 }
               ]
             },
             {
-              "id": "rule-0001",
+              "id": "018f0000-0000-7000-8000-000000000109",
               "type": "horizontalRule",
               "attrs": {}
             },
             {
-              "id": "footnote-0001",
+              "id": "018f0000-0000-7000-8000-000000000110",
               "type": "footnote",
               "attrs": {
                 "label": "1"
               },
               "children": [
                 {
-                  "id": "paragraph-0002",
+                  "id": "018f0000-0000-7000-8000-000000000111",
                   "type": "paragraph",
                   "attrs": {
                     "alignment": "start"
                   },
                   "children": [
                     {
-                      "id": "text-0003",
+                      "id": "018f0000-0000-7000-8000-000000000112",
                       "type": "text",
                       "value": "A minimal footnote.",
                       "marks": []
@@ -110,7 +110,7 @@
           ]
         },
         {
-          "id": "bibliography-0001",
+          "id": "018f0000-0000-7000-8000-000000000113",
           "type": "bibliographyPlaceholder",
           "attrs": {
             "heading": "References"

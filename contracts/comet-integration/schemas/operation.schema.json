@@ -51,7 +51,7 @@
       "required": ["id", "type", "parentNodeId", "childIndex", "node"],
       "properties": {
         "id": {
-          "$ref": "common.schema.json#/$defs/OpaqueId"
+          "$ref": "common.schema.json#/$defs/OperationId"
         },
         "type": {
           "const": "insert-node"
@@ -74,7 +74,7 @@
       "required": ["id", "type", "targetNodeId", "expectedNodeHash"],
       "properties": {
         "id": {
-          "$ref": "common.schema.json#/$defs/OpaqueId"
+          "$ref": "common.schema.json#/$defs/OperationId"
         },
         "type": {
           "const": "delete-node"
@@ -93,7 +93,7 @@
       "required": ["id", "type", "targetNodeId", "newParentNodeId", "childIndex"],
       "properties": {
         "id": {
-          "$ref": "common.schema.json#/$defs/OpaqueId"
+          "$ref": "common.schema.json#/$defs/OperationId"
         },
         "type": {
           "const": "move-node"
@@ -116,7 +116,7 @@
       "required": ["id", "type", "textNodeId", "startUtf16Offset", "endUtf16Offset", "replacement"],
       "properties": {
         "id": {
-          "$ref": "common.schema.json#/$defs/OpaqueId"
+          "$ref": "common.schema.json#/$defs/OperationId"
         },
         "type": {
           "const": "replace-text"
@@ -146,7 +146,7 @@
       "required": ["id", "type", "nodeId", "attributes"],
       "properties": {
         "id": {
-          "$ref": "common.schema.json#/$defs/OpaqueId"
+          "$ref": "common.schema.json#/$defs/OperationId"
         },
         "type": {
           "const": "set-node-attributes"
@@ -170,7 +170,7 @@
       "required": ["id", "type", "textNodeId", "startUtf16Offset", "endUtf16Offset", "mark"],
       "properties": {
         "id": {
-          "$ref": "common.schema.json#/$defs/OpaqueId"
+          "$ref": "common.schema.json#/$defs/OperationId"
         },
         "type": {
           "const": "add-mark"
@@ -195,7 +195,7 @@
       "required": ["id", "type", "textNodeId", "startUtf16Offset", "endUtf16Offset", "mark"],
       "properties": {
         "id": {
-          "$ref": "common.schema.json#/$defs/OpaqueId"
+          "$ref": "common.schema.json#/$defs/OperationId"
         },
         "type": {
           "const": "remove-mark"
@@ -233,7 +233,7 @@
       "required": ["id", "type", "entity"],
       "properties": {
         "id": {
-          "$ref": "common.schema.json#/$defs/OpaqueId"
+          "$ref": "common.schema.json#/$defs/OperationId"
         },
         "type": {
           "const": "create-academic-entity"
@@ -249,7 +249,7 @@
       "required": ["id", "type", "entityId", "patch"],
       "properties": {
         "id": {
-          "$ref": "common.schema.json#/$defs/OpaqueId"
+          "$ref": "common.schema.json#/$defs/OperationId"
         },
         "type": {
           "const": "update-academic-entity"
@@ -286,7 +286,7 @@
       "required": ["id", "type", "entityId", "expectedEntityHash"],
       "properties": {
         "id": {
-          "$ref": "common.schema.json#/$defs/OpaqueId"
+          "$ref": "common.schema.json#/$defs/OperationId"
         },
         "type": {
           "const": "delete-academic-entity"
@@ -317,7 +317,7 @@
       "required": ["id", "type", "fromEntityId", "toEntityId", "relation"],
       "properties": {
         "id": {
-          "$ref": "common.schema.json#/$defs/OpaqueId"
+          "$ref": "common.schema.json#/$defs/OperationId"
         },
         "type": {
           "const": "link-academic-entities"
@@ -339,7 +339,7 @@
       "required": ["id", "type", "fromEntityId", "toEntityId", "relation"],
       "properties": {
         "id": {
-          "$ref": "common.schema.json#/$defs/OpaqueId"
+          "$ref": "common.schema.json#/$defs/OperationId"
         },
         "type": {
           "const": "unlink-academic-entities"

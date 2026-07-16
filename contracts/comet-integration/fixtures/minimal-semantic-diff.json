@@ -6,44 +6,45 @@
   "canonicalizationProfile": "nireco-canonical-json-0.1",
   "hashAlgorithm": "sha256",
   "hashInput": "payload",
-  "expectedCanonicalSha256": "sha256:5cfd4dd2e2857ed9a89fec6fae9342261a1e1841834b0bfb5a96ccde8c2da0e5",
+  "expectedCanonicalSha256": "sha256:d4f6f8181be88936e4ec8add29ac23840f8019771734c8f820c9af31e40517de",
   "payload": {
     "id": "diff-0001",
+    "algorithmVersion": "nireco-semantic-diff-1",
     "document": {
       "uri": "nireco://workspace-01/document/DocCaseA",
-      "revisionId": "rev-0001"
+      "revisionId": "018f0000-0000-7000-8000-000000000001"
     },
-    "proposalId": "proposal-0001",
+    "proposalId": "018f0000-0000-7000-8000-000000000002",
     "proposalRevision": 1,
-    "generatedAgainstRevisionId": "rev-0001",
+    "generatedAgainstRevisionId": "018f0000-0000-7000-8000-000000000001",
     "groups": [
       {
-        "id": "group-0001",
+        "id": "1a35d9ac-7ac5-8cca-b888-9d038e9cae19",
         "kind": "insert-content",
         "targetRefs": [
           {
             "kind": "node",
             "document": {
               "uri": "nireco://workspace-01/document/DocCaseA",
-              "revisionId": "rev-0001"
+              "revisionId": "018f0000-0000-7000-8000-000000000001"
             },
-            "nodeId": "body-0001"
+            "nodeId": "018f0000-0000-7000-8000-000000000103"
           }
         ],
-        "operationIds": ["op-proposal-0001"],
+        "operationIds": ["018f0000-0000-7000-8000-000000000006"],
         "dependsOn": [],
         "after": {
           "kind": "block",
           "nodes": [
             {
-              "id": "paragraph-proposed-0001",
+              "id": "018f0000-0000-7000-8000-000000000114",
               "type": "paragraph",
               "attrs": {
                 "alignment": "start"
               },
               "children": [
                 {
-                  "id": "text-proposed-0001",
+                  "id": "018f0000-0000-7000-8000-000000000115",
                   "type": "text",
                   "value": "A proposed paragraph.",
                   "marks": []

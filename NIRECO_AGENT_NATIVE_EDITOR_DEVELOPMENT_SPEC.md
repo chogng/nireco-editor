@@ -1,10 +1,10 @@
 ---
 title: Nireco Editor 开发规格与 Comet 特化智能体集成契约
-version: 0.4.2
+version: 0.4.3
 status: Core-first Parallel Implementation Plan
 language: zh-CN
 companion_documents:
-  - NIRECO_COMET_ROADMAP.md v0.1.1
+  - NIRECO_COMET_ROADMAP.md v0.1.2
   - NIRECO_COMET_ENGINEERING_CODING_STANDARD.md v0.1.1
 updated_at: 2026-07-16
 owners:
@@ -33,7 +33,7 @@ Monaco Editor : VS Code
 
 Nireco 采用 clean-room 自主实现原则。其他编辑器项目仅用于研究公开问题、交互行为、架构取舍和失败模式；不得复制、移植或改写其源码、私有接口、测试夹具、模块结构或实现表达。
 
-### 0.1 0.4.2 的核心修订
+### 0.1 0.4.3 的核心修订
 
 本版本不再按“功能模块并列”组织规格，而改为按实现脊柱组织：
 
@@ -72,6 +72,7 @@ Resource URI
 17. **Contract 不再作为后置阶段一次性交付。** Nireco 从 Phase 0 开始持续发布 Preview Bundle，Comet 从只读 Adapter 开始并行接入，随后逐 Gate 增加 Proposal 与 Academic 能力。
 18. **浏览器运行时允许提前做隔离 Spike，但不得先于 Core Gate 冻结公开 API。** DOM、IME 和 Selection 原型只能消费已冻结的 Model/Position/Transaction 契约。
 19. **工程与编码规范成为规范性配套文档。** 两个仓库必须共同固定 `NIRECO_COMET_ENGINEERING_CODING_STANDARD.md` 的版本，并通过自动化配置落实格式、类型、架构边界、Contract、测试和安全门禁；不得维护第二份并行权威规范。
+20. **参考性能 corpus 统一冻结。** Gate 0 的 S/M/L 规模统一为 15,000/75,000/200,000 words，并由 `docs/performance/reference-profile.md`、Contract Manifest 和机器检查共同防止漂移。
 
 ### 0.2 规范性术语
 
@@ -99,11 +100,11 @@ Resource URI
 
 本项目只有以下三份长期规范性文档：
 
-| 文档 | 唯一职责 | 不得替代的内容 |
-|---|---|---|
-| 本开发规格 | 产品边界、Nireco Core、领域模型、Nireco–Comet Contract 与系统不变量 | 不负责具体 Sprint 日期和机械代码格式 |
-| `NIRECO_COMET_ROADMAP.md` | 阶段、Sprint、Gate、人员假设和交付顺序 | 不得自行改写 Core 或 Contract 语义 |
-| `NIRECO_COMET_ENGINEERING_CODING_STANDARD.md` | 代码风格、模块边界、测试、CI、评审、安全和工程门禁 | 不得自行创造新的产品能力或 Contract 语义 |
+| 文档                                          | 唯一职责                                                            | 不得替代的内容                           |
+| --------------------------------------------- | ------------------------------------------------------------------- | ---------------------------------------- |
+| 本开发规格                                    | 产品边界、Nireco Core、领域模型、Nireco–Comet Contract 与系统不变量 | 不负责具体 Sprint 日期和机械代码格式     |
+| `NIRECO_COMET_ROADMAP.md`                     | 阶段、Sprint、Gate、人员假设和交付顺序                              | 不得自行改写 Core 或 Contract 语义       |
+| `NIRECO_COMET_ENGINEERING_CODING_STANDARD.md` | 代码风格、模块边界、测试、CI、评审、安全和工程门禁                  | 不得自行创造新的产品能力或 Contract 语义 |
 
 `NIRECO_COMET_ENGINEERING_CODING_STANDARD.md` 是唯一权威编码规范文件。任何别名、摘录或生成页面只能声明其来源和版本，不得成为第二规范源。
 
@@ -177,7 +178,6 @@ Nireco 0.x 不做：
 - 将模型 SDK、Prompt 或 Agent Framework 放入 Nireco。
 
 Comet 可以在未来支持 Bring Your Own Model，但 Agent 编排、Tool、Context、权限、Proposal 和审阅流程仍由 Comet 控制。
-
 
 ### 1.5 目标用户
 
@@ -292,16 +292,18 @@ export type Brand<T, Name extends string> = T & {
   readonly __brand: Name;
 };
 
-export type ResourceUri = Brand<string, "ResourceUri">;
-export type WorkspaceId = Brand<string, "WorkspaceId">;
-export type RevisionId = Brand<string, "RevisionId">;
-export type TransactionId = Brand<string, "TransactionId">;
-export type NodeId = Brand<string, "NodeId">;
-export type EntityId = Brand<string, "EntityId">;
-export type ProposalId = Brand<string, "ProposalId">;
-export type ProposalChangeGroupId = Brand<string, "ProposalChangeGroupId">;
-export type SessionId = Brand<string, "SessionId">;
-export type ContentHash = Brand<string, "ContentHash">;
+export type ResourceUri = Brand<string, 'ResourceUri'>;
+export type WorkspaceId = Brand<string, 'WorkspaceId'>;
+export type RevisionId = Brand<string, 'RevisionId'>;
+export type TransactionId = Brand<string, 'TransactionId'>;
+export type OperationId = Brand<string, 'OperationId'>;
+export type NodeId = Brand<string, 'NodeId'>;
+export type EntityId = Brand<string, 'EntityId'>;
+export type ProposalId = Brand<string, 'ProposalId'>;
+export type ProposalChangeGroupId = Brand<string, 'ProposalChangeGroupId'>;
+export type SessionId = Brand<string, 'SessionId'>;
+export type ContentHash = Brand<string, 'ContentHash'>;
+export type DebugId = Brand<string, 'DebugId'>;
 ```
 
 不得在公共契约中以裸 `string` 代替具有不同语义的 ID。
@@ -312,15 +314,24 @@ Kernel reducer 不得调用随机数或系统时间。所有新 ID 由受信 `Id
 
 ```ts
 export interface IdAllocator {
+  allocateWorkspaceId(): WorkspaceId;
   allocateNodeId(kind: NodeKind): NodeId;
   allocateEntityId(kind: AcademicEntityKind): EntityId;
   allocateTransactionId(): TransactionId;
+  allocateOperationId(): OperationId;
   allocateRevisionId(): RevisionId;
   allocateProposalId(): ProposalId;
+  allocateSessionId(): SessionId;
+  allocateDebugId(): DebugId;
 }
 ```
 
-推荐使用 UUIDv7 或等价的 128-bit 不透明 Base32 标识。ID 不得编码标题、用户名、顺序、文件路径或敏感内容。
+Nireco 分配的 Workspace、Revision、Transaction、Operation、Node、Entity、
+Proposal、Session 与 Debug ID 必须使用 canonical lowercase RFC 9562 UUIDv7。
+`ProposalChangeGroupId` 必须按 ADR-012 从冻结的 domain-separated SHA-256
+identity payload 派生为 canonical lowercase RFC 9562 UUIDv8。ID 不得编码标题、
+用户名、顺序、文件路径或敏感内容；production parser 必须拒绝 uppercase、
+错误 variant、错误 UUID version 与旧的可读 fixture ID。
 
 模型不能生成可信 ID。Comet Tool 输入只能使用临时 `clientRef`：
 
@@ -367,10 +378,7 @@ export interface INirecoWorkspace extends AsyncDisposable {
   readonly ids: IdAllocator;
   readonly clock: Clock;
 
-  createEditor(
-    container: HTMLElement,
-    options: CreateEditorOptions,
-  ): INirecoEditor;
+  createEditor(container: HTMLElement, options: CreateEditorOptions): INirecoEditor;
 }
 ```
 
@@ -486,10 +494,7 @@ export interface ResourceProvider {
     change: ResourceChange,
     signal: AbortSignal,
   ): Promise<ResourceWriteResult>;
-  watch?(
-    uri: ResourceUri,
-    listener: ResourceChangeListener,
-  ): Disposable;
+  watch?(uri: ResourceUri, listener: ResourceChangeListener): Disposable;
 }
 ```
 
@@ -521,13 +526,9 @@ export interface INirecoModel extends AsyncDisposable {
 
   getSnapshot(revisionId?: RevisionId): DocumentSnapshot;
 
-  applyTransaction(
-    transaction: Transaction,
-  ): Promise<CommitResult>;
+  applyTransaction(transaction: Transaction): Promise<CommitResult>;
 
-  validateTransaction(
-    transaction: Transaction,
-  ): TransactionValidationResult;
+  validateTransaction(transaction: Transaction): TransactionValidationResult;
 
   onDidCommit(listener: RevisionCommitListener): Disposable;
   onDidChangeDurability(listener: DurabilityListener): Disposable;
@@ -575,10 +576,7 @@ export interface DocumentAuthority {
   open(ref: ResourceRef): Promise<DocumentHandle>;
   getHead(uri: ResourceUri): Promise<RevisionId>;
   apply(transaction: Transaction): Promise<CommitResult>;
-  subscribe(
-    uri: ResourceUri,
-    listener: DocumentAuthorityListener,
-  ): Disposable;
+  subscribe(uri: ResourceUri, listener: DocumentAuthorityListener): Disposable;
 }
 ```
 
@@ -614,7 +612,7 @@ Authority 切换必须包含：
 
 ```ts
 export interface DocumentSnapshot {
-  format: "nireco-document";
+  format: 'nireco-document';
   formatVersion: string;
   schemaId: string;
   schemaVersion: string;
@@ -666,14 +664,14 @@ export type InlineNode =
 
 export interface ParagraphNode {
   id: NodeId;
-  type: "paragraph";
+  type: 'paragraph';
   attrs: ParagraphAttributes;
   children: InlineNode[];
 }
 
 export interface TextNode {
   id: NodeId;
-  type: "text";
+  type: 'text';
   value: string;
   marks: Mark[];
 }
@@ -785,14 +783,14 @@ footnote
 
 ```ts
 export type Mark =
-  | { type: "bold" }
-  | { type: "italic" }
-  | { type: "underline" }
-  | { type: "strike" }
-  | { type: "code" }
-  | { type: "link"; href: string; title?: string }
-  | { type: "subscript" }
-  | { type: "superscript" };
+  | { type: 'bold' }
+  | { type: 'italic' }
+  | { type: 'underline' }
+  | { type: 'strike' }
+  | { type: 'code' }
+  | { type: 'link'; href: string; title?: string }
+  | { type: 'subscript' }
+  | { type: 'superscript' };
 ```
 
 Mark 顺序必须 canonical normalize。冲突 Mark 的解析顺序由 Schema 固定，不由 Renderer 决定。
@@ -832,7 +830,7 @@ TextNode 拆分时：
 跨层协议中的文本 offset 统一使用 **UTF-16 code unit**：
 
 ```ts
-export type Utf16Offset = Brand<number, "Utf16Offset">;
+export type Utf16Offset = Brand<number, 'Utf16Offset'>;
 ```
 
 原因：
@@ -853,22 +851,20 @@ export type Utf16Offset = Brand<number, "Utf16Offset">;
 ### 9.2 Position 联合类型
 
 ```ts
-export type SemanticPosition =
-  | TextPosition
-  | NodeBoundaryPosition;
+export type SemanticPosition = TextPosition | NodeBoundaryPosition;
 
 export interface TextPosition {
-  kind: "text";
+  kind: 'text';
   textNodeId: NodeId;
   utf16Offset: Utf16Offset;
-  affinity: "before" | "after";
+  affinity: 'before' | 'after';
 }
 
 export interface NodeBoundaryPosition {
-  kind: "node-boundary";
+  kind: 'node-boundary';
   parentNodeId: NodeId;
   childIndex: number;
-  affinity: "before" | "after";
+  affinity: 'before' | 'after';
 }
 ```
 
@@ -885,7 +881,7 @@ export interface SemanticRange {
 export interface EditorSelection {
   ranges: SemanticRange[];
   primaryRangeIndex: number;
-  direction: "forward" | "backward";
+  direction: 'forward' | 'backward';
 }
 ```
 
@@ -991,12 +987,7 @@ export interface EvidenceLink {
   locator: EvidenceLocator;
   excerpt?: string;
   excerptHash?: ContentHash;
-  verificationStatus:
-    | "verified"
-    | "provisional"
-    | "metadata-only"
-    | "stale"
-    | "rejected";
+  verificationStatus: 'verified' | 'provisional' | 'metadata-only' | 'stale' | 'rejected';
   verifiedBy?: ActorRef;
   verifiedAt?: string;
 }
@@ -1017,12 +1008,7 @@ export interface ClaimEntity {
 export interface ClaimEvidenceRelation {
   claimId: EntityId;
   evidenceId: EntityId;
-  relation:
-    | "supports"
-    | "partially-supports"
-    | "contradicts"
-    | "context-only"
-    | "unclear";
+  relation: 'supports' | 'partially-supports' | 'contradicts' | 'context-only' | 'unclear';
   assessedBy: ActorRef;
   confidence?: number;
 }
@@ -1065,6 +1051,10 @@ ProposalChangeGroup   → 可部分接受的审阅单元
 ### 11.2 Operation 联合类型
 
 ```ts
+export interface OperationBase {
+  id: OperationId;
+}
+
 export type Operation =
   | InsertNodeOperation
   | DeleteNodeOperation
@@ -1082,6 +1072,7 @@ export type Operation =
 
 每个 Operation 必须：
 
+- 在进入 reducer 前获得持久化的 UUIDv7 `OperationId`；
 - 可序列化；
 - 可 deterministic apply；
 - 明确目标节点/实体；
@@ -1107,13 +1098,7 @@ export interface Transaction {
 }
 
 export interface TransactionMetadata {
-  source:
-    | "human-input"
-    | "command"
-    | "import"
-    | "migration"
-    | "validator-fix"
-    | "proposal-accept";
+  source: 'human-input' | 'command' | 'import' | 'migration' | 'validator-fix' | 'proposal-accept';
   undoGroupId?: string;
   proposalId?: ProposalId;
   proposalRevision?: number;
@@ -1150,11 +1135,11 @@ Parse
 
 ```ts
 export type TransactionPrecondition =
-  | { kind: "node-exists"; nodeId: NodeId }
-  | { kind: "node-hash"; nodeId: NodeId; expected: ContentHash }
-  | { kind: "entity-exists"; entityId: EntityId }
-  | { kind: "schema-version"; expected: string }
-  | { kind: "document-hash"; expected: ContentHash };
+  | { kind: 'node-exists'; nodeId: NodeId }
+  | { kind: 'node-hash'; nodeId: NodeId; expected: ContentHash }
+  | { kind: 'entity-exists'; entityId: EntityId }
+  | { kind: 'schema-version'; expected: string }
+  | { kind: 'document-hash'; expected: ContentHash };
 ```
 
 Comet 生成的 Proposal Transaction 必须至少包含目标节点存在性和必要内容 hash 前置条件。
@@ -1202,10 +1187,10 @@ export interface PositionMap {
 
 ```ts
 export type MappedPositionResult =
-  | { status: "mapped"; position: SemanticPosition }
-  | { status: "deleted"; nearest?: SemanticPosition }
-  | { status: "ambiguous"; candidates: SemanticPosition[] }
-  | { status: "orphaned" };
+  | { status: 'mapped'; position: SemanticPosition }
+  | { status: 'deleted'; nearest?: SemanticPosition }
+  | { status: 'ambiguous'; candidates: SemanticPosition[] }
+  | { status: 'orphaned' };
 ```
 
 不得在 ambiguous 或 orphaned 时自动选取“看起来最近”的位置并继续写入。
@@ -1226,14 +1211,14 @@ Proposal 从 `baseRevisionId` Rebase 到新 head 时：
 
 ```ts
 export type ConflictKind =
-  | "target-deleted"
-  | "target-moved-ambiguously"
-  | "content-changed"
-  | "schema-changed"
-  | "citation-changed"
-  | "evidence-stale"
-  | "dependency-broken"
-  | "scope-no-longer-valid";
+  | 'target-deleted'
+  | 'target-moved-ambiguously'
+  | 'content-changed'
+  | 'schema-changed'
+  | 'citation-changed'
+  | 'evidence-stale'
+  | 'dependency-broken'
+  | 'scope-no-longer-valid';
 ```
 
 Conflict 必须可机器处理，并包含建议动作，不得只返回自由文本。
@@ -1254,7 +1239,7 @@ export interface Revision {
   documentHash: ContentHash;
   actor: ActorRef;
   createdAt: string;
-  durability: "memory" | "wal" | "snapshot";
+  durability: 'memory' | 'wal' | 'snapshot';
 }
 ```
 
@@ -1304,13 +1289,13 @@ snapshot  → 已进入持久 Snapshot，可完成日志压缩
 `applyTransaction()` 返回内存提交结果。需要可靠保存的调用必须等待：
 
 ```ts
-await model.whenDurable(revisionId, "wal");
+await model.whenDurable(revisionId, 'wal');
 ```
 
 或：
 
 ```ts
-await model.whenDurable(revisionId, "snapshot");
+await model.whenDurable(revisionId, 'snapshot');
 ```
 
 ### 13.5 崩溃恢复
@@ -1370,16 +1355,16 @@ export interface Proposal {
 
 ```ts
 export type ProposalStatus =
-  | "draft"
-  | "validating"
-  | "validated"
-  | "needs-review"
-  | "conflicted"
-  | "accepted"
-  | "partially-accepted"
-  | "rejected"
-  | "discarded"
-  | "expired";
+  | 'draft'
+  | 'validating'
+  | 'validated'
+  | 'needs-review'
+  | 'conflicted'
+  | 'accepted'
+  | 'partially-accepted'
+  | 'rejected'
+  | 'discarded'
+  | 'expired';
 ```
 
 ### 14.3 合法转换
@@ -1489,6 +1474,7 @@ Semantic Diff 不只是字符 diff。它必须表达：
 ```ts
 export interface SemanticDiff {
   id: string;
+  algorithmVersion: 'nireco-semantic-diff-1';
   document: DocumentRef;
   proposalId: ProposalId;
   proposalRevision: number;
@@ -1501,17 +1487,17 @@ export interface SemanticDiff {
 export interface ProposalChangeGroup {
   id: ProposalChangeGroupId;
   kind:
-    | "insert-content"
-    | "rewrite-content"
-    | "delete-content"
-    | "move-structure"
-    | "add-citation"
-    | "replace-citation"
-    | "change-evidence"
-    | "change-claim-relation"
-    | "metadata";
+    | 'insert-content'
+    | 'rewrite-content'
+    | 'delete-content'
+    | 'move-structure'
+    | 'add-citation'
+    | 'replace-citation'
+    | 'change-evidence'
+    | 'change-claim-relation'
+    | 'metadata';
   targetRefs: SemanticTargetRef[];
-  operationIds: string[];
+  operationIds: OperationId[];
   dependsOn: ProposalChangeGroupId[];
   before?: DocumentFragment;
   after?: DocumentFragment;
@@ -1632,21 +1618,21 @@ Disposed
 
 第一版至少覆盖：
 
-| `inputType` | 默认策略 |
-|---|---|
-| `insertText` | preventDefault，构造 ReplaceText Transaction |
-| `insertCompositionText` | composition buffer，结束时单 Transaction |
-| `insertParagraph` | preventDefault，执行 split block command |
-| `insertLineBreak` | preventDefault，插入 HardBreak 或按 Schema 拆分 |
-| `deleteContentBackward` | grapheme-aware delete command |
-| `deleteContentForward` | grapheme-aware delete command |
-| `deleteWordBackward` | Unicode word boundary delete |
-| `deleteByCut` | 由 Clipboard pipeline 生成 Transaction |
-| `insertFromPaste` | sanitize → parse → validate → Transaction |
-| `insertFromDrop` | sanitize → resolve target → Transaction |
-| `historyUndo` | preventDefault，调用 Model History |
-| `historyRedo` | preventDefault，调用 Model History |
-| `formatBold` | command，不依赖浏览器 execCommand |
+| `inputType`             | 默认策略                                        |
+| ----------------------- | ----------------------------------------------- |
+| `insertText`            | preventDefault，构造 ReplaceText Transaction    |
+| `insertCompositionText` | composition buffer，结束时单 Transaction        |
+| `insertParagraph`       | preventDefault，执行 split block command        |
+| `insertLineBreak`       | preventDefault，插入 HardBreak 或按 Schema 拆分 |
+| `deleteContentBackward` | grapheme-aware delete command                   |
+| `deleteContentForward`  | grapheme-aware delete command                   |
+| `deleteWordBackward`    | Unicode word boundary delete                    |
+| `deleteByCut`           | 由 Clipboard pipeline 生成 Transaction          |
+| `insertFromPaste`       | sanitize → parse → validate → Transaction       |
+| `insertFromDrop`        | sanitize → resolve target → Transaction         |
+| `historyUndo`           | preventDefault，调用 Model History              |
+| `historyRedo`           | preventDefault，调用 Model History              |
+| `formatBold`            | command，不依赖浏览器 execCommand               |
 
 Safari 或移动端不可靠事件只能进入受控 fallback；fallback 产生的 DOM 差异必须被解析成 Transaction 或被恢复，不得直接保留。
 
@@ -1906,8 +1892,8 @@ attachments/                  # 文稿附件
 export interface RevisionBoundResult<T> {
   document: DocumentRef;
   basedOnRevisionId: RevisionId;
-  consistency: "exact" | "eventual";
-  status: "current" | "stale" | "computing" | "failed";
+  consistency: 'exact' | 'eventual';
+  status: 'current' | 'stale' | 'computing' | 'failed';
   value?: T;
   diagnostics?: Diagnostic[];
 }
@@ -1930,7 +1916,7 @@ Comet Session 默认固定读取 `baseRevisionId`：
 export interface Diagnostic {
   id: string;
   source: string;
-  severity: "info" | "warning" | "error";
+  severity: 'info' | 'warning' | 'error';
   code: string;
   message: string;
   target?: SemanticTargetRef;
@@ -2044,26 +2030,20 @@ export interface PageResult<T> {
 export interface NirecoError {
   code: NirecoErrorCode;
   category:
-    | "validation"
-    | "conflict"
-    | "permission"
-    | "compatibility"
-    | "storage"
-    | "transport"
-    | "internal";
+    | 'validation'
+    | 'conflict'
+    | 'permission'
+    | 'compatibility'
+    | 'storage'
+    | 'transport'
+    | 'internal';
   retryable: boolean;
   safeMessage: string;
   debugId: string;
   currentRevisionId?: RevisionId;
   requiredCapability?: string;
   conflictingTargets?: SemanticTargetRef[];
-  suggestedAction?:
-    | "retry"
-    | "reread"
-    | "rebase"
-    | "request-permission"
-    | "user-review"
-    | "abort";
+  suggestedAction?: 'retry' | 'reread' | 'rebase' | 'request-permission' | 'user-review' | 'abort';
 }
 ```
 
@@ -2180,7 +2160,7 @@ export interface OpenCometSessionRequest {
   taskId: string;
   traceId: string;
   actor: {
-    type: "comet-agent";
+    type: 'comet-agent';
     id: string;
     workflowId: string;
     modelRef?: string;
@@ -2209,20 +2189,20 @@ review.commit
 
 ```ts
 export type IntegrationCapability =
-  | "document.outline.read"
-  | "document.content.read"
-  | "document.search"
-  | "document.diagnostics.read"
-  | "academic.references.read"
-  | "academic.evidence.read"
-  | "academic.claims.read"
-  | "proposal.create"
-  | "proposal.edit"
-  | "proposal.validate"
-  | "proposal.rebase"
-  | "proposal.submit-review"
-  | "citation.propose"
-  | "evidence.propose";
+  | 'document.outline.read'
+  | 'document.content.read'
+  | 'document.search'
+  | 'document.diagnostics.read'
+  | 'academic.references.read'
+  | 'academic.evidence.read'
+  | 'academic.claims.read'
+  | 'proposal.create'
+  | 'proposal.edit'
+  | 'proposal.validate'
+  | 'proposal.rebase'
+  | 'proposal.submit-review'
+  | 'citation.propose'
+  | 'evidence.propose';
 ```
 
 ### 21.7 Scope 与约束
@@ -2275,7 +2255,7 @@ export type SemanticEdit =
 
 ```ts
 export interface InsertBlockEdit {
-  kind: "insert-block";
+  kind: 'insert-block';
   clientRef: string;
   target: {
     parentNodeId: NodeId;
@@ -2292,11 +2272,11 @@ export interface InsertBlockEdit {
 
 ```ts
 export interface ReplaceBlockContentEdit {
-  kind: "replace-block-content";
+  kind: 'replace-block-content';
   targetNodeId: NodeId;
   expectedContentHash: ContentHash;
   replacement: ProposedInlineContent[];
-  preserveCitations: "all" | "none" | "explicit";
+  preserveCitations: 'all' | 'none' | 'explicit';
   explicitCitationIds?: EntityId[];
   rationale: string;
 }
@@ -2306,17 +2286,13 @@ export interface ReplaceBlockContentEdit {
 
 ```ts
 export interface InsertCitationEdit {
-  kind: "insert-citation";
+  kind: 'insert-citation';
   clientRef: string;
   target: SemanticPosition;
   claimId?: EntityId;
   referenceId: EntityId;
   evidenceIds: EntityId[];
-  relation:
-    | "supports"
-    | "partially-supports"
-    | "contradicts"
-    | "context-only";
+  relation: 'supports' | 'partially-supports' | 'contradicts' | 'context-only';
   locator?: CitationLocator;
   prefix?: string;
   suffix?: string;
@@ -2417,7 +2393,7 @@ interface DocumentReadOutput {
 interface DocumentSearchInput {
   query: string;
   sectionIds?: NodeId[];
-  kinds?: Array<"text" | "citation" | "claim" | "heading">;
+  kinds?: Array<'text' | 'citation' | 'claim' | 'heading'>;
   maxResults?: number;
   cursor?: string;
 }
@@ -2458,10 +2434,7 @@ interface ProposeRewriteInput {
   targetNodeId: NodeId;
   expectedContentHash: ContentHash;
   replacement: ProposedInlineContent[];
-  citationPolicy:
-    | "preserve-existing"
-    | "replace-explicitly"
-    | "remove-with-justification";
+  citationPolicy: 'preserve-existing' | 'replace-explicitly' | 'remove-with-justification';
   retainedCitationIds?: EntityId[];
   supportingEvidenceIds?: EntityId[];
   rationale: string;
@@ -2506,12 +2479,7 @@ interface EvidenceProposeInput {
   sourceContentHash: ContentHash;
   locator: EvidenceLocator;
   excerpt: string;
-  relationHint?:
-    | "supports"
-    | "partially-supports"
-    | "contradicts"
-    | "context-only"
-    | "unclear";
+  relationHint?: 'supports' | 'partially-supports' | 'contradicts' | 'context-only' | 'unclear';
   targetClaimId?: EntityId;
 }
 ```
@@ -2535,11 +2503,7 @@ interface ProposeSupportedCitationInput {
   claimId?: EntityId;
   referenceId: EntityId;
   evidenceIds: EntityId[];
-  relation:
-    | "supports"
-    | "partially-supports"
-    | "contradicts"
-    | "context-only";
+  relation: 'supports' | 'partially-supports' | 'contradicts' | 'context-only';
   citation: {
     locator?: CitationLocator;
     prefix?: string;
@@ -2552,11 +2516,7 @@ interface ProposeSupportedCitationOutput {
   proposalId: ProposalId;
   proposalRevision: number;
   citationId: EntityId;
-  verificationStatus:
-    | "verified"
-    | "provisional"
-    | "metadata-only"
-    | "rejected";
+  verificationStatus: 'verified' | 'provisional' | 'metadata-only' | 'rejected';
   diagnostics: ToolDiagnostic[];
 }
 ```
@@ -2587,15 +2547,15 @@ interface CitationAuditInput {
 interface CitationAuditOutput {
   findings: Array<{
     code:
-      | "missing-evidence"
-      | "stale-evidence"
-      | "citation-not-linked-to-claim"
-      | "claim-changed"
-      | "source-unavailable"
-      | "context-only-used-as-support"
-      | "duplicate-reference";
+      | 'missing-evidence'
+      | 'stale-evidence'
+      | 'citation-not-linked-to-claim'
+      | 'claim-changed'
+      | 'source-unavailable'
+      | 'context-only-used-as-support'
+      | 'duplicate-reference';
     target: SemanticTargetRef;
-    severity: "info" | "warning" | "error";
+    severity: 'info' | 'warning' | 'error';
     suggestedWorkflow?: string;
   }>;
   basedOnRevisionId: RevisionId;
@@ -2619,7 +2579,7 @@ interface ProposalPreviewInput {
 interface ProposalPreviewOutput {
   proposalId: ProposalId;
   proposalRevision: number;
-  status: "valid" | "warning" | "invalid" | "conflicted";
+  status: 'valid' | 'warning' | 'invalid' | 'conflicted';
   semanticDiff: SemanticDiff;
   diagnostics: ToolDiagnostic[];
   conflicts: ProposalConflict[];
@@ -2700,7 +2660,7 @@ export interface CometToolInvocationEnvelope<TInput> {
 ```ts
 export interface CometToolResultEnvelope<TOutput> {
   toolInvocationId: string;
-  status: "ok" | "error";
+  status: 'ok' | 'error';
   output?: TOutput;
   error?: CometToolError;
   warnings: ToolWarning[];
@@ -2753,18 +2713,18 @@ INTERNAL_ERROR
 
 推荐恢复策略：
 
-| 错误 | Comet 行为 |
-|---|---|
-| `BASE_REVISION_MISMATCH` | 读取 changes_since，尝试 rebase |
-| `PROPOSAL_REVISION_MISMATCH` | 重新读取 Proposal，不盲重试 |
-| `ANCHOR_ORPHANED` | 重新搜索目标或请求用户选择 |
-| `SCOPE_VIOLATION` | 终止 Tool，不自动扩大 Scope |
-| `EVIDENCE_REQUIRED` | 执行 Evidence Workflow |
-| `EVIDENCE_STALE` | 重新读取 Source 并校验 hash |
-| `PROPOSAL_CONFLICT` | 调用 proposal.rebase，失败则用户处理 |
-| `POLICY_VIOLATION` | 阻止，不允许 Prompt 绕过 |
-| `TEMPORARY_UNAVAILABLE` | 使用同 idempotency key 有界重试 |
-| `CONTRACT_VERSION_UNSUPPORTED` | 阻止任务并提示升级 |
+| 错误                           | Comet 行为                           |
+| ------------------------------ | ------------------------------------ |
+| `BASE_REVISION_MISMATCH`       | 读取 changes_since，尝试 rebase      |
+| `PROPOSAL_REVISION_MISMATCH`   | 重新读取 Proposal，不盲重试          |
+| `ANCHOR_ORPHANED`              | 重新搜索目标或请求用户选择           |
+| `SCOPE_VIOLATION`              | 终止 Tool，不自动扩大 Scope          |
+| `EVIDENCE_REQUIRED`            | 执行 Evidence Workflow               |
+| `EVIDENCE_STALE`               | 重新读取 Source 并校验 hash          |
+| `PROPOSAL_CONFLICT`            | 调用 proposal.rebase，失败则用户处理 |
+| `POLICY_VIOLATION`             | 阻止，不允许 Prompt 绕过             |
+| `TEMPORARY_UNAVAILABLE`        | 使用同 idempotency key 有界重试      |
+| `CONTRACT_VERSION_UNSUPPORTED` | 阻止任务并提示升级                   |
 
 ## 25. Comet Agent Task、Context 与审计
 
@@ -3096,10 +3056,15 @@ Comet Agent 代码不得 import Nireco 私有 Kernel 目录。
 ### 28.1 性能档位
 
 ```text
-S：20,000 字，100 段，100 引用
-M：100,000 字，800 段，500 引用
-L：300,000 字，2,500 段，1,500 引用
+S：15,000 words，约 1,500 nodes，100 citations
+M：75,000 words，约 8,000 nodes，500 citations
+L：200,000 words，约 25,000 nodes，1,500 citations
 ```
+
+完整参考设备、fixture 组成、测量协议和预算以
+`docs/performance/reference-profile.md` 的 `nireco-g0-r1-2026-07-16` profile
+为准。`pnpm check:performance-profile` 必须验证本节、Roadmap、Reference
+Profile、Contract Manifest 和仓库 metadata 使用相同 corpus 数值。
 
 第一阶段：
 
@@ -3967,22 +3932,22 @@ Gate 0–3 通过后，Comet 实现正式特化智能体：
 
 ## 36. 主要风险与缓解措施
 
-| 风险 | 影响 | 缓解 |
-|---|---|---|
-| 自研浏览器输入复杂度 | 数据损坏、IME 问题 | 小 Schema 起步、状态机、浏览器矩阵、fallback 保护 |
-| 文档模型过早泛化 | 延迟核心交付 | 第一版固定 Manuscript Schema，不开放任意扩展 |
-| Position 语义不一致 | Anchor/Agent Rebase 错误 | UTF-16 明确、PositionMap conformance、Rust 转换测试 |
-| Revision/Proposal 混淆 | 历史和审阅失控 | 主线线性 Revision、Proposal 独立日志、状态机 |
-| Semantic Diff 不稳定 | 无法部分接受、评估困难 | 确定性分组、Group ID 规则、Golden fixtures |
-| Nireco/Comet 分仓漂移 | 最后阶段重写 | Contract Bundle、Mock、跨仓 CI、Compatibility matrix |
-| Agent Tool 粒度不当 | Token 高、误操作 | Comet 高层 Tool，Nireco Semantic Edit compiler |
-| Comet 绕过 Proposal | 数据风险 | no-bypass tests、无 commit capability、ACL |
-| Source 所有权模糊 | 重复存储、权限问题 | Comet 拥有全文，Nireco 保存最小 Evidence Link |
-| 过早多包化 | API 冻结和构建复杂 | 单一私有主包，Feature 只是源码模块 |
-| Rust 过早进入输入路径 | 调试和互操作成本 | TS first，Rust 只做离线/重计算并过 conformance |
-| 开源协议风险 | 法务和商业风险 | clean-room、依赖白名单、SBOM、法务评审 |
-| Authority 双写 | Revision 分叉 | 单一 Authority、Leader、handoff token、fail closed |
-| 派生数据 stale | Agent 读错上下文 | Revision-bound result、Session snapshot consistency |
+| 风险                   | 影响                     | 缓解                                                 |
+| ---------------------- | ------------------------ | ---------------------------------------------------- |
+| 自研浏览器输入复杂度   | 数据损坏、IME 问题       | 小 Schema 起步、状态机、浏览器矩阵、fallback 保护    |
+| 文档模型过早泛化       | 延迟核心交付             | 第一版固定 Manuscript Schema，不开放任意扩展         |
+| Position 语义不一致    | Anchor/Agent Rebase 错误 | UTF-16 明确、PositionMap conformance、Rust 转换测试  |
+| Revision/Proposal 混淆 | 历史和审阅失控           | 主线线性 Revision、Proposal 独立日志、状态机         |
+| Semantic Diff 不稳定   | 无法部分接受、评估困难   | 确定性分组、Group ID 规则、Golden fixtures           |
+| Nireco/Comet 分仓漂移  | 最后阶段重写             | Contract Bundle、Mock、跨仓 CI、Compatibility matrix |
+| Agent Tool 粒度不当    | Token 高、误操作         | Comet 高层 Tool，Nireco Semantic Edit compiler       |
+| Comet 绕过 Proposal    | 数据风险                 | no-bypass tests、无 commit capability、ACL           |
+| Source 所有权模糊      | 重复存储、权限问题       | Comet 拥有全文，Nireco 保存最小 Evidence Link        |
+| 过早多包化             | API 冻结和构建复杂       | 单一私有主包，Feature 只是源码模块                   |
+| Rust 过早进入输入路径  | 调试和互操作成本         | TS first，Rust 只做离线/重计算并过 conformance       |
+| 开源协议风险           | 法务和商业风险           | clean-room、依赖白名单、SBOM、法务评审               |
+| Authority 双写         | Revision 分叉            | 单一 Authority、Leader、handoff token、fail closed   |
+| 派生数据 stale         | Agent 读错上下文         | Revision-bound result、Session snapshot consistency  |
 
 ## 37. 延后决定的事项
 

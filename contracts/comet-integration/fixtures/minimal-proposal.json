@@ -6,11 +6,11 @@
   "canonicalizationProfile": "nireco-canonical-json-0.1",
   "hashAlgorithm": "sha256",
   "hashInput": "payload",
-  "expectedCanonicalSha256": "sha256:326324dacc9499da9487e91c6811a53ff0cd3acac32c9613490e3d7111261a55",
+  "expectedCanonicalSha256": "sha256:eab71b575f5bd11b29429fc00c6b7dc18243dde97c489b28fcb72ccb17ca97a7",
   "payload": {
-    "id": "proposal-0001",
+    "id": "018f0000-0000-7000-8000-000000000002",
     "documentUri": "nireco://workspace-01/document/DocCaseA",
-    "baseRevisionId": "rev-0001",
+    "baseRevisionId": "018f0000-0000-7000-8000-000000000001",
     "proposalRevision": 1,
     "actor": {
       "type": "comet-agent",
@@ -24,8 +24,8 @@
         "kind": "insert-block",
         "clientRef": "edit-0001",
         "target": {
-          "parentNodeId": "body-0001",
-          "afterNodeId": "paragraph-0001"
+          "parentNodeId": "018f0000-0000-7000-8000-000000000103",
+          "afterNodeId": "018f0000-0000-7000-8000-000000000104"
         },
         "block": {
           "clientRef": "paragraph-draft-0001",
@@ -46,25 +46,25 @@
         "preconditions": [
           {
             "kind": "node-exists",
-            "nodeId": "body-0001"
+            "nodeId": "018f0000-0000-7000-8000-000000000103"
           },
           {
             "kind": "document-hash",
-            "expected": "sha256:c533e6231ea69ee996a58115af45cea798c788c6158559c30256c43b32b2f3e4"
+            "expected": "sha256:6789e729fc0211ad97a052f37b9a834ec4b32df5f666e796b20b07cd1c28f96c"
           }
         ]
       }
     ],
     "validation": {
       "status": "not-run",
-      "basedOnRevisionId": "rev-0001",
+      "basedOnRevisionId": "018f0000-0000-7000-8000-000000000001",
       "basedOnProposalRevision": 1,
       "diagnostics": []
     },
     "provenance": {
       "taskId": "task-0001",
       "traceId": "trace-proposal-0001",
-      "sessionId": "session-0001",
+      "sessionId": "018f0000-0000-7000-8000-000000000003",
       "capabilityGrantId": "grant-0001",
       "workflowId": "draft-paragraph",
       "modelRef": "fake-model/gate-0",

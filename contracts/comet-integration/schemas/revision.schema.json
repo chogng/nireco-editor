@@ -5,6 +5,13 @@
   "description": "Immutable, single-parent mainline revision identity and durability state.",
   "$ref": "#/$defs/Revision",
   "$defs": {
+    "DurabilityLevel": {
+      "enum": ["memory", "wal", "snapshot"],
+      "description": "Highest acknowledged durability level. State advances monotonically."
+    },
+    "AuthorityMode": {
+      "enum": ["read-write", "read-only", "recovery-required"]
+    },
     "Revision": {
       "type": "object",
       "additionalProperties": false,
@@ -53,20 +60,43 @@
           "$ref": "common.schema.json#/$defs/Rfc3339Timestamp"
         },
         "durability": {
-          "enum": ["memory", "wal", "snapshot"]
+          "$ref": "#/$defs/DurabilityLevel"
+        }
+      }
+    },
+    "DurabilityAcknowledgement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["revisionId", "achievedDurability", "authorityMode"],
+      "properties": {
+        "revisionId": {
+          "$ref": "common.schema.json#/$defs/RevisionId"
+        },
+        "achievedDurability": {
+          "$ref": "#/$defs/DurabilityLevel"
+        },
+        "authorityMode": {
+          "$ref": "#/$defs/AuthorityMode"
         }
       }
     },
     "CommitResult": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["revision", "transactionHash"],
+      "required": ["revisionId", "snapshot", "transactionHash", "achievedDurability"],
       "properties": {
-        "revision": {
-          "$ref": "#/$defs/Revision"
+        "revisionId": {
+          "$ref": "common.schema.json#/$defs/RevisionId"
+        },
+        "snapshot": {
+          "$ref": "manuscript.schema.json#/$defs/DocumentSnapshot"
         },
         "transactionHash": {
           "$ref": "common.schema.json#/$defs/ContentHash"
+        },
+        "achievedDurability": {
+          "const": "memory",
+          "description": "apply() acknowledges only the in-memory commit; callers use whenDurable() for WAL or Snapshot."
         }
       }
     }

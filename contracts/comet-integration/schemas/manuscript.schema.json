@@ -5,6 +5,31 @@
   "description": "Gate 0 preview of the immutable canonical manuscript snapshot. Title, authors, abstract, and keywords are semantic metadata rather than content nodes.",
   "$ref": "#/$defs/DocumentSnapshot",
   "$defs": {
+    "DocumentHashPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaId", "schemaVersion", "metadata", "root", "academicGraph", "settings"],
+      "properties": {
+        "schemaId": {
+          "const": "nireco.manuscript"
+        },
+        "schemaVersion": {
+          "const": "1.0.0-preview.1"
+        },
+        "metadata": {
+          "$ref": "#/$defs/ManuscriptMetadata"
+        },
+        "root": {
+          "$ref": "#/$defs/ManuscriptNode"
+        },
+        "academicGraph": {
+          "$ref": "#/$defs/AcademicGraphSnapshot"
+        },
+        "settings": {
+          "$ref": "#/$defs/DocumentSemanticSettings"
+        }
+      }
+    },
     "DocumentSnapshot": {
       "type": "object",
       "additionalProperties": false,

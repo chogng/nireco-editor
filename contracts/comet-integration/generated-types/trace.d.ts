@@ -7,37 +7,10 @@
  */
 
 /**
- * Opaque identity. The preview contract intentionally does not freeze a UUID representation.
+ * External or integration-owned opaque identity. Nireco-allocated production identities use AllocatedId instead.
  *
  * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
  * via the `definition` "OpaqueId".
- *
- * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
- * via the `definition` "WorkspaceId".
- *
- * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
- * via the `definition` "RevisionId".
- *
- * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
- * via the `definition` "TransactionId".
- *
- * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
- * via the `definition` "NodeId".
- *
- * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
- * via the `definition` "EntityId".
- *
- * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
- * via the `definition` "ProposalId".
- *
- * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
- * via the `definition` "ProposalChangeGroupId".
- *
- * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
- * via the `definition` "SessionId".
- *
- * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
- * via the `definition` "DebugId".
  *
  * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
  * via the `definition` "RequestId".
@@ -65,6 +38,40 @@ export type OpaqueId = string;
  * via the `definition` "DocumentUri".
  */
 export type DocumentUri = string;
+/**
+ * Canonical lowercase RFC 9562 UUIDv7 allocated by a trusted Nireco boundary before reducer entry.
+ *
+ * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
+ * via the `definition` "AllocatedId".
+ *
+ * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
+ * via the `definition` "WorkspaceId".
+ *
+ * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
+ * via the `definition` "RevisionId".
+ *
+ * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
+ * via the `definition` "TransactionId".
+ *
+ * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
+ * via the `definition` "OperationId".
+ *
+ * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
+ * via the `definition` "NodeId".
+ *
+ * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
+ * via the `definition` "EntityId".
+ *
+ * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
+ * via the `definition` "ProposalId".
+ *
+ * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
+ * via the `definition` "SessionId".
+ *
+ * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
+ * via the `definition` "DebugId".
+ */
+export type AllocatedId = string;
 /**
  * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
  * via the `definition` "TraceEvent".
@@ -102,7 +109,7 @@ export type TraceEvent = {
   requestedCapabilities?: IntegrationCapability[];
   grantedCapabilities?: IntegrationCapability[];
   semanticEditKinds?: SemanticEditKind[];
-  basedOnRevisionId?: OpaqueId;
+  basedOnRevisionId?: AllocatedId;
   outcome: 'ok' | 'error';
   errorCode?: NirecoErrorCode;
   summary: string;
@@ -180,8 +187,23 @@ export type NirecoErrorCode =
   | 'IDEMPOTENCY_CONFLICT'
   | 'CANCELLED'
   | 'TEMPORARY_UNAVAILABLE'
+  | 'DURABILITY_UNREACHABLE'
+  | 'WAL_APPEND_FAILED'
+  | 'WAL_FSYNC_FAILED'
+  | 'SNAPSHOT_COMMIT_FAILED'
+  | 'RECOVERY_REQUIRED'
   | 'STORAGE_CORRUPT'
   | 'INTERNAL_ERROR';
+/**
+ * Canonical lowercase RFC 9562 UUIDv8 deterministically derived from a frozen domain-separated SHA-256 preimage.
+ *
+ * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
+ * via the `definition` "DerivedId".
+ *
+ * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
+ * via the `definition` "ProposalChangeGroupId".
+ */
+export type DerivedId = string;
 /**
  * Untrusted, request-local correlation key. It is never a trusted Nireco identity.
  *
@@ -195,18 +217,17 @@ export type ClientRef = string;
  */
 export type ContentHash = string;
 /**
- * Offset measured in UTF-16 code units. A service must additionally reject a value inside a surrogate pair.
- *
  * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
- * via the `definition` "Utf16Offset".
+ * via the `definition` "HashDomain".
  */
-export type Utf16Offset = number;
-/**
- * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
- * via the `definition` "ActorRef".
- */
-export type ActorRef =
-  HumanActorRef | CometAgentActorRef | ProductControllerActorRef | SystemActorRef;
+export type HashDomain =
+  | 'nireco.academic-entity.v1'
+  | 'nireco.document-content.v1'
+  | 'nireco.governance-manifest.v1'
+  | 'nireco.node.v1'
+  | 'nireco.proposal-change-group.v1'
+  | 'nireco.semantic-diff.v1'
+  | 'nireco.transaction.v1';
 /**
  * A JSON value used only at explicitly declared extension or patch boundaries.
  *
@@ -219,6 +240,19 @@ export type JsonValue = null | boolean | number | string | JsonArray | JsonObjec
  * via the `definition` "JsonArray".
  */
 export type JsonArray = JsonValue[];
+/**
+ * Offset measured in UTF-16 code units. A service must additionally reject a value inside a surrogate pair.
+ *
+ * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
+ * via the `definition` "Utf16Offset".
+ */
+export type Utf16Offset = number;
+/**
+ * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
+ * via the `definition` "ActorRef".
+ */
+export type ActorRef =
+  HumanActorRef | CometAgentActorRef | ProductControllerActorRef | SystemActorRef;
 /**
  * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
  * via the `definition` "SemanticTargetRef".
@@ -314,9 +348,9 @@ export type EvidenceLocator =
 export type Proposal = {
   [k: string]: unknown | undefined;
 } & {
-  id: OpaqueId;
+  id: AllocatedId;
   documentUri: DocumentUri;
-  baseRevisionId: OpaqueId;
+  baseRevisionId: AllocatedId;
   proposalRevision: number;
   actor: ActorRef;
   status: ProposalStatus;
@@ -410,11 +444,11 @@ export type ReplaceBlockContentEdit = {
   [k: string]: unknown | undefined;
 } & {
   kind: 'replace-block-content';
-  targetNodeId: OpaqueId;
+  targetNodeId: AllocatedId;
   expectedContentHash: ContentHash;
   replacement: ProposedInlineContent[];
   preserveCitations: 'all' | 'none' | 'explicit';
-  explicitCitationIds?: OpaqueId[];
+  explicitCitationIds?: AllocatedId[];
   rationale: string;
 };
 /**
@@ -441,7 +475,7 @@ export type ProposalValidationSnapshot = {
   [k: string]: unknown | undefined;
 } & {
   status: 'not-run' | 'validating' | 'valid' | 'warning' | 'invalid' | 'conflicted';
-  basedOnRevisionId: OpaqueId;
+  basedOnRevisionId: AllocatedId;
   basedOnProposalRevision: number;
   diagnostics: Diagnostic[];
   validatedAt?: Rfc3339Timestamp;
@@ -454,10 +488,11 @@ export type SemanticDiff = {
   [k: string]: unknown | undefined;
 } & {
   id: OpaqueId;
+  algorithmVersion: 'nireco-semantic-diff-1';
   document: DocumentRef;
-  proposalId: OpaqueId;
+  proposalId: AllocatedId;
   proposalRevision: number;
-  generatedAgainstRevisionId: OpaqueId;
+  generatedAgainstRevisionId: AllocatedId;
   groups: ProposalChangeGroup[];
   summary: SemanticDiffSummary;
   diagnostics: Diagnostic[];
@@ -539,9 +574,9 @@ export type Operation =
 export type ReplaceTextOperation = {
   [k: string]: unknown | undefined;
 } & {
-  id: OpaqueId;
+  id: AllocatedId;
   type: 'replace-text';
-  textNodeId: OpaqueId;
+  textNodeId: AllocatedId;
   startUtf16Offset: Utf16Offset;
   endUtf16Offset: Utf16Offset;
   replacement: string;
@@ -585,7 +620,7 @@ export type TransactionMetadata = {
 } & {
   source: 'human-input' | 'command' | 'import' | 'migration' | 'validator-fix' | 'proposal-accept';
   undoGroupId?: OpaqueId;
-  proposalId?: OpaqueId;
+  proposalId?: AllocatedId;
   proposalRevision?: number;
   cometTaskId?: OpaqueId;
   toolInvocationIds?: OpaqueId[];
@@ -610,7 +645,7 @@ export interface IntegrationTrace {
   document: DocumentRef;
   scenario: string;
   status: 'ok' | 'error';
-  sessionId?: OpaqueId;
+  sessionId?: AllocatedId;
   capabilityGrantId?: OpaqueId;
   proposal?: TraceProposalRef;
   /**
@@ -624,15 +659,63 @@ export interface IntegrationTrace {
  */
 export interface DocumentRef {
   uri: DocumentUri;
-  revisionId: OpaqueId;
+  revisionId: AllocatedId;
 }
 /**
  * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
  * via the `definition` "TraceProposalRef".
  */
 export interface TraceProposalRef {
-  proposalId: OpaqueId;
+  proposalId: AllocatedId;
   proposalRevision: number;
+}
+/**
+ * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
+ * via the `definition` "HashConformanceVector".
+ */
+export interface HashConformanceVector {
+  name: string;
+  domain: HashDomain;
+  payloadSchemaId: string;
+  payload: JsonValue;
+  canonicalJson: string;
+  preimageUtf8Hex: string;
+  expectedHash: ContentHash;
+}
+/**
+ * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
+ * via the `definition` "JsonObject".
+ */
+export interface JsonObject {
+  [k: string]: JsonValue;
+}
+/**
+ * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
+ * via the `definition` "HashConformanceVectorSet".
+ */
+export interface HashConformanceVectorSet {
+  profile: 'nireco-hash-preimage-1';
+  preimageFormula: 'UTF8(NIRECO\\0HASH\\0V1\\0 + domain + \\0 + canonicalJson(payload))';
+  /**
+   * @minItems 1
+   */
+  vectors: [HashConformanceVector, ...HashConformanceVector[]];
+}
+/**
+ * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
+ * via the `definition` "GovernanceManifestHashPayload".
+ */
+export interface GovernanceManifestHashPayload {
+  engineeringStandardVersion: string;
+  files: GovernanceManifestFileHash[];
+}
+/**
+ * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
+ * via the `definition` "GovernanceManifestFileHash".
+ */
+export interface GovernanceManifestFileHash {
+  path: string;
+  rawSha256: ContentHash;
 }
 /**
  * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
@@ -671,13 +754,6 @@ export interface SystemActorRef {
 }
 /**
  * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
- * via the `definition` "JsonObject".
- */
-export interface JsonObject {
-  [k: string]: JsonValue;
-}
-/**
- * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
  * via the `definition` "Diagnostic".
  */
 export interface Diagnostic {
@@ -687,7 +763,7 @@ export interface Diagnostic {
   code: string;
   message: string;
   target?: SemanticTargetRef;
-  basedOnRevisionId: OpaqueId;
+  basedOnRevisionId: AllocatedId;
   stale: boolean;
   related?: DiagnosticRelatedInformation[];
   suggestedFix?: ProposedFix;
@@ -699,7 +775,7 @@ export interface Diagnostic {
 export interface NodeTargetRef {
   kind: 'node';
   document: DocumentRef;
-  nodeId: OpaqueId;
+  nodeId: AllocatedId;
 }
 /**
  * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
@@ -708,7 +784,7 @@ export interface NodeTargetRef {
 export interface EntityTargetRef {
   kind: 'academic-entity';
   document: DocumentRef;
-  entityId: OpaqueId;
+  entityId: AllocatedId;
 }
 /**
  * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
@@ -726,7 +802,7 @@ export interface RangeTargetRef {
  */
 export interface TextPosition {
   kind: 'text';
-  textNodeId: OpaqueId;
+  textNodeId: AllocatedId;
   utf16Offset: Utf16Offset;
   affinity: Affinity;
 }
@@ -736,7 +812,7 @@ export interface TextPosition {
  */
 export interface NodeBoundaryPosition {
   kind: 'node-boundary';
-  parentNodeId: OpaqueId;
+  parentNodeId: AllocatedId;
   childIndex: number;
   affinity: Affinity;
 }
@@ -783,8 +859,8 @@ export interface NirecoError {
     | 'internal';
   retryable: boolean;
   safeMessage: string;
-  debugId: OpaqueId;
-  currentRevisionId?: OpaqueId;
+  debugId: AllocatedId;
+  currentRevisionId?: AllocatedId;
   requiredCapability?: string;
   conflictingTargets?: SemanticTargetRef[];
   suggestedAction: 'retry' | 'reread' | 'rebase' | 'request-permission' | 'user-review' | 'abort';
@@ -846,8 +922,8 @@ export interface ContractLimits {
  * via the `definition` "CometDocumentScope".
  */
 export interface CometDocumentScope {
-  allowedSectionIds?: OpaqueId[];
-  allowedNodeIds?: OpaqueId[];
+  allowedSectionIds?: AllocatedId[];
+  allowedNodeIds?: AllocatedId[];
   allowReadOutsideScopeForContext?: boolean;
   maxContextDistance?: number;
 }
@@ -888,7 +964,7 @@ export interface OpenCometSessionRequest {
  */
 export interface OpenCometSessionResult {
   contractVersion: '0.4-preview.1';
-  sessionId: OpaqueId;
+  sessionId: AllocatedId;
   target: DocumentRef;
   grantedCapabilities: IntegrationCapability[];
   scope: CometDocumentScope;
@@ -902,7 +978,7 @@ export interface OpenCometSessionResult {
  * via the `definition` "GetSnapshotRequest".
  */
 export interface GetSnapshotRequest {
-  sessionId: OpaqueId;
+  sessionId: AllocatedId;
   document: DocumentRef;
 }
 /**
@@ -922,7 +998,7 @@ export interface DocumentSnapshot {
   formatVersion: '1.0.0-preview.1';
   schemaId: 'nireco.manuscript';
   schemaVersion: '1.0.0-preview.1';
-  revisionId: OpaqueId;
+  revisionId: AllocatedId;
   documentHash: ContentHash;
   metadata: ManuscriptMetadata;
   root: ManuscriptNode;
@@ -950,7 +1026,7 @@ export interface ManuscriptMetadata {
  * via the `definition` "ManuscriptAuthor".
  */
 export interface ManuscriptAuthor {
-  id?: OpaqueId;
+  id?: AllocatedId;
   name: string;
   given?: string;
   family?: string;
@@ -962,7 +1038,7 @@ export interface ManuscriptAuthor {
  * via the `definition` "ManuscriptNode".
  */
 export interface ManuscriptNode {
-  id: OpaqueId;
+  id: AllocatedId;
   type: 'manuscript';
   attrs: EmptyAttributes;
   children:
@@ -981,7 +1057,7 @@ export interface EmptyAttributes {}
  * via the `definition` "BodyNode".
  */
 export interface BodyNode {
-  id: OpaqueId;
+  id: AllocatedId;
   type: 'body';
   attrs: EmptyAttributes;
   /**
@@ -994,7 +1070,7 @@ export interface BodyNode {
  * via the `definition` "SectionNode".
  */
 export interface SectionNode {
-  id: OpaqueId;
+  id: AllocatedId;
   type: 'section';
   attrs: {
     level: number;
@@ -1011,7 +1087,7 @@ export interface SectionNode {
  * via the `definition` "HeadingNode".
  */
 export interface HeadingNode {
-  id: OpaqueId;
+  id: AllocatedId;
   type: 'heading';
   attrs: {
     level: number;
@@ -1023,7 +1099,7 @@ export interface HeadingNode {
  * via the `definition` "TextNode".
  */
 export interface TextNode {
-  id: OpaqueId;
+  id: AllocatedId;
   type: 'text';
   value: string;
   marks: Mark[];
@@ -1049,11 +1125,11 @@ export interface LinkMark {
  * via the `definition` "CitationNode".
  */
 export interface CitationNode {
-  id: OpaqueId;
+  id: AllocatedId;
   type: 'citation';
   attrs: {
-    citationId: OpaqueId;
-    referenceId: OpaqueId;
+    citationId: AllocatedId;
+    referenceId: AllocatedId;
     locator?: CitationLocator;
     prefix?: string;
     suffix?: string;
@@ -1072,10 +1148,10 @@ export interface CitationLocator {
  * via the `definition` "CrossReferenceNode".
  */
 export interface CrossReferenceNode {
-  id: OpaqueId;
+  id: AllocatedId;
   type: 'crossReference';
   attrs: {
-    targetEntityId: OpaqueId;
+    targetEntityId: AllocatedId;
     label?: string;
   };
 }
@@ -1084,7 +1160,7 @@ export interface CrossReferenceNode {
  * via the `definition` "InlineEquationNode".
  */
 export interface InlineEquationNode {
-  id: OpaqueId;
+  id: AllocatedId;
   type: 'inlineEquation';
   attrs: {
     source: string;
@@ -1095,10 +1171,10 @@ export interface InlineEquationNode {
  * via the `definition` "FootnoteReferenceNode".
  */
 export interface FootnoteReferenceNode {
-  id: OpaqueId;
+  id: AllocatedId;
   type: 'footnoteReference';
   attrs: {
-    footnoteNodeId: OpaqueId;
+    footnoteNodeId: AllocatedId;
   };
 }
 /**
@@ -1106,7 +1182,7 @@ export interface FootnoteReferenceNode {
  * via the `definition` "HardBreakNode".
  */
 export interface HardBreakNode {
-  id: OpaqueId;
+  id: AllocatedId;
   type: 'hardBreak';
   attrs: EmptyAttributes;
 }
@@ -1115,7 +1191,7 @@ export interface HardBreakNode {
  * via the `definition` "ParagraphNode".
  */
 export interface ParagraphNode {
-  id: OpaqueId;
+  id: AllocatedId;
   type: 'paragraph';
   attrs: {
     alignment: 'start' | 'center' | 'end' | 'justify';
@@ -1127,10 +1203,10 @@ export interface ParagraphNode {
  * via the `definition` "FigureNode".
  */
 export interface FigureNode {
-  id: OpaqueId;
+  id: AllocatedId;
   type: 'figure';
   attrs: {
-    entityId?: OpaqueId;
+    entityId?: AllocatedId;
     label?: string;
   };
   children: [FigureAssetNode] | [FigureAssetNode, FigureCaptionNode];
@@ -1140,7 +1216,7 @@ export interface FigureNode {
  * via the `definition` "FigureAssetNode".
  */
 export interface FigureAssetNode {
-  id: OpaqueId;
+  id: AllocatedId;
   type: 'figureAsset';
   attrs: {
     uri: ResourceUri;
@@ -1153,7 +1229,7 @@ export interface FigureAssetNode {
  * via the `definition` "FigureCaptionNode".
  */
 export interface FigureCaptionNode {
-  id: OpaqueId;
+  id: AllocatedId;
   type: 'figureCaption';
   attrs: EmptyAttributes;
   children: InlineNode[];
@@ -1163,10 +1239,10 @@ export interface FigureCaptionNode {
  * via the `definition` "TableNode".
  */
 export interface TableNode {
-  id: OpaqueId;
+  id: AllocatedId;
   type: 'table';
   attrs: {
-    entityId?: OpaqueId;
+    entityId?: AllocatedId;
     label?: string;
   };
   /**
@@ -1183,7 +1259,7 @@ export interface TableNode {
  * via the `definition` "TableCaptionNode".
  */
 export interface TableCaptionNode {
-  id: OpaqueId;
+  id: AllocatedId;
   type: 'tableCaption';
   attrs: EmptyAttributes;
   children: InlineNode[];
@@ -1193,7 +1269,7 @@ export interface TableCaptionNode {
  * via the `definition` "TableRowNode".
  */
 export interface TableRowNode {
-  id: OpaqueId;
+  id: AllocatedId;
   type: 'tableRow';
   attrs: EmptyAttributes;
   /**
@@ -1206,7 +1282,7 @@ export interface TableRowNode {
  * via the `definition` "TableCellNode".
  */
 export interface TableCellNode {
-  id: OpaqueId;
+  id: AllocatedId;
   type: 'tableCell';
   attrs: EmptyAttributes;
   /**
@@ -1219,7 +1295,7 @@ export interface TableCellNode {
  * via the `definition` "BlockQuoteNode".
  */
 export interface BlockQuoteNode {
-  id: OpaqueId;
+  id: AllocatedId;
   type: 'blockQuote';
   attrs: EmptyAttributes;
   /**
@@ -1232,7 +1308,7 @@ export interface BlockQuoteNode {
  * via the `definition` "CodeBlockNode".
  */
 export interface CodeBlockNode {
-  id: OpaqueId;
+  id: AllocatedId;
   type: 'codeBlock';
   attrs: {
     language?: string;
@@ -1247,7 +1323,7 @@ export interface CodeBlockNode {
  * via the `definition` "ListNode".
  */
 export interface ListNode {
-  id: OpaqueId;
+  id: AllocatedId;
   type: 'list';
   attrs: {
     [k: string]: unknown | undefined;
@@ -1262,7 +1338,7 @@ export interface ListNode {
  * via the `definition` "ListItemNode".
  */
 export interface ListItemNode {
-  id: OpaqueId;
+  id: AllocatedId;
   type: 'listItem';
   attrs: EmptyAttributes;
   /**
@@ -1277,12 +1353,12 @@ export interface ListItemNode {
  * via the `definition` "DisplayEquationNode".
  */
 export interface DisplayEquationNode {
-  id: OpaqueId;
+  id: AllocatedId;
   type: 'displayEquation';
   attrs: {
     source: string;
     label?: string;
-    entityId?: OpaqueId;
+    entityId?: AllocatedId;
   };
 }
 /**
@@ -1290,7 +1366,7 @@ export interface DisplayEquationNode {
  * via the `definition` "HorizontalRuleNode".
  */
 export interface HorizontalRuleNode {
-  id: OpaqueId;
+  id: AllocatedId;
   type: 'horizontalRule';
   attrs: EmptyAttributes;
 }
@@ -1299,7 +1375,7 @@ export interface HorizontalRuleNode {
  * via the `definition` "FootnoteNode".
  */
 export interface FootnoteNode {
-  id: OpaqueId;
+  id: AllocatedId;
   type: 'footnote';
   attrs: {
     label?: string;
@@ -1314,7 +1390,7 @@ export interface FootnoteNode {
  * via the `definition` "FrontMatterNode".
  */
 export interface FrontMatterNode {
-  id: OpaqueId;
+  id: AllocatedId;
   type: 'frontMatter';
   attrs: EmptyAttributes;
   /**
@@ -1329,7 +1405,7 @@ export interface FrontMatterNode {
  * via the `definition` "BibliographyPlaceholderNode".
  */
 export interface BibliographyPlaceholderNode {
-  id: OpaqueId;
+  id: AllocatedId;
   type: 'bibliographyPlaceholder';
   attrs: {
     heading: string;
@@ -1350,7 +1426,7 @@ export interface AcademicGraphSnapshot {
  * via the `definition` "ReferenceSnapshot".
  */
 export interface ReferenceSnapshot {
-  id: OpaqueId;
+  id: AllocatedId;
   externalUri?: ResourceUri;
   /**
    * Intentional open exception: CSL-JSON is an externally governed map and is preserved as canonical JSON.
@@ -1367,7 +1443,7 @@ export interface ReferenceSnapshot {
  * via the `definition` "EvidenceLink".
  */
 export interface EvidenceLink {
-  id: OpaqueId;
+  id: AllocatedId;
   uri: CometResourceUri;
   sourceUri: ResourceUri;
   sourceContentHash: ContentHash;
@@ -1427,7 +1503,7 @@ export interface RecordEvidenceLocator {
  * via the `definition` "ClaimEntity".
  */
 export interface ClaimEntity {
-  id: OpaqueId;
+  id: AllocatedId;
   anchor: PersistentAnchor;
   textSnapshot: string;
   textHash: ContentHash;
@@ -1439,9 +1515,9 @@ export interface ClaimEntity {
 export interface PersistentAnchor {
   document: DocumentRef;
   primary: SemanticPosition;
-  targetNodeId?: OpaqueId;
+  targetNodeId?: AllocatedId;
   textQuote?: TextQuote;
-  pathHint?: OpaqueId[];
+  pathHint?: AllocatedId[];
 }
 /**
  * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
@@ -1458,8 +1534,8 @@ export interface TextQuote {
  * via the `definition` "ClaimEvidenceRelation".
  */
 export interface ClaimEvidenceRelation {
-  claimId: OpaqueId;
-  evidenceId: OpaqueId;
+  claimId: AllocatedId;
+  evidenceId: AllocatedId;
   relation: 'supports' | 'partially-supports' | 'contradicts' | 'context-only' | 'unclear';
   assessedBy: ActorRef;
   confidence?: number;
@@ -1479,7 +1555,7 @@ export interface DocumentSemanticSettings {
  * via the `definition` "CreateProposalRequest".
  */
 export interface CreateProposalRequest {
-  sessionId: OpaqueId;
+  sessionId: AllocatedId;
   target: DocumentRef;
   idempotencyKey: string;
 }
@@ -1507,9 +1583,9 @@ export interface InsertBlockEdit {
  * via the `definition` "InsertionTarget".
  */
 export interface InsertionTarget {
-  parentNodeId: OpaqueId;
-  afterNodeId?: OpaqueId;
-  beforeNodeId?: OpaqueId;
+  parentNodeId: AllocatedId;
+  afterNodeId?: AllocatedId;
+  beforeNodeId?: AllocatedId;
 }
 /**
  * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
@@ -1560,7 +1636,7 @@ export interface ProposedInlineEquation {
 export interface ProposedCrossReference {
   clientRef: ClientRef;
   type: 'crossReference';
-  targetEntityId: OpaqueId;
+  targetEntityId: AllocatedId;
   label?: string;
 }
 /**
@@ -1584,7 +1660,7 @@ export interface ProposedStructuredBlock {
  */
 export interface NodeExistsPrecondition {
   kind: 'node-exists';
-  nodeId: OpaqueId;
+  nodeId: AllocatedId;
 }
 /**
  * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
@@ -1592,7 +1668,7 @@ export interface NodeExistsPrecondition {
  */
 export interface NodeHashPrecondition {
   kind: 'node-hash';
-  nodeId: OpaqueId;
+  nodeId: AllocatedId;
   expected: ContentHash;
 }
 /**
@@ -1601,7 +1677,7 @@ export interface NodeHashPrecondition {
  */
 export interface EntityExistsPrecondition {
   kind: 'entity-exists';
-  entityId: OpaqueId;
+  entityId: AllocatedId;
 }
 /**
  * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
@@ -1625,7 +1701,7 @@ export interface DocumentHashPrecondition {
  */
 export interface MoveBlockEdit {
   kind: 'move-block';
-  targetNodeId: OpaqueId;
+  targetNodeId: AllocatedId;
   target: InsertionTarget;
   rationale: string;
   preconditions?: SemanticPrecondition[];
@@ -1636,7 +1712,7 @@ export interface MoveBlockEdit {
  */
 export interface DeleteBlockEdit {
   kind: 'delete-block';
-  targetNodeId: OpaqueId;
+  targetNodeId: AllocatedId;
   expectedContentHash: ContentHash;
   rationale: string;
 }
@@ -1648,9 +1724,9 @@ export interface InsertCitationEdit {
   kind: 'insert-citation';
   clientRef: ClientRef;
   target: SemanticPosition;
-  claimId?: OpaqueId;
-  referenceId: OpaqueId;
-  evidenceIds: OpaqueId[];
+  claimId?: AllocatedId;
+  referenceId: AllocatedId;
+  evidenceIds: AllocatedId[];
   relation: CitationRelation;
   locator?: CitationLocator;
   prefix?: string;
@@ -1663,10 +1739,10 @@ export interface InsertCitationEdit {
  */
 export interface ReplaceCitationEdit {
   kind: 'replace-citation';
-  targetCitationNodeId: OpaqueId;
-  expectedReferenceId: OpaqueId;
-  referenceId: OpaqueId;
-  evidenceIds: OpaqueId[];
+  targetCitationNodeId: AllocatedId;
+  expectedReferenceId: AllocatedId;
+  referenceId: AllocatedId;
+  evidenceIds: AllocatedId[];
   relation: CitationRelation;
   locator?: CitationLocator;
   prefix?: string;
@@ -1691,8 +1767,8 @@ export interface CreateClaimEdit {
  */
 export interface LinkClaimEvidenceEdit {
   kind: 'link-claim-evidence';
-  claimId: OpaqueId;
-  evidenceId: OpaqueId;
+  claimId: AllocatedId;
+  evidenceId: AllocatedId;
   relation: 'supports' | 'partially-supports' | 'contradicts' | 'context-only' | 'unclear';
   assessedBy: ActorRef;
   confidence?: number;
@@ -1745,7 +1821,7 @@ export interface MetadataPatch {
  * via the `definition` "ProposalChangeGroup".
  */
 export interface ProposalChangeGroup {
-  id: OpaqueId;
+  id: DerivedId;
   kind: ProposalChangeGroupKind;
   /**
    * @minItems 1
@@ -1754,8 +1830,8 @@ export interface ProposalChangeGroup {
   /**
    * @minItems 1
    */
-  operationIds: [OpaqueId, ...OpaqueId[]];
-  dependsOn: OpaqueId[];
+  operationIds: [AllocatedId, ...AllocatedId[]];
+  dependsOn: DerivedId[];
   before?: DocumentFragment;
   after?: DocumentFragment;
   citationChanges: CitationChange[];
@@ -1785,10 +1861,10 @@ export interface InlineDocumentFragment {
  */
 export interface CitationChange {
   kind: 'added' | 'removed' | 'replaced';
-  citationNodeId?: OpaqueId;
-  beforeReferenceId?: OpaqueId;
-  afterReferenceId?: OpaqueId;
-  evidenceIds?: OpaqueId[];
+  citationNodeId?: AllocatedId;
+  beforeReferenceId?: AllocatedId;
+  afterReferenceId?: AllocatedId;
+  evidenceIds?: AllocatedId[];
 }
 /**
  * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
@@ -1796,8 +1872,8 @@ export interface CitationChange {
  */
 export interface EvidenceChange {
   kind: 'added' | 'removed' | 'verification-changed' | 'relation-changed' | 'stale';
-  evidenceId: OpaqueId;
-  claimId?: OpaqueId;
+  evidenceId: AllocatedId;
+  claimId?: AllocatedId;
   beforeStatus?: 'verified' | 'provisional' | 'metadata-only' | 'stale' | 'rejected';
   afterStatus?: 'verified' | 'provisional' | 'metadata-only' | 'stale' | 'rejected';
 }
@@ -1821,8 +1897,8 @@ export interface SemanticDiffSummary {
  * via the `definition` "SupersededGroupMapping".
  */
 export interface SupersededGroupMapping {
-  previousGroupId: OpaqueId;
-  currentGroupIds: OpaqueId[];
+  previousGroupId: DerivedId;
+  currentGroupIds: DerivedId[];
 }
 /**
  * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
@@ -1831,7 +1907,7 @@ export interface SupersededGroupMapping {
 export interface ProposalProvenance {
   taskId: OpaqueId;
   traceId: OpaqueId;
-  sessionId: OpaqueId;
+  sessionId: AllocatedId;
   capabilityGrantId: OpaqueId;
   workflowId: string;
   modelRef?: string;
@@ -1843,7 +1919,7 @@ export interface ProposalProvenance {
  * via the `definition` "StageSemanticEditsRequest".
  */
 export interface StageSemanticEditsRequest {
-  sessionId: OpaqueId;
+  sessionId: AllocatedId;
   proposal: ProposalRef;
   /**
    * @minItems 1
@@ -1856,7 +1932,7 @@ export interface StageSemanticEditsRequest {
  * via the `definition` "ProposalRef".
  */
 export interface ProposalRef {
-  proposalId: OpaqueId;
+  proposalId: AllocatedId;
   expectedProposalRevision: number;
 }
 /**
@@ -1868,12 +1944,24 @@ export interface StageSemanticEditsResult {
 }
 /**
  * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
+ * via the `definition` "DocumentHashPayload".
+ */
+export interface DocumentHashPayload {
+  schemaId: 'nireco.manuscript';
+  schemaVersion: '1.0.0-preview.1';
+  metadata: ManuscriptMetadata;
+  root: ManuscriptNode;
+  academicGraph: AcademicGraphSnapshot;
+  settings: DocumentSemanticSettings;
+}
+/**
+ * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
  * via the `definition` "InsertNodeOperation".
  */
 export interface InsertNodeOperation {
-  id: OpaqueId;
+  id: AllocatedId;
   type: 'insert-node';
-  parentNodeId: OpaqueId;
+  parentNodeId: AllocatedId;
   childIndex: number;
   node: InsertableNode;
 }
@@ -1882,9 +1970,9 @@ export interface InsertNodeOperation {
  * via the `definition` "DeleteNodeOperation".
  */
 export interface DeleteNodeOperation {
-  id: OpaqueId;
+  id: AllocatedId;
   type: 'delete-node';
-  targetNodeId: OpaqueId;
+  targetNodeId: AllocatedId;
   expectedNodeHash: ContentHash;
 }
 /**
@@ -1892,10 +1980,10 @@ export interface DeleteNodeOperation {
  * via the `definition` "MoveNodeOperation".
  */
 export interface MoveNodeOperation {
-  id: OpaqueId;
+  id: AllocatedId;
   type: 'move-node';
-  targetNodeId: OpaqueId;
-  newParentNodeId: OpaqueId;
+  targetNodeId: AllocatedId;
+  newParentNodeId: AllocatedId;
   childIndex: number;
 }
 /**
@@ -1903,9 +1991,9 @@ export interface MoveNodeOperation {
  * via the `definition` "SetNodeAttributesOperation".
  */
 export interface SetNodeAttributesOperation {
-  id: OpaqueId;
+  id: AllocatedId;
   type: 'set-node-attributes';
-  nodeId: OpaqueId;
+  nodeId: AllocatedId;
   /**
    * Intentional open exception at the typed operation boundary; the target node schema validates the resulting attributes.
    */
@@ -1918,9 +2006,9 @@ export interface SetNodeAttributesOperation {
  * via the `definition` "AddMarkOperation".
  */
 export interface AddMarkOperation {
-  id: OpaqueId;
+  id: AllocatedId;
   type: 'add-mark';
-  textNodeId: OpaqueId;
+  textNodeId: AllocatedId;
   startUtf16Offset: Utf16Offset;
   endUtf16Offset: Utf16Offset;
   mark: Mark;
@@ -1930,9 +2018,9 @@ export interface AddMarkOperation {
  * via the `definition` "RemoveMarkOperation".
  */
 export interface RemoveMarkOperation {
-  id: OpaqueId;
+  id: AllocatedId;
   type: 'remove-mark';
-  textNodeId: OpaqueId;
+  textNodeId: AllocatedId;
   startUtf16Offset: Utf16Offset;
   endUtf16Offset: Utf16Offset;
   mark: Mark;
@@ -1942,7 +2030,7 @@ export interface RemoveMarkOperation {
  * via the `definition` "CreateAcademicEntityOperation".
  */
 export interface CreateAcademicEntityOperation {
-  id: OpaqueId;
+  id: AllocatedId;
   type: 'create-academic-entity';
   entity: AcademicEntity;
 }
@@ -1951,9 +2039,9 @@ export interface CreateAcademicEntityOperation {
  * via the `definition` "UpdateAcademicEntityOperation".
  */
 export interface UpdateAcademicEntityOperation {
-  id: OpaqueId;
+  id: AllocatedId;
   type: 'update-academic-entity';
-  entityId: OpaqueId;
+  entityId: AllocatedId;
   /**
    * @minItems 1
    */
@@ -1972,9 +2060,9 @@ export interface EntityPatch {
  * via the `definition` "DeleteAcademicEntityOperation".
  */
 export interface DeleteAcademicEntityOperation {
-  id: OpaqueId;
+  id: AllocatedId;
   type: 'delete-academic-entity';
-  entityId: OpaqueId;
+  entityId: AllocatedId;
   expectedEntityHash: ContentHash;
 }
 /**
@@ -1982,10 +2070,10 @@ export interface DeleteAcademicEntityOperation {
  * via the `definition` "LinkAcademicEntitiesOperation".
  */
 export interface LinkAcademicEntitiesOperation {
-  id: OpaqueId;
+  id: AllocatedId;
   type: 'link-academic-entities';
-  fromEntityId: OpaqueId;
-  toEntityId: OpaqueId;
+  fromEntityId: AllocatedId;
+  toEntityId: AllocatedId;
   relation: AcademicRelationKind;
 }
 /**
@@ -1993,10 +2081,10 @@ export interface LinkAcademicEntitiesOperation {
  * via the `definition` "UnlinkAcademicEntitiesOperation".
  */
 export interface UnlinkAcademicEntitiesOperation {
-  id: OpaqueId;
+  id: AllocatedId;
   type: 'unlink-academic-entities';
-  fromEntityId: OpaqueId;
-  toEntityId: OpaqueId;
+  fromEntityId: AllocatedId;
+  toEntityId: AllocatedId;
   relation: AcademicRelationKind;
 }
 /**
@@ -2013,7 +2101,7 @@ export interface SemanticRange {
  */
 export interface NodeRef {
   document: DocumentRef;
-  nodeId: OpaqueId;
+  nodeId: AllocatedId;
 }
 /**
  * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
@@ -2021,7 +2109,7 @@ export interface NodeRef {
  */
 export interface AcademicEntityRef {
   document: DocumentRef;
-  entityId: OpaqueId;
+  entityId: AllocatedId;
 }
 /**
  * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
@@ -2045,14 +2133,34 @@ export interface ResourceRef {
  */
 export interface MutableDocumentTarget {
   uri: DocumentUri;
-  baseRevisionId: OpaqueId;
+  baseRevisionId: AllocatedId;
+}
+/**
+ * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
+ * via the `definition` "ProposalChangeGroupIdentityPayload".
+ */
+export interface ProposalChangeGroupIdentityPayload {
+  algorithmVersion: 'nireco-semantic-diff-1';
+  documentUri: DocumentUri;
+  generatedAgainstRevisionId: AllocatedId;
+  proposalId: AllocatedId;
+  proposalRevision: number;
+  kind: ProposalChangeGroupKind;
+  /**
+   * @minItems 1
+   */
+  targetRefs: [SemanticTargetRef, ...SemanticTargetRef[]];
+  /**
+   * @minItems 1
+   */
+  operationIds: [AllocatedId, ...AllocatedId[]];
 }
 /**
  * This interface was referenced by `TraceSchemaTypes`'s JSON-Schema
  * via the `definition` "Transaction".
  */
 export interface Transaction {
-  id: OpaqueId;
+  id: AllocatedId;
   target: MutableDocumentTarget;
   actor: ActorRef;
   intent?: string;

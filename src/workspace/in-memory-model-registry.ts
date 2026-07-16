@@ -2,6 +2,7 @@ import type { NirecoError, NirecoErrorCode, Result } from '../base/errors/nireco
 import { deepFreeze } from '../base/immutability/deep-freeze.js';
 import type { RevisionId } from '../base/ids/identifiers.js';
 import { canonicalizeResourceUri, type ResourceUri } from '../base/uri/resource-uri.js';
+import type { DurabilityLevel } from '../model/revision/revision.js';
 import type { DocumentSnapshot } from '../model/snapshot.js';
 import type { IIdAllocator } from './id-allocator.js';
 import type {
@@ -11,6 +12,7 @@ import type {
   ResolveModelResult,
 } from './model-registry.js';
 import type { CreateModelOptions, INirecoModel } from './model.js';
+import type { DurabilityAcknowledgement } from './contracts.js';
 
 export interface InMemoryModelRegistryOptions {
   readonly ids: IIdAllocator;
@@ -259,6 +261,34 @@ class InMemoryNirecoModel implements INirecoModel {
       type: 'ok',
       value: this.#snapshot,
     };
+  }
+
+  getDurability(revisionId: RevisionId): Result<DurabilityLevel> {
+    const snapshot = this.getSnapshot(revisionId);
+    return snapshot.type === 'error'
+      ? snapshot
+      : {
+          type: 'ok',
+          value: 'snapshot',
+        };
+  }
+
+  async whenDurable(
+    revisionId: RevisionId,
+    target: DurabilityLevel,
+  ): Promise<Result<DurabilityAcknowledgement>> {
+    void target;
+    const durability = this.getDurability(revisionId);
+    return durability.type === 'error'
+      ? durability
+      : {
+          type: 'ok',
+          value: {
+            revisionId,
+            achievedDurability: durability.value,
+            authorityMode: 'read-only',
+          },
+        };
   }
 
   async dispose(): Promise<void> {

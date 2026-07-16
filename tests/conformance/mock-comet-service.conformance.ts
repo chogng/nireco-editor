@@ -22,11 +22,10 @@ import {
   createMinimalSnapshot,
   DeterministicIdAllocator,
   FixedClock,
+  MINIMAL_FIXTURE_IDS,
   validContentHash,
   validDocumentUri,
-  validEntityId,
   validIsoTimestamp,
-  validNodeId,
   validUtf16Offset,
 } from '../test-support/fixtures.js';
 
@@ -333,7 +332,7 @@ describe('Gate 0 mock Comet integration conformance', () => {
         semanticEdits: [
           {
             kind: 'delete-block',
-            targetNodeId: validNodeId('node-paragraph'),
+            targetNodeId: MINIMAL_FIXTURE_IDS.paragraph,
             expectedContentHash: validContentHash(
               'sha256:1111111111111111111111111111111111111111111111111111111111111111',
             ),
@@ -475,8 +474,8 @@ function createInsertBlockEdit(clientRef: string): SemanticEdit {
     kind: 'insert-block',
     clientRef: `edit-${clientRef}`,
     target: {
-      parentNodeId: validNodeId('node-body'),
-      afterNodeId: validNodeId('node-paragraph'),
+      parentNodeId: MINIMAL_FIXTURE_IDS.body,
+      afterNodeId: MINIMAL_FIXTURE_IDS.paragraph,
     },
     block: {
       clientRef,
@@ -503,11 +502,11 @@ function createInsertCitationEdit(): SemanticEdit {
     clientRef: 'citation-client-1',
     target: {
       kind: 'text',
-      textNodeId: validNodeId('node-text'),
+      textNodeId: MINIMAL_FIXTURE_IDS.text,
       utf16Offset: validUtf16Offset(0),
       affinity: 'after',
     },
-    referenceId: validEntityId('reference-1'),
+    referenceId: MINIMAL_FIXTURE_IDS.reference,
     evidenceIds: [],
     relation: 'context-only',
     rationale: 'Exercise capability enforcement.',

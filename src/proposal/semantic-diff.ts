@@ -1,6 +1,7 @@
 import type {
   EntityId,
   NodeId,
+  OperationId,
   ProposalChangeGroupId,
   ProposalId,
   RevisionId,
@@ -60,7 +61,7 @@ export interface ProposalChangeGroup {
     | 'change-claim-relation'
     | 'metadata';
   readonly targetRefs: readonly [SemanticTargetRef, ...SemanticTargetRef[]];
-  readonly operationIds: readonly [string, ...string[]];
+  readonly operationIds: readonly [OperationId, ...OperationId[]];
   readonly dependsOn: readonly ProposalChangeGroupId[];
   readonly before?: DocumentFragment;
   readonly after?: DocumentFragment;
@@ -72,6 +73,7 @@ export interface ProposalChangeGroup {
 
 export interface SemanticDiff {
   readonly id: string;
+  readonly algorithmVersion: typeof SEMANTIC_DIFF_ALGORITHM_VERSION;
   readonly document: DocumentRef;
   readonly proposalId: ProposalId;
   readonly proposalRevision: number;
@@ -84,6 +86,8 @@ export interface SemanticDiff {
     readonly currentGroupIds: readonly ProposalChangeGroupId[];
   }[];
 }
+
+export const SEMANTIC_DIFF_ALGORITHM_VERSION = 'nireco-semantic-diff-1';
 
 export type DependencyClosureResult =
   | {

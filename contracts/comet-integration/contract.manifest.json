@@ -6,11 +6,11 @@
   "normativeSources": {
     "spec": {
       "path": "../../NIRECO_AGENT_NATIVE_EDITOR_DEVELOPMENT_SPEC.md",
-      "version": "0.4.2"
+      "version": "0.4.3"
     },
     "roadmap": {
       "path": "../../NIRECO_COMET_ROADMAP.md",
-      "version": "0.1.1"
+      "version": "0.1.2"
     },
     "engineeringStandard": {
       "path": "../../NIRECO_COMET_ENGINEERING_CODING_STANDARD.md",
@@ -22,6 +22,7 @@
     "documentFormatVersion": "1.0.0-preview.1",
     "manuscriptSchemaVersion": "1.0.0-preview.1",
     "transactionProtocolVersion": "0.4-preview.1",
+    "durabilityProtocolVersion": "0.4-preview.1",
     "proposalProtocolVersion": "0.4-preview.1",
     "semanticEditProtocolVersion": "0.4-preview.1",
     "semanticDiffProtocolVersion": "0.4-preview.1",
@@ -43,14 +44,30 @@
     "objectKeyOrder": "unicode-code-point",
     "arrayOrder": "preserve",
     "unicodeNormalization": "none",
-    "omitUndefined": true,
+    "undefinedPolicy": "reject-before-hash-boundary",
     "finiteNumbersOnly": true,
-    "hashAlgorithm": "sha256"
+    "hashAlgorithm": "sha256",
+    "protocolPreimageProfile": "nireco-hash-preimage-1",
+    "protocolPreimageFormula": "UTF8(NIRECO\\0HASH\\0V1\\0 + domain + \\0 + canonicalJson(payload))",
+    "protocolDomains": [
+      "nireco.academic-entity.v1",
+      "nireco.document-content.v1",
+      "nireco.governance-manifest.v1",
+      "nireco.node.v1",
+      "nireco.proposal-change-group.v1",
+      "nireco.semantic-diff.v1",
+      "nireco.transaction.v1"
+    ]
   },
   "identity": {
-    "opaqueIds": true,
-    "idRepresentationFrozen": false,
-    "fixtureIdStyle": "readable-opaque-test-values",
+    "nirecoIdsOpaqueSemantics": true,
+    "idRepresentationFrozen": true,
+    "allocatedIdProfile": "canonical-lowercase-rfc9562-uuidv7",
+    "derivedIdProfile": "canonical-lowercase-rfc9562-uuidv8-from-domain-separated-sha256",
+    "operationIdProfile": "allocated-uuidv7",
+    "proposalChangeGroupIdProfile": "derived-uuidv8",
+    "previewReadableIdCompatibility": "explicit-test-helper-only; forbidden at production boundaries",
+    "fixtureIdStyle": "production-uuid-profile",
     "resourceUriWireProfile": {
       "characterSet": "ascii-visible",
       "unicodeEncoding": "utf8-percent-encoding",
@@ -217,25 +234,42 @@
       "name": "minimal-manuscript",
       "path": "fixtures/minimal-manuscript.json",
       "payloadSchemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/manuscript.schema.json",
-      "expectedCanonicalSha256": "sha256:f402fd9772e707d94103bcbe9be8ff883b57c09f54ccb5b1992de42a9189d9b4"
+      "expectedCanonicalSha256": "sha256:81486a15d4a6f2c7f214cb2c9eaea6bb0b0b6fe47c6885f168fd77b42d4748a2"
     },
     {
       "name": "minimal-transaction",
       "path": "fixtures/minimal-transaction.json",
       "payloadSchemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/transaction.schema.json",
-      "expectedCanonicalSha256": "sha256:5f2aecc2cb13175fda757a1c2dcf5ca000329f5f0d9c1867f75c6468431901b4"
+      "expectedCanonicalSha256": "sha256:41ab9dc428896bde1e7004bdeee77668d0f538702300380e102736ac13938cd2"
     },
     {
       "name": "minimal-proposal",
       "path": "fixtures/minimal-proposal.json",
       "payloadSchemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/proposal.schema.json",
-      "expectedCanonicalSha256": "sha256:326324dacc9499da9487e91c6811a53ff0cd3acac32c9613490e3d7111261a55"
+      "expectedCanonicalSha256": "sha256:eab71b575f5bd11b29429fc00c6b7dc18243dde97c489b28fcb72ccb17ca97a7"
     },
     {
       "name": "minimal-semantic-diff",
       "path": "fixtures/minimal-semantic-diff.json",
       "payloadSchemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/semantic-diff.schema.json",
-      "expectedCanonicalSha256": "sha256:5cfd4dd2e2857ed9a89fec6fae9342261a1e1841834b0bfb5a96ccde8c2da0e5"
+      "expectedCanonicalSha256": "sha256:d4f6f8181be88936e4ec8add29ac23840f8019771734c8f820c9af31e40517de"
+    }
+  ],
+  "hashConformanceVectors": {
+    "path": "fixtures/hash-preimages.json",
+    "schemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/common.schema.json#/$defs/HashConformanceVectorSet",
+    "command": "pnpm vitest run tests/conformance/hash-runtime.conformance.ts"
+  },
+  "recoveryFixtures": [
+    {
+      "name": "recovery-tail-truncation",
+      "path": "recovery-fixtures/recovery-tail-truncation.json",
+      "expectedOutcome": "truncate-incomplete-tail-and-replay-valid-prefix"
+    },
+    {
+      "name": "recovery-middle-corruption",
+      "path": "recovery-fixtures/recovery-middle-corruption.json",
+      "expectedOutcome": "recovery-required-without-silent-skip"
     }
   ],
   "sampleTraces": [
@@ -266,6 +300,59 @@
     "command": "pnpm contract:conformance",
     "documentationPath": "conformance-runner/README.md",
     "sourcePath": "../../tests/conformance"
+  },
+  "performanceEvidence": {
+    "blocker": "G0-B005",
+    "status": "closed",
+    "profileId": "nireco-g0-r1-2026-07-16",
+    "profilePath": "../../docs/performance/reference-profile.md",
+    "closureEvidencePath": "../../docs/performance/g0-b005-closure-evidence.md",
+    "closureEvidenceVersion": 1,
+    "verificationCommand": "pnpm check:performance-profile",
+    "corpora": {
+      "S": {
+        "words": 15000,
+        "documentNodes": 1500,
+        "citations": 100
+      },
+      "M": {
+        "words": 75000,
+        "documentNodes": 8000,
+        "citations": 500
+      },
+      "L": {
+        "words": 200000,
+        "documentNodes": 25000,
+        "citations": 1500
+      }
+    }
+  },
+  "independentConsumerEvidence": {
+    "decisionPath": "../../adr/019-contract-bundle-and-cross-repo-conformance.md",
+    "harnessPath": "comet-consumer/harness.mjs",
+    "generatedTypeConsumerPath": "comet-consumer/type-consumer.ts",
+    "evidenceReportPath": "comet-consumer/evidence-report.json",
+    "testPath": "../../tests/comet-consumer/public-contract.consumer.test.mjs",
+    "verificationCommand": "pnpm contract:consumer",
+    "packageExports": [
+      "@comet-internal/nireco-editor",
+      "@comet-internal/nireco-editor/protocol",
+      "@comet-internal/nireco-editor/comet-internal"
+    ],
+    "privateSourceImportsAllowed": false,
+    "validatedOperations": [
+      "integration.handshake",
+      "integration.open_session",
+      "document.get_snapshot",
+      "proposal.create",
+      "proposal.stage_semantic_edits"
+    ],
+    "noBypassAssertions": [
+      "document.raw-transaction",
+      "review.accept",
+      "review.commit",
+      "document.storage.write"
+    ]
   },
   "agentSafety": {
     "onlyWritePath": "semantic-edit-to-proposal",

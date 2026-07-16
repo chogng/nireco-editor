@@ -76,5 +76,7 @@ Manifest checksum 的 exact preimage/encoding 必须与通用 canonical hashing 
 
 ## Deferred decisions and blockers
 
-- **G0-B001 — Hash preimages** 也阻止 governance manifest 获得跨 runtime 的 canonical checksum；关闭前必须使用明确列出的 raw file checksums 作为补偿控制。
+- **G0-B001 — Hash preimages（Closed 2026-07-16）**：ADR-011 已冻结
+  governance manifest domain、payload 与跨 runtime canonical checksum；逐文件
+  raw SHA-256 继续作为 manifest 叶节点 checksum。
 - 共享配置以 package、生成文件或仓库模板分发可后续决定，但不得降低本 ADR 的 version/checksum 和 fail-closed 要求。

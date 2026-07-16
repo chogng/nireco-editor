@@ -6,12 +6,12 @@
   "canonicalizationProfile": "nireco-canonical-json-0.1",
   "hashAlgorithm": "sha256",
   "hashInput": "payload",
-  "expectedCanonicalSha256": "sha256:5f2aecc2cb13175fda757a1c2dcf5ca000329f5f0d9c1867f75c6468431901b4",
+  "expectedCanonicalSha256": "sha256:41ab9dc428896bde1e7004bdeee77668d0f538702300380e102736ac13938cd2",
   "payload": {
-    "id": "tx-0001",
+    "id": "018f0000-0000-7000-8000-000000000004",
     "target": {
       "uri": "nireco://workspace-01/document/DocCaseA",
-      "baseRevisionId": "rev-0001"
+      "baseRevisionId": "018f0000-0000-7000-8000-000000000001"
     },
     "actor": {
       "type": "human",
@@ -20,9 +20,9 @@
     "intent": "Append punctuation after an emoji using a UTF-16 offset.",
     "operations": [
       {
-        "id": "op-0001",
+        "id": "018f0000-0000-7000-8000-000000000005",
         "type": "replace-text",
-        "textNodeId": "text-0001",
+        "textNodeId": "018f0000-0000-7000-8000-000000000105",
         "startUtf16Offset": 8,
         "endUtf16Offset": 8,
         "replacement": "."
@@ -31,7 +31,7 @@
     "preconditions": [
       {
         "kind": "node-exists",
-        "nodeId": "text-0001"
+        "nodeId": "018f0000-0000-7000-8000-000000000105"
       },
       {
         "kind": "schema-version",
@@ -39,7 +39,7 @@
       },
       {
         "kind": "document-hash",
-        "expected": "sha256:c533e6231ea69ee996a58115af45cea798c788c6158559c30256c43b32b2f3e4"
+        "expected": "sha256:6789e729fc0211ad97a052f37b9a834ec4b32df5f666e796b20b07cd1c28f96c"
       }
     ],
     "metadata": {

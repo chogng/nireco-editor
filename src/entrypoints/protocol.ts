@@ -3,6 +3,7 @@ export type {
   ContentHash,
   EntityId,
   NodeId,
+  OperationId,
   ProposalChangeGroupId,
   ProposalId,
   RevisionId,
@@ -11,6 +12,30 @@ export type {
   Utf16Offset,
   WorkspaceId,
 } from '../base/ids/identifiers.js';
+export {
+  HASH_DOMAINS,
+  HASH_PREIMAGE_PROFILE,
+  createCanonicalHashPreimage,
+  hashCanonicalJson,
+} from '../base/hashing/hash-preimage.js';
+export { PortableSha256ContentHasher } from '../base/hashing/portable-sha-256.js';
+export {
+  parseDebugId,
+  parseEntityId,
+  parseNodeId,
+  parseOperationId,
+  parseProposalChangeGroupId,
+  parseProposalId,
+  parseRevisionId,
+  parseSessionId,
+  parseTransactionId,
+  parseWorkspaceId,
+} from '../base/ids/identifiers.js';
+export {
+  UuidV7AllocationError,
+  UuidV7IdAllocator,
+  createUuidV7,
+} from '../base/ids/uuid-v7-allocator.js';
 export type {
   CometResourceUri,
   DocumentUri,
@@ -48,6 +73,15 @@ export {
 } from '../model/snapshot.js';
 export type { Transaction, TransactionPrecondition } from '../model/transaction/transaction.js';
 export type { Proposal, ProposalRef, ProposalStatus } from '../proposal/proposal.js';
+export {
+  SEMANTIC_DIFF_ALGORITHM_VERSION,
+  computeProposalGroupDependencyClosure,
+} from '../proposal/semantic-diff.js';
 export type { ProposalChangeGroup, SemanticDiff } from '../proposal/semantic-diff.js';
+export {
+  canonicalizeProposalChangeGroupOrder,
+  deriveProposalChangeGroupId,
+  deriveSupersedesMappings,
+} from '../proposal/identity/change-group-identity.js';
 export type { SemanticEdit, SemanticEditKind } from '../proposal/semantic-edit.js';
 export { SEMANTIC_EDIT_KINDS } from '../proposal/semantic-edit.js';

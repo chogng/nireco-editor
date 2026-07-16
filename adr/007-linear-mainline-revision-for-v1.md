@@ -75,5 +75,8 @@ Revision Schema 只包含单 parent。History、Undo、replay、Proposal provena
 
 ## Deferred decisions and blockers
 
-- **G0-B002 — Durability failure semantics**：WAL record 边界/checksum、append+fsync acknowledgment、group commit、内存 commit 后 WAL 失败时的 retry/read-only/fatal 行为、`whenDurable` rejection 和 snapshot manifest 原子切换尚未形成完整 Contract 与 crash fixtures。该词汇已冻结，但不得据此宣称 Durability Gate 已通过。
+- **G0-B002 — Durability failure semantics（Closed 2026-07-16）**：由
+  [ADR-010](./010-single-document-authority.md) 冻结 WAL framing/checksum、
+  append+fsync acknowledgment、内存 commit 后的 fail-closed 行为、
+  `whenDurable()` rejection、Snapshot manifest 原子切换与 crash fixtures。
 - 多父 DAG、CRDT 和 retention policy 明确延后，不是 Gate 0 的实现承诺。

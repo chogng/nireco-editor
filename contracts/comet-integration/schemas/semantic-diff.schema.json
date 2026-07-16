@@ -5,11 +5,62 @@
   "description": "Deterministic proposal review groups bound to a document revision and proposal revision.",
   "$ref": "#/$defs/SemanticDiff",
   "$defs": {
+    "ProposalChangeGroupIdentityPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "algorithmVersion",
+        "documentUri",
+        "generatedAgainstRevisionId",
+        "proposalId",
+        "proposalRevision",
+        "kind",
+        "targetRefs",
+        "operationIds"
+      ],
+      "properties": {
+        "algorithmVersion": {
+          "const": "nireco-semantic-diff-1"
+        },
+        "documentUri": {
+          "$ref": "resource-ref.schema.json#/$defs/DocumentUri"
+        },
+        "generatedAgainstRevisionId": {
+          "$ref": "common.schema.json#/$defs/RevisionId"
+        },
+        "proposalId": {
+          "$ref": "common.schema.json#/$defs/ProposalId"
+        },
+        "proposalRevision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "kind": {
+          "$ref": "#/$defs/ProposalChangeGroupKind"
+        },
+        "targetRefs": {
+          "type": "array",
+          "items": {
+            "$ref": "position-anchor.schema.json#/$defs/SemanticTargetRef"
+          },
+          "minItems": 1
+        },
+        "operationIds": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/OperationId"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
     "SemanticDiff": {
       "type": "object",
       "additionalProperties": false,
       "required": [
         "id",
+        "algorithmVersion",
         "document",
         "proposalId",
         "proposalRevision",
@@ -21,6 +72,9 @@
       "properties": {
         "id": {
           "$ref": "common.schema.json#/$defs/OpaqueId"
+        },
+        "algorithmVersion": {
+          "const": "nireco-semantic-diff-1"
         },
         "document": {
           "$ref": "resource-ref.schema.json#/$defs/DocumentRef"
@@ -106,7 +160,7 @@
         "operationIds": {
           "type": "array",
           "items": {
-            "$ref": "common.schema.json#/$defs/OpaqueId"
+            "$ref": "common.schema.json#/$defs/OperationId"
           },
           "minItems": 1,
           "uniqueItems": true

@@ -1,7 +1,7 @@
 # Gate 0 Reference Performance Profile
 
 - Profile ID: `nireco-g0-r1-2026-07-16`
-- Status: Accepted baseline definition; measurements not yet recorded
+- Status: Accepted baseline definition; corpus alignment machine-verified; measurements not yet recorded
 - Owner role: Performance DRI
 - Applies to: Gate 0 calibration and later regression comparisons
 
@@ -53,9 +53,15 @@ Fixture 内容必须包含：
 - 长短 paragraph 与跨 section move；
 - 固定 pseudo-random seed 和 generator version。
 
-在 canonical hash preimage 冻结前，fixture 使用 `generator-version + seed + raw file checksum` 标识；关闭 `G0-B001` 后再附 canonical Document Hash，且不得重写旧结果。
+Fixture 使用 `generator-version + seed + raw file checksum + canonical Document
+Hash` 标识。Canonical Document Hash 必须遵循 ADR-011 的
+`nireco.document-content.v1` exact preimage；不得以 raw checksum 替代，也不得
+重写旧结果。
 
-> Development Spec 与 Roadmap 中历史 S/M/L 数字并不一致。本 profile 是 Gate 0 benchmark 的选定值；两个上游规范必须同步后才能关闭 `G0-B005`。
+Development Spec v0.4.3、Roadmap v0.1.2、Contract Manifest 和仓库 metadata
+均固定使用本表数值。`pnpm check:performance-profile` 对这些来源执行
+fail-closed 比较；关闭证据见
+[`g0-b005-closure-evidence.md`](./g0-b005-closure-evidence.md)。
 
 ## Workload definitions
 
@@ -139,7 +145,7 @@ L corpus 的延迟先记录趋势，不作为 Gate 0 hard latency gate；任何 
     "generatorVersion": "<version>",
     "seed": "<seed>",
     "rawChecksum": "<checksum>",
-    "documentHash": "<optional-until-G0-B001>"
+    "documentHash": "sha256:<64-lowercase-hex>"
   },
   "samples": 10000,
   "metrics": {}

@@ -168,6 +168,32 @@ describe('InMemoryModelRegistry', () => {
       },
     });
   });
+
+  it('reports a loaded immutable Snapshot as already Snapshot-durable', async () => {
+    const registry = new InMemoryModelRegistry({
+      ids: new DeterministicIdAllocator(),
+    });
+    const snapshot = createMinimalSnapshot();
+    const created = await registry.create({
+      uri: 'nireco://workspace-01/document/doc-1',
+      snapshot,
+    });
+    if (created.type === 'error') {
+      throw new Error('Expected the model to be created.');
+    }
+
+    expect(created.value.getDurability(snapshot.revisionId)).toEqual({
+      type: 'ok',
+      value: 'snapshot',
+    });
+    await expect(created.value.whenDurable(snapshot.revisionId, 'wal')).resolves.toMatchObject({
+      type: 'ok',
+      value: {
+        achievedDurability: 'snapshot',
+        authorityMode: 'read-only',
+      },
+    });
+  });
 });
 
 interface Deferred<TValue> {

@@ -6,8 +6,8 @@ language: zh-CN
 canonical_filename: NIRECO_COMET_ENGINEERING_CODING_STANDARD.md
 updated_at: 2026-07-16
 based_on:
-  - NIRECO_AGENT_NATIVE_EDITOR_DEVELOPMENT_SPEC.md v0.4.2
-  - NIRECO_COMET_ROADMAP.md v0.1.1
+  - NIRECO_AGENT_NATIVE_EDITOR_DEVELOPMENT_SPEC.md v0.4.3
+  - NIRECO_COMET_ROADMAP.md v0.1.2
 applies_to:
   - Nireco Editor Repository
   - Comet Repository

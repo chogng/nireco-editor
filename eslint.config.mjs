@@ -3,6 +3,7 @@ import tseslint from 'typescript-eslint';
 
 const typedFiles = ['src/**/*.ts', 'tests/**/*.ts', 'vitest.config.ts'];
 const nodeScriptFiles = ['*.config.{js,mjs,cjs}', 'scripts/**/*.{js,mjs,cjs}'];
+const browserSpikeFiles = ['spikes/**/*.js'];
 
 const typeCheckedConfigs = [
   ...tseslint.configs.strictTypeChecked,
@@ -106,6 +107,51 @@ export default [
         setInterval: 'readonly',
         setTimeout: 'readonly',
         structuredClone: 'readonly',
+      },
+      sourceType: 'module',
+    },
+    rules: {
+      ...eslint.configs.recommended.rules,
+      'no-eval': 'error',
+      'no-implied-eval': 'error',
+      'no-new-func': 'error',
+      'no-warning-comments': [
+        'error',
+        {
+          location: 'anywhere',
+          terms: ['fixme', 'todo'],
+        },
+      ],
+    },
+  },
+  {
+    ...eslint.configs.recommended,
+    files: browserSpikeFiles,
+    languageOptions: {
+      ecmaVersion: 'latest',
+      globals: {
+        ClipboardEvent: 'readonly',
+        CompositionEvent: 'readonly',
+        DataTransfer: 'readonly',
+        DOMParser: 'readonly',
+        Error: 'readonly',
+        HTMLButtonElement: 'readonly',
+        HTMLElement: 'readonly',
+        HTMLOListElement: 'readonly',
+        InputEvent: 'readonly',
+        JSON: 'readonly',
+        MutationObserver: 'readonly',
+        Node: 'readonly',
+        Number: 'readonly',
+        Object: 'readonly',
+        Promise: 'readonly',
+        String: 'readonly',
+        document: 'readonly',
+        fetch: 'readonly',
+        navigator: 'readonly',
+        queueMicrotask: 'readonly',
+        setTimeout: 'readonly',
+        window: 'readonly',
       },
       sourceType: 'module',
     },

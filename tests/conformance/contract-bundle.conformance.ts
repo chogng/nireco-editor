@@ -5,6 +5,7 @@ import { Ajv2020, type AnySchema, type ValidateFunction } from 'ajv/dist/2020.js
 import { describe, expect, it } from 'vitest';
 
 import { NIRECO_ERROR_CODES } from '../../src/base/errors/nireco-error.js';
+import { HASH_DOMAINS, hashCanonicalJson } from '../../src/base/hashing/hash-preimage.js';
 import { serializeCanonicalJson } from '../../src/base/serialization/canonical-json.js';
 import { parseIsoTimestamp } from '../../src/base/time/clock.js';
 import {
@@ -17,6 +18,11 @@ import {
 } from '../../src/integration/comet/contract-types.js';
 import { createDocumentHashPayload, type DocumentSnapshot } from '../../src/model/snapshot.js';
 import { Sha256ContentHasher } from '../../src/platform/node/sha-256-content-hasher.js';
+import {
+  canonicalizeProposalChangeGroupOrder,
+  deriveProposalChangeGroupId,
+} from '../../src/proposal/identity/change-group-identity.js';
+import type { SemanticDiff } from '../../src/proposal/semantic-diff.js';
 import { SEMANTIC_EDIT_KINDS } from '../../src/proposal/semantic-edit.js';
 
 const CONTRACT_ROOT = path.resolve('contracts/comet-integration');
@@ -48,7 +54,7 @@ describe('Gate 0 contract bundle conformance', () => {
     }
 
     const fixtureFiles = (await readdir(FIXTURE_ROOT))
-      .filter((fileName) => fileName.endsWith('.json'))
+      .filter((fileName) => fileName.endsWith('.json') && !fileName.startsWith('hash-'))
       .sort();
     expect(fixtureFiles.length).toBeGreaterThan(0);
 
@@ -156,7 +162,7 @@ describe('Gate 0 contract bundle conformance', () => {
       throw new Error('DocumentRef schema was not registered.');
     }
 
-    const revisionId = 'rev-0001';
+    const revisionId = '018f0000-0000-7000-8000-000000000001';
     for (const uri of [
       'NIRECO://workspace-01/document/doc-1',
       'nireco://Workspace-01/document/doc-1',
@@ -181,7 +187,7 @@ describe('Gate 0 contract bundle conformance', () => {
     );
 
     const paragraph = {
-      id: 'node-paragraph',
+      id: '018f0000-0000-7000-8000-000000000201',
       type: 'paragraph',
       attrs: {
         alignment: 'start',
@@ -189,7 +195,7 @@ describe('Gate 0 contract bundle conformance', () => {
       children: [],
     };
     const heading = {
-      id: 'node-heading',
+      id: '018f0000-0000-7000-8000-000000000202',
       type: 'heading',
       attrs: {
         level: 1,
@@ -197,7 +203,7 @@ describe('Gate 0 contract bundle conformance', () => {
       children: [],
     };
     const codeBlock = {
-      id: 'node-code',
+      id: '018f0000-0000-7000-8000-000000000203',
       type: 'codeBlock',
       attrs: {},
       children: [],
@@ -205,7 +211,7 @@ describe('Gate 0 contract bundle conformance', () => {
 
     expect(
       validateSection({
-        id: 'node-section',
+        id: '018f0000-0000-7000-8000-000000000204',
         type: 'section',
         attrs: {
           level: 1,
@@ -215,7 +221,7 @@ describe('Gate 0 contract bundle conformance', () => {
     ).toBe(false);
     expect(
       validateTableCell({
-        id: 'node-cell',
+        id: '018f0000-0000-7000-8000-000000000205',
         type: 'tableCell',
         attrs: {},
         children: [codeBlock],
@@ -223,7 +229,7 @@ describe('Gate 0 contract bundle conformance', () => {
     ).toBe(false);
     expect(
       validateListItem({
-        id: 'node-list-item',
+        id: '018f0000-0000-7000-8000-000000000206',
         type: 'listItem',
         attrs: {},
         children: [codeBlock],
@@ -231,7 +237,7 @@ describe('Gate 0 contract bundle conformance', () => {
     ).toBe(false);
     expect(
       validateList({
-        id: 'node-list',
+        id: '018f0000-0000-7000-8000-000000000207',
         type: 'list',
         attrs: {
           ordered: false,
@@ -239,7 +245,7 @@ describe('Gate 0 contract bundle conformance', () => {
         },
         children: [
           {
-            id: 'node-list-item',
+            id: '018f0000-0000-7000-8000-000000000208',
             type: 'listItem',
             attrs: {},
             children: [paragraph],
@@ -249,7 +255,7 @@ describe('Gate 0 contract bundle conformance', () => {
     ).toBe(false);
     expect(
       validateBibliography({
-        id: 'node-bibliography',
+        id: '018f0000-0000-7000-8000-000000000209',
         type: 'bibliographyPlaceholder',
         attrs: {},
       }),
@@ -405,17 +411,42 @@ async function assertPayloadInvariants(
 ): Promise<void> {
   if (fixture.payloadSchemaId.endsWith('/manuscript.schema.json')) {
     const snapshot = fixture.payload as DocumentSnapshot;
-    const canonicalPayload = serializeCanonicalJson(createDocumentHashPayload(snapshot));
-    if (canonicalPayload.type === 'error') {
+    const documentHash = await hashCanonicalJson(
+      hasher,
+      HASH_DOMAINS.documentContent,
+      createDocumentHashPayload(snapshot),
+    );
+    if (documentHash.type === 'error') {
       throw new Error(`${fixture.name} has a non-canonical document hash payload.`);
     }
-    expect(await hasher.hashUtf8(canonicalPayload.value)).toBe(snapshot.documentHash);
+    expect(documentHash.hash).toBe(snapshot.documentHash);
   }
 
   if (fixture.payloadSchemaId.endsWith('/semantic-diff.schema.json')) {
-    const diff = asRecord(fixture.payload, `${fixture.name} semantic diff`);
-    const document = asRecord(diff['document'], `${fixture.name} document`);
-    expect(diff['generatedAgainstRevisionId']).toBe(document['revisionId']);
+    const diff = fixture.payload as SemanticDiff;
+    expect(diff.generatedAgainstRevisionId).toBe(diff.document.revisionId);
+
+    for (const group of diff.groups) {
+      const derived = deriveProposalChangeGroupId({
+        documentUri: diff.document.uri,
+        generatedAgainstRevisionId: diff.generatedAgainstRevisionId,
+        proposalId: diff.proposalId,
+        proposalRevision: diff.proposalRevision,
+        kind: group.kind,
+        targetRefs: group.targetRefs,
+        operationIds: group.operationIds,
+      });
+      expect(derived.type, `${fixture.name}:${group.id}`).toBe('ok');
+      if (derived.type === 'ok') {
+        expect(derived.id, `${fixture.name}:${group.id}`).toBe(group.id);
+      }
+    }
+
+    const canonicalOrder = canonicalizeProposalChangeGroupOrder(diff.groups);
+    expect(canonicalOrder.type, `${fixture.name}: canonical group order`).toBe('ok');
+    if (canonicalOrder.type === 'ok') {
+      expect(canonicalOrder.groups.map(({ id }) => id)).toEqual(diff.groups.map(({ id }) => id));
+    }
   }
 }
 

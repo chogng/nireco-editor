@@ -72,5 +72,9 @@ Operation/Transaction Schema 必须是 discriminated、immutable 和可独立验
 
 ## Deferred decisions and blockers
 
-- **G0-B001 — Hash preimages**：`DocumentHash`、`TransactionHash`、node/document precondition hash 的 exact byte preimage、domain separation、字段包含/排除和输出编码尚未冻结。在关闭前不得宣称跨 runtime hash conformance。
-- **G0-B003 — Operation identity**：`ProposalChangeGroup.operationIds` 引用了尚未在 Operation Contract 中定义的稳定 `OperationId`。必须决定正式 ID、稳定结构 key 或移除该字段，并提供 Schema/fixture。
+- **G0-B001 — Hash preimages（Closed 2026-07-16）**：由
+  [ADR-011](./011-canonical-json-and-sha-256-hashing.md) 冻结 exact byte
+  preimage、domain separation、字段边界和跨 runtime vectors。
+- **G0-B003 — Operation identity（Closed 2026-07-16）**：由
+  [ADR-012](./012-trusted-id-allocator-and-clock.md) 冻结持久化 UUIDv7
+  `OperationId`、Contract Schema 与 fixtures。

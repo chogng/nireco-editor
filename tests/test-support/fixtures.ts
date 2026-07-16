@@ -3,23 +3,36 @@ import {
   parseDebugId,
   parseEntityId,
   parseNodeId,
-  parseProposalChangeGroupId,
+  parseOperationId,
+  parsePreviewFixtureDebugId,
+  parsePreviewFixtureEntityId,
+  parsePreviewFixtureNodeId,
+  parsePreviewFixtureOperationId,
+  parsePreviewFixtureProposalChangeGroupId,
+  parsePreviewFixtureProposalId,
+  parsePreviewFixtureRevisionId,
+  parsePreviewFixtureSessionId,
+  parsePreviewFixtureTransactionId,
   parseProposalId,
   parseRevisionId,
   parseSessionId,
   parseTransactionId,
   parseUtf16Offset,
+  parseWorkspaceId,
   type ContentHash,
   type DebugId,
   type EntityId,
   type NodeId,
+  type OperationId,
   type ProposalChangeGroupId,
   type ProposalId,
   type RevisionId,
   type SessionId,
   type TransactionId,
   type Utf16Offset,
+  type WorkspaceId,
 } from '../../src/base/ids/identifiers.js';
+import { createUuidV7 } from '../../src/base/ids/uuid-v7-allocator.js';
 import { parseIsoTimestamp, type IClock, type IsoTimestamp } from '../../src/base/time/clock.js';
 import {
   canonicalizeResourceUri,
@@ -45,57 +58,81 @@ export class FixedClock implements IClock {
 }
 
 export class DeterministicIdAllocator implements IIdAllocator {
-  #nodeSequence = 0;
-  #entitySequence = 0;
-  #transactionSequence = 0;
-  #revisionSequence = 0;
-  #proposalSequence = 0;
-  #groupSequence = 0;
-  #sessionSequence = 0;
-  #debugSequence = 0;
+  #allocatedSequence = 0;
+
+  allocateWorkspaceId(): WorkspaceId {
+    return unwrapIdentifier(parseWorkspaceId(this.#nextUuid()), 'production workspace');
+  }
 
   allocateNodeId(): NodeId {
-    this.#nodeSequence += 1;
-    return validNodeId(`node-${this.#nodeSequence}`);
+    return unwrapIdentifier(parseNodeId(this.#nextUuid()), 'production node');
   }
 
   allocateEntityId(): EntityId {
-    this.#entitySequence += 1;
-    return validEntityId(`entity-${this.#entitySequence}`);
+    return unwrapIdentifier(parseEntityId(this.#nextUuid()), 'production entity');
   }
 
   allocateTransactionId(): TransactionId {
-    this.#transactionSequence += 1;
-    return validTransactionId(`tx-${this.#transactionSequence}`);
+    return unwrapIdentifier(parseTransactionId(this.#nextUuid()), 'production transaction');
+  }
+
+  allocateOperationId(): OperationId {
+    return unwrapIdentifier(parseOperationId(this.#nextUuid()), 'production operation');
   }
 
   allocateRevisionId(): RevisionId {
-    this.#revisionSequence += 1;
-    return validRevisionId(`rev-${this.#revisionSequence}`);
+    return unwrapIdentifier(parseRevisionId(this.#nextUuid()), 'production revision');
   }
 
   allocateProposalId(): ProposalId {
-    this.#proposalSequence += 1;
-    return validProposalId(`proposal-${this.#proposalSequence}`);
-  }
-
-  allocateProposalChangeGroupId(): ProposalChangeGroupId {
-    this.#groupSequence += 1;
-    return validProposalChangeGroupId(`group-${this.#groupSequence}`);
+    return unwrapIdentifier(parseProposalId(this.#nextUuid()), 'production proposal');
   }
 
   allocateSessionId(): SessionId {
-    this.#sessionSequence += 1;
-    return validSessionId(`session-${this.#sessionSequence}`);
+    return unwrapIdentifier(parseSessionId(this.#nextUuid()), 'production session');
   }
 
   allocateDebugId(): DebugId {
-    this.#debugSequence += 1;
-    return validDebugId(`debug-${this.#debugSequence}`);
+    return unwrapIdentifier(parseDebugId(this.#nextUuid()), 'production debug');
+  }
+
+  #nextUuid(): string {
+    this.#allocatedSequence += 1;
+    return allocatedTestUuid(this.#allocatedSequence);
   }
 }
 
-export function createMinimalSnapshot(revisionId = validRevisionId('rev-0001')): DocumentSnapshot {
+export const MINIMAL_FIXTURE_IDS = {
+  revision: unwrapIdentifier(
+    parseRevisionId('018f0000-0000-7000-8000-000000000001'),
+    'minimal revision',
+  ),
+  author: unwrapIdentifier(parseEntityId('018f0000-0000-7000-8000-000000000010'), 'minimal author'),
+  manuscript: unwrapIdentifier(
+    parseNodeId('018f0000-0000-7000-8000-000000000101'),
+    'minimal manuscript',
+  ),
+  frontMatter: unwrapIdentifier(
+    parseNodeId('018f0000-0000-7000-8000-000000000102'),
+    'minimal front matter',
+  ),
+  body: unwrapIdentifier(parseNodeId('018f0000-0000-7000-8000-000000000103'), 'minimal body'),
+  paragraph: unwrapIdentifier(
+    parseNodeId('018f0000-0000-7000-8000-000000000104'),
+    'minimal paragraph',
+  ),
+  text: unwrapIdentifier(parseNodeId('018f0000-0000-7000-8000-000000000105'), 'minimal text'),
+  bibliography: unwrapIdentifier(
+    parseNodeId('018f0000-0000-7000-8000-000000000113'),
+    'minimal bibliography',
+  ),
+  reference: unwrapIdentifier(
+    parseEntityId('018f0000-0000-7000-8000-000000000120'),
+    'minimal reference',
+  ),
+} as const;
+
+export function createMinimalSnapshot(revisionId = MINIMAL_FIXTURE_IDS.revision): DocumentSnapshot {
   return {
     format: 'nireco-document',
     formatVersion: '1.0.0-preview.1',
@@ -109,7 +146,7 @@ export function createMinimalSnapshot(revisionId = validRevisionId('rev-0001')):
       title: 'A minimal manuscript',
       authors: [
         {
-          id: validEntityId('author-1'),
+          id: MINIMAL_FIXTURE_IDS.author,
           name: 'Ada Researcher',
         },
       ],
@@ -117,30 +154,30 @@ export function createMinimalSnapshot(revisionId = validRevisionId('rev-0001')):
       keywords: ['nireco'],
     },
     root: {
-      id: validNodeId('node-manuscript'),
+      id: MINIMAL_FIXTURE_IDS.manuscript,
       type: 'manuscript',
       attrs: {},
       children: [
         {
-          id: validNodeId('node-front-matter'),
+          id: MINIMAL_FIXTURE_IDS.frontMatter,
           type: 'frontMatter',
           attrs: {},
           children: [],
         },
         {
-          id: validNodeId('node-body'),
+          id: MINIMAL_FIXTURE_IDS.body,
           type: 'body',
           attrs: {},
           children: [
             {
-              id: validNodeId('node-paragraph'),
+              id: MINIMAL_FIXTURE_IDS.paragraph,
               type: 'paragraph',
               attrs: {
                 alignment: 'start',
               },
               children: [
                 {
-                  id: validNodeId('node-text'),
+                  id: MINIMAL_FIXTURE_IDS.text,
                   type: 'text',
                   value: 'Hello, Nireco.',
                   marks: [],
@@ -150,7 +187,7 @@ export function createMinimalSnapshot(revisionId = validRevisionId('rev-0001')):
           ],
         },
         {
-          id: validNodeId('node-bibliography'),
+          id: MINIMAL_FIXTURE_IDS.bibliography,
           type: 'bibliographyPlaceholder',
           attrs: {
             heading: 'References',
@@ -196,35 +233,42 @@ export function validCometResourceUri(value: string): CometResourceUri {
 }
 
 export function validRevisionId(value: string): RevisionId {
-  return unwrapIdentifier(parseRevisionId(value), 'revision');
+  return unwrapIdentifier(parsePreviewFixtureRevisionId(value), 'preview fixture revision');
 }
 
 export function validNodeId(value: string): NodeId {
-  return unwrapIdentifier(parseNodeId(value), 'node');
+  return unwrapIdentifier(parsePreviewFixtureNodeId(value), 'preview fixture node');
 }
 
 export function validEntityId(value: string): EntityId {
-  return unwrapIdentifier(parseEntityId(value), 'entity');
+  return unwrapIdentifier(parsePreviewFixtureEntityId(value), 'preview fixture entity');
 }
 
 export function validTransactionId(value: string): TransactionId {
-  return unwrapIdentifier(parseTransactionId(value), 'transaction');
+  return unwrapIdentifier(parsePreviewFixtureTransactionId(value), 'preview fixture transaction');
+}
+
+export function validOperationId(value: string): OperationId {
+  return unwrapIdentifier(parsePreviewFixtureOperationId(value), 'preview fixture operation');
 }
 
 export function validProposalId(value: string): ProposalId {
-  return unwrapIdentifier(parseProposalId(value), 'proposal');
+  return unwrapIdentifier(parsePreviewFixtureProposalId(value), 'preview fixture proposal');
 }
 
 export function validProposalChangeGroupId(value: string): ProposalChangeGroupId {
-  return unwrapIdentifier(parseProposalChangeGroupId(value), 'proposal change group');
+  return unwrapIdentifier(
+    parsePreviewFixtureProposalChangeGroupId(value),
+    'preview fixture proposal change group',
+  );
 }
 
 export function validSessionId(value: string): SessionId {
-  return unwrapIdentifier(parseSessionId(value), 'session');
+  return unwrapIdentifier(parsePreviewFixtureSessionId(value), 'preview fixture session');
 }
 
 export function validDebugId(value: string): DebugId {
-  return unwrapIdentifier(parseDebugId(value), 'debug');
+  return unwrapIdentifier(parsePreviewFixtureDebugId(value), 'preview fixture debug');
 }
 
 export function validContentHash(value: string): ContentHash {
@@ -259,4 +303,14 @@ function unwrapIdentifier<TValue>(
     throw new Error(`Expected a valid ${label} identifier.`);
   }
   return result.value;
+}
+
+function allocatedTestUuid(sequence: number): string {
+  const randomBytes = new Uint8Array(10);
+  randomBytes[8] = Math.floor(sequence / 256);
+  randomBytes[9] = sequence % 256;
+  return createUuidV7({
+    unixMilliseconds: 1_720_000_000_000,
+    randomBytes,
+  });
 }

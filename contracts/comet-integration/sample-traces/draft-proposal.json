@@ -5,14 +5,14 @@
   "workflowId": "draft-paragraph",
   "document": {
     "uri": "nireco://workspace-01/document/DocCaseA",
-    "revisionId": "rev-0001"
+    "revisionId": "018f0000-0000-7000-8000-000000000001"
   },
   "scenario": "Handshake, open a scoped session, create a draft proposal, and stage one high-level insert-block edit.",
   "status": "ok",
-  "sessionId": "session-0001",
+  "sessionId": "018f0000-0000-7000-8000-000000000003",
   "capabilityGrantId": "grant-0001",
   "proposal": {
-    "proposalId": "proposal-0001",
+    "proposalId": "018f0000-0000-7000-8000-000000000002",
     "proposalRevision": 2
   },
   "events": [
@@ -38,10 +38,10 @@
       "requestId": "request-proposal-0002",
       "document": {
         "uri": "nireco://workspace-01/document/DocCaseA",
-        "revisionId": "rev-0001"
+        "revisionId": "018f0000-0000-7000-8000-000000000001"
       },
       "grantedCapabilities": ["document.content.read", "proposal.create", "proposal.edit"],
-      "basedOnRevisionId": "rev-0001",
+      "basedOnRevisionId": "018f0000-0000-7000-8000-000000000001",
       "outcome": "ok",
       "summary": "The trusted host opened a scoped session with no commit, raw transaction, or review capability."
     },
@@ -55,13 +55,13 @@
       "toolInvocationId": "tool-call-0001",
       "document": {
         "uri": "nireco://workspace-01/document/DocCaseA",
-        "revisionId": "rev-0001"
+        "revisionId": "018f0000-0000-7000-8000-000000000001"
       },
       "proposal": {
-        "proposalId": "proposal-0001",
+        "proposalId": "018f0000-0000-7000-8000-000000000002",
         "proposalRevision": 1
       },
-      "basedOnRevisionId": "rev-0001",
+      "basedOnRevisionId": "018f0000-0000-7000-8000-000000000001",
       "outcome": "ok",
       "summary": "A draft proposal was created without modifying the document mainline."
     },
@@ -75,14 +75,14 @@
       "toolInvocationId": "tool-call-0001",
       "document": {
         "uri": "nireco://workspace-01/document/DocCaseA",
-        "revisionId": "rev-0001"
+        "revisionId": "018f0000-0000-7000-8000-000000000001"
       },
       "proposal": {
-        "proposalId": "proposal-0001",
+        "proposalId": "018f0000-0000-7000-8000-000000000002",
         "proposalRevision": 2
       },
       "semanticEditKinds": ["insert-block"],
-      "basedOnRevisionId": "rev-0001",
+      "basedOnRevisionId": "018f0000-0000-7000-8000-000000000001",
       "outcome": "ok",
       "summary": "One insert-block semantic edit was staged; no raw operation or mainline commit was exposed to the Agent."
     }

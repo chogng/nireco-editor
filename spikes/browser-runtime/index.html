@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1"
+    />
+    <title>Nireco Browser Runtime Isolation Spike</title>
+    <link
+      rel="icon"
+      href="data:,"
+    />
+    <link
+      rel="stylesheet"
+      href="./spike.css"
+    />
+  </head>
+  <body>
+    <main>
+      <header>
+        <p class="eyebrow">Gate 0 isolation spike</p>
+        <h1>Browser input remains a projection of the Model</h1>
+        <p>
+          This page exercises native browser event, Selection, clipboard, and MutationObserver
+          surfaces without defining a public editor API.
+        </p>
+      </header>
+
+      <section class="workspace">
+        <div>
+          <h2>Projected editor surface</h2>
+          <div
+            id="editor"
+            contenteditable="true"
+            role="textbox"
+            aria-label="Nireco browser spike editor"
+            aria-multiline="true"
+            spellcheck="false"
+          ></div>
+        </div>
+
+        <div class="panels">
+          <section>
+            <h2>Authoritative model</h2>
+            <pre id="model-state"></pre>
+          </section>
+          <section>
+            <h2>Last transactions</h2>
+            <pre id="transaction-state"></pre>
+          </section>
+        </div>
+      </section>
+
+      <section class="runner">
+        <div>
+          <h2>Conformance scenarios</h2>
+          <p>
+            The scenarios run the compiled portable hash implementation, dispatch real DOM events,
+            and assert model transactions and recovery behavior in the selected browser engine.
+          </p>
+        </div>
+        <button
+          id="run-all"
+          type="button"
+        >
+          Run all scenarios
+        </button>
+      </section>
+
+      <section>
+        <h2>Results</h2>
+        <p
+          id="run-status"
+          data-status="idle"
+        >
+          Not run
+        </p>
+        <ol id="results"></ol>
+      </section>
+    </main>
+
+    <script
+      type="module"
+      src="./spike.js"
+    ></script>
+  </body>
+</html>

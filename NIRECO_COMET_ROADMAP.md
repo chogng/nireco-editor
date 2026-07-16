@@ -1,9 +1,9 @@
 ---
 title: Nireco–Comet 开发路线图
-version: 0.1.1
+version: 0.1.2
 status: Baseline Execution Roadmap
 language: zh-CN
-based_on_spec: NIRECO_AGENT_NATIVE_EDITOR_DEVELOPMENT_SPEC.md v0.4.2
+based_on_spec: NIRECO_AGENT_NATIVE_EDITOR_DEVELOPMENT_SPEC.md v0.4.3
 based_on_standard: NIRECO_COMET_ENGINEERING_CODING_STANDARD.md v0.1.1
 planning_start: 2026-07-20
 production_candidate_target: 2027-10-10
@@ -25,7 +25,7 @@ owners:
 
 ### 0.1 规范文档依赖
 
-本路线图只负责时间、资源、Gate 和交付顺序。产品与 Core 语义以开发规格 v0.4.2 为准；代码风格、模块边界和 CI 门禁以工程与编码规范 v0.1.1 为准。
+本路线图只负责时间、资源、Gate 和交付顺序。产品与 Core 语义以开发规格 v0.4.3 为准；代码风格、模块边界和 CI 门禁以工程与编码规范 v0.1.1 为准。
 
 Gate 通过不仅要求功能完成，还要求对应的规范版本、自动化配置、Fixture、Contract Bundle 和 Conformance 结果保持一致。任何通过降低编码规范或关闭门禁换取日期的做法，都视为 Gate 未通过。
 
@@ -641,12 +641,17 @@ Real service     × Conformance fixtures
 
 ### 15.1 文档规模
 
-| 等级 | 初始定义 | 用途 |
-|---|---|---|
-| S | 15,000 words，约 1,500 nodes | 普通论文和日常开发 |
-| M | 75,000 words，约 8,000 nodes | 长论文、学位论文章节集合 |
-| L | 200,000 words，约 25,000 nodes | 大型 Manuscript 压力测试 |
-| XL | 500,000 words 以上 | Phase 7 非阻塞性容量探索 |
+| 等级 | Words | Document nodes | Citations | 用途 |
+|---|---:|---:|---:|---|
+| S | 15,000 | 1,500 | 100 | 普通论文和日常开发 |
+| M | 75,000 | 8,000 | 500 | 长论文、学位论文章节集合 |
+| L | 200,000 | 25,000 | 1,500 | 大型 Manuscript 压力测试 |
+| XL | 500,000 以上 | 未冻结 | 未冻结 | Phase 7 非阻塞性容量探索 |
+
+S/M/L 的完整 benchmark profile 固定为
+`docs/performance/reference-profile.md` 中的 `nireco-g0-r1-2026-07-16`；
+`pnpm check:performance-profile` 必须阻止 Development Spec、Roadmap、
+Reference Profile、Contract Manifest 或仓库 metadata 出现数值漂移。
 
 ### 15.2 Core 目标
 

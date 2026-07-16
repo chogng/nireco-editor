@@ -67,5 +67,8 @@ Semantic Diff/ProposalChangeGroup 必须有版本化 Schema 与 algorithm versio
 
 ## Deferred decisions and blockers
 
-- **G0-B003 — Change Group identity**：`ProposalChangeGroupId` 的 exact derivation/persistence、`operationIds` 的身份来源、canonical group ordering，以及 `supersedes` mapping 的生成语义尚未完全冻结。必须在 Contract 中选择 deterministic derived ID 或持久分配方案，并以 golden fixtures 证明 same-input stability 后，Gate 0 才能关闭。
+- **G0-B003 — Change Group identity（Closed 2026-07-16）**：由
+  [ADR-012](./012-trusted-id-allocator-and-clock.md) 冻结 UUIDv8 exact
+  derivation、`operationIds` 来源、canonical group ordering 与 deterministic
+  `supersedes` mapping，并由 golden vectors/tests 证明 same-input stability。
 - 高级重构的最小可接受粒度可在保持上述依赖与原子性规则下后续收敛。

@@ -1,0 +1,70 @@
+{
+  "name": "recovery-middle-corruption",
+  "contractVersion": "0.4-preview.1",
+  "walFrame": {
+    "lengthPrefix": "uint32-big-endian",
+    "checksum": "crc32-iso-hdlc",
+    "payload": "canonical-json-utf8"
+  },
+  "base": {
+    "revisionId": "018f0000-0000-7000-8000-000000000000",
+    "sequence": 0,
+    "documentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "records": [
+    {
+      "recordVersion": 1,
+      "recordType": "commit",
+      "uri": "nireco://workspace-01/document/recovery",
+      "revisionId": "018f0000-0000-7000-8000-000000000001",
+      "parentRevisionId": "018f0000-0000-7000-8000-000000000000",
+      "transactionId": "018f0000-0001-7000-8000-000000000001",
+      "sequence": 1,
+      "transactionHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "documentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "replayInput": {
+        "nextRevisionId": "018f0000-0000-7000-8000-000000000001"
+      }
+    },
+    {
+      "recordVersion": 1,
+      "recordType": "commit",
+      "uri": "nireco://workspace-01/document/recovery",
+      "revisionId": "018f0000-0000-7000-8000-000000000002",
+      "parentRevisionId": "018f0000-0000-7000-8000-000000000001",
+      "transactionId": "018f0000-0001-7000-8000-000000000002",
+      "sequence": 2,
+      "transactionHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "documentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "replayInput": {
+        "nextRevisionId": "018f0000-0000-7000-8000-000000000002"
+      }
+    },
+    {
+      "recordVersion": 1,
+      "recordType": "commit",
+      "uri": "nireco://workspace-01/document/recovery",
+      "revisionId": "018f0000-0000-7000-8000-000000000003",
+      "parentRevisionId": "018f0000-0000-7000-8000-000000000002",
+      "transactionId": "018f0000-0001-7000-8000-000000000003",
+      "sequence": 3,
+      "transactionHash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+      "documentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "replayInput": {
+        "nextRevisionId": "018f0000-0000-7000-8000-000000000003"
+      }
+    }
+  ],
+  "fault": {
+    "kind": "xor-middle-frame-payload-byte",
+    "recordIndex": 1,
+    "payloadByteOffset": 0,
+    "xorMask": 1
+  },
+  "expected": {
+    "result": "error",
+    "code": "RECOVERY_REQUIRED",
+    "reason": "wal-corrupt",
+    "durableWalMustRemainUntruncated": true
+  }
+}

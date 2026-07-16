@@ -1,8 +1,12 @@
 # Changelog
 
+## Package 0.4.0-preview.1
+
+- Pins the installable Nireco artifact used by the Comet Gate 0 consumer to Contract Bundle `0.4-preview.1`.
+
 ## 0.4-preview.1 - 2026-07-16
 
-Initial Gate 0 contract preview based on specification `0.4.2`, roadmap `0.1.1`, and engineering standard `0.1.1`.
+Initial Gate 0 contract preview based on specification `0.4.3`, roadmap `0.1.2`, and engineering standard `0.1.1`.
 
 Added:
 
@@ -15,6 +19,14 @@ Added:
   Draft Proposal creation, and high-level Semantic Edit staging.
 - A schema-backed conformance runner for fixtures, hashes, traces, catalogs,
   canonical URI negatives, Mock request/results, and Agent no-bypass behavior.
+- Exact seven-domain hash preimages with portable, Node, and browser byte-vector
+  conformance.
+- UUIDv7 allocated identities, persisted `OperationId`, deterministic UUIDv8
+  Proposal Change Group identities, and production-profile fixtures.
+- Durability error contracts plus WAL tail-truncation and middle-corruption
+  recovery fixtures.
+- A package-export-only independent Comet consumer harness and deterministic
+  evidence report.
 
 Contract decisions:
 
@@ -22,7 +34,8 @@ Contract decisions:
 - Document and manuscript schema versions are `1.0.0-preview.1`.
 - Wire fields and node discriminators follow the specification's English camelCase spelling.
 - Resource URIs use an ASCII-visible wire form with Unicode percent-encoded and uppercase percent hex. Logical Nireco/Comet URIs additionally use lowercase scheme/host, no authority extras or query/fragment, at least two path segments, no trailing slash, and case-preserving paths.
-- Fixture IDs are readable opaque test values and do not freeze a production ID encoding.
+- Nireco-owned production and Contract fixture IDs use the frozen UUIDv7/UUIDv8
+  profile; readable legacy fixture IDs are rejected at production boundaries.
 - Title, authors, abstract, and keywords live in snapshot metadata.
 - The node vocabulary explicitly includes `hardBreak`, `horizontalRule`, `footnote`, `footnoteReference`, and `bibliographyPlaceholder`.
 - Agent Sessions cannot receive commit, raw transaction, storage write, schema mutation, proposal acceptance, or review commit capabilities.

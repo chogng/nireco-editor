@@ -1,10 +1,16 @@
-import type { ContentHash, EntityId, NodeId, Utf16Offset } from '../../base/ids/identifiers.js';
+import type {
+  ContentHash,
+  EntityId,
+  NodeId,
+  OperationId,
+  Utf16Offset,
+} from '../../base/ids/identifiers.js';
 import type { JsonValue } from '../../base/serialization/canonical-json.js';
 import type { AcademicEntity } from '../academic-graph.js';
 import type { InsertableNode, Mark } from '../node/manuscript-node.js';
 
 interface OperationBase {
-  readonly id: string;
+  readonly id: OperationId;
 }
 
 export interface InsertNodeOperation extends OperationBase {

@@ -1,0 +1,78 @@
+{
+  "evidenceVersion": 1,
+  "contractVersion": "0.4-preview.1",
+  "consumerBoundary": {
+    "runtimePackageExport": "@comet-internal/nireco-editor",
+    "mockPackageExport": "@comet-internal/nireco-editor/comet-internal",
+    "contractInputs": [
+      "contract.manifest.json",
+      "schemas/*.schema.json",
+      "generated-types/*.d.ts",
+      "fixtures/minimal-manuscript.json"
+    ],
+    "privateSourceImports": false,
+    "manifestEvidenceIndexed": true
+  },
+  "fixedRevision": {
+    "requestedRevisionId": "018f0000-0000-7000-8000-000000000001",
+    "returnedDocumentRevisionId": "018f0000-0000-7000-8000-000000000001",
+    "returnedSnapshotRevisionId": "018f0000-0000-7000-8000-000000000001",
+    "matched": true
+  },
+  "proposalFlow": {
+    "proposalId": "018f0000-0000-7000-8000-000000500001",
+    "createdProposalRevision": 1,
+    "stagedProposalRevision": 2,
+    "stagedSemanticEditCount": 1,
+    "status": "draft"
+  },
+  "noBypass": {
+    "publicMethods": [
+      "createProposal",
+      "handshake",
+      "openSession",
+      "readSnapshot",
+      "stageSemanticEdits"
+    ],
+    "rawTransactionFeature": false,
+    "reviewCommitFeature": false,
+    "manifestRawTransactionAllowed": false,
+    "manifestReviewAcceptanceAllowed": false,
+    "manifestMainlineCommitAllowed": false
+  },
+  "checks": [
+    {
+      "id": "public-package-export-resolution",
+      "status": "pass"
+    },
+    {
+      "id": "manifest-evidence-index",
+      "status": "pass"
+    },
+    {
+      "id": "handshake-schema-and-runtime",
+      "status": "pass"
+    },
+    {
+      "id": "task-bound-session-schema-and-runtime",
+      "status": "pass"
+    },
+    {
+      "id": "fixed-revision-snapshot-read",
+      "status": "pass"
+    },
+    {
+      "id": "draft-proposal-create",
+      "status": "pass"
+    },
+    {
+      "id": "semantic-edit-stage",
+      "status": "pass"
+    },
+    {
+      "id": "no-raw-transaction-or-commit-surface",
+      "status": "pass"
+    }
+  ],
+  "status": "pass"
+}

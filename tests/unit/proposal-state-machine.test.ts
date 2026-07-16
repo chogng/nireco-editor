@@ -58,6 +58,7 @@ function withValidationArtifacts(proposal: Proposal): Proposal {
     },
     diff: {
       id: 'diff-1',
+      algorithmVersion: 'nireco-semantic-diff-1',
       document: {
         uri: proposal.documentUri,
         revisionId: proposal.baseRevisionId,

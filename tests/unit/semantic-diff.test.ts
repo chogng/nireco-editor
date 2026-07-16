@@ -6,6 +6,7 @@ import {
 } from '../../src/proposal/semantic-diff.js';
 import {
   validNodeId,
+  validOperationId,
   validDocumentUri,
   validProposalChangeGroupId,
   validRevisionId,
@@ -25,7 +26,7 @@ function group(id: string, dependencies: readonly string[]): ProposalChangeGroup
         nodeId: validNodeId('node-paragraph'),
       },
     ],
-    operationIds: [`operation-${id}`],
+    operationIds: [validOperationId(`operation-${id}`)],
     dependsOn: dependencies.map(validProposalChangeGroupId),
     citationChanges: [],
     evidenceChanges: [],

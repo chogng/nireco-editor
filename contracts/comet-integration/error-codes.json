@@ -206,6 +206,41 @@
       "safeMessage": "The service is temporarily unavailable."
     },
     {
+      "code": "DURABILITY_UNREACHABLE",
+      "category": "storage",
+      "retryable": false,
+      "suggestedAction": "abort",
+      "safeMessage": "The committed Revision cannot reach the requested durability under the current Authority."
+    },
+    {
+      "code": "WAL_APPEND_FAILED",
+      "category": "storage",
+      "retryable": false,
+      "suggestedAction": "abort",
+      "safeMessage": "The Revision committed in memory, but its WAL record could not be appended; the Authority is now read-only."
+    },
+    {
+      "code": "WAL_FSYNC_FAILED",
+      "category": "storage",
+      "retryable": false,
+      "suggestedAction": "abort",
+      "safeMessage": "The Revision committed in memory, but its WAL record could not be fsynced; the Authority is now read-only."
+    },
+    {
+      "code": "SNAPSHOT_COMMIT_FAILED",
+      "category": "storage",
+      "retryable": true,
+      "suggestedAction": "retry",
+      "safeMessage": "The Snapshot was not atomically committed; the previous manifest and WAL-safe Revision remain authoritative."
+    },
+    {
+      "code": "RECOVERY_REQUIRED",
+      "category": "storage",
+      "retryable": false,
+      "suggestedAction": "abort",
+      "safeMessage": "Stored history is discontinuous or corrupt and requires explicit recovery."
+    },
+    {
       "code": "STORAGE_CORRUPT",
       "category": "storage",
       "retryable": false,

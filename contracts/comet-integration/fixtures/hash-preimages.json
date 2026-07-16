@@ -1,0 +1,214 @@
+{
+  "profile": "nireco-hash-preimage-1",
+  "preimageFormula": "UTF8(NIRECO\\0HASH\\0V1\\0 + domain + \\0 + canonicalJson(payload))",
+  "vectors": [
+    {
+      "name": "academic-entity",
+      "domain": "nireco.academic-entity.v1",
+      "payloadSchemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/operation.schema.json#/$defs/AcademicEntity",
+      "payload": {
+        "id": "018f0000-0000-7000-8000-000000000010",
+        "cslJson": {
+          "title": "Schema-valid reference 文献🌍"
+        },
+        "metadataHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        "capturedAt": "2026-07-16T16:00:00Z"
+      },
+      "canonicalJson": "{\"capturedAt\":\"2026-07-16T16:00:00Z\",\"cslJson\":{\"title\":\"Schema-valid reference 文献🌍\"},\"id\":\"018f0000-0000-7000-8000-000000000010\",\"metadataHash\":\"sha256:0000000000000000000000000000000000000000000000000000000000000000\"}",
+      "preimageUtf8Hex": "4e495245434f0048415348005631006e697265636f2e61636164656d69632d656e746974792e7631007b2263617074757265644174223a22323032362d30372d31365431363a30303a30305a222c2263736c4a736f6e223a7b227469746c65223a22536368656d612d76616c6964207265666572656e636520e69687e78caef09f8c8d227d2c226964223a2230313866303030302d303030302d373030302d383030302d303030303030303030303130222c226d6574616461746148617368223a227368613235363a30303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030227d",
+      "expectedHash": "sha256:671da0878f3136a1ddc2f2129352fd461a0039516e63e0ac817c8939650a2920"
+    },
+    {
+      "name": "document-content",
+      "domain": "nireco.document-content.v1",
+      "payloadSchemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/manuscript.schema.json#/$defs/DocumentHashPayload",
+      "payload": {
+        "schemaId": "nireco.manuscript",
+        "schemaVersion": "1.0.0-preview.1",
+        "metadata": {
+          "title": "Hash vector",
+          "authors": [],
+          "abstract": "",
+          "keywords": []
+        },
+        "root": {
+          "id": "018f0000-0000-7000-8000-000000000101",
+          "type": "manuscript",
+          "attrs": {},
+          "children": [
+            {
+              "id": "018f0000-0000-7000-8000-000000000103",
+              "type": "body",
+              "attrs": {},
+              "children": [
+                {
+                  "id": "018f0000-0000-7000-8000-000000000104",
+                  "type": "paragraph",
+                  "attrs": {
+                    "alignment": "start"
+                  },
+                  "children": []
+                }
+              ]
+            }
+          ]
+        },
+        "academicGraph": {
+          "referenceSnapshots": [],
+          "evidenceLinks": [],
+          "claims": [],
+          "claimEvidenceRelations": []
+        },
+        "settings": {
+          "language": "en",
+          "citationStyle": "apa",
+          "headingNumbering": true,
+          "bibliographyEnabled": true
+        }
+      },
+      "canonicalJson": "{\"academicGraph\":{\"claimEvidenceRelations\":[],\"claims\":[],\"evidenceLinks\":[],\"referenceSnapshots\":[]},\"metadata\":{\"abstract\":\"\",\"authors\":[],\"keywords\":[],\"title\":\"Hash vector\"},\"root\":{\"attrs\":{},\"children\":[{\"attrs\":{},\"children\":[{\"attrs\":{\"alignment\":\"start\"},\"children\":[],\"id\":\"018f0000-0000-7000-8000-000000000104\",\"type\":\"paragraph\"}],\"id\":\"018f0000-0000-7000-8000-000000000103\",\"type\":\"body\"}],\"id\":\"018f0000-0000-7000-8000-000000000101\",\"type\":\"manuscript\"},\"schemaId\":\"nireco.manuscript\",\"schemaVersion\":\"1.0.0-preview.1\",\"settings\":{\"bibliographyEnabled\":true,\"citationStyle\":\"apa\",\"headingNumbering\":true,\"language\":\"en\"}}",
+      "preimageUtf8Hex": "4e495245434f0048415348005631006e697265636f2e646f63756d656e742d636f6e74656e742e7631007b2261636164656d69634772617068223a7b22636c61696d45766964656e636552656c6174696f6e73223a5b5d2c22636c61696d73223a5b5d2c2265766964656e63654c696e6b73223a5b5d2c227265666572656e6365536e617073686f7473223a5b5d7d2c226d65746164617461223a7b226162737472616374223a22222c22617574686f7273223a5b5d2c226b6579776f726473223a5b5d2c227469746c65223a224861736820766563746f72227d2c22726f6f74223a7b226174747273223a7b7d2c226368696c6472656e223a5b7b226174747273223a7b7d2c226368696c6472656e223a5b7b226174747273223a7b22616c69676e6d656e74223a227374617274227d2c226368696c6472656e223a5b5d2c226964223a2230313866303030302d303030302d373030302d383030302d303030303030303030313034222c2274797065223a22706172616772617068227d5d2c226964223a2230313866303030302d303030302d373030302d383030302d303030303030303030313033222c2274797065223a22626f6479227d5d2c226964223a2230313866303030302d303030302d373030302d383030302d303030303030303030313031222c2274797065223a226d616e75736372697074227d2c22736368656d614964223a226e697265636f2e6d616e75736372697074222c22736368656d6156657273696f6e223a22312e302e302d707265766965772e31222c2273657474696e6773223a7b226269626c696f677261706879456e61626c6564223a747275652c226369746174696f6e5374796c65223a22617061222c2268656164696e674e756d626572696e67223a747275652c226c616e6775616765223a22656e227d7d",
+      "expectedHash": "sha256:32bf5f700ab82a37b364c01bdea8832132b03224676ceedde793ba66a0e1ada3"
+    },
+    {
+      "name": "governance-manifest",
+      "domain": "nireco.governance-manifest.v1",
+      "payloadSchemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/common.schema.json#/$defs/GovernanceManifestHashPayload",
+      "payload": {
+        "engineeringStandardVersion": "0.1.1",
+        "files": [
+          {
+            "path": "eslint.config.mjs",
+            "rawSha256": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          {
+            "path": "package.json",
+            "rawSha256": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          }
+        ]
+      },
+      "canonicalJson": "{\"engineeringStandardVersion\":\"0.1.1\",\"files\":[{\"path\":\"eslint.config.mjs\",\"rawSha256\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"},{\"path\":\"package.json\",\"rawSha256\":\"sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"}]}",
+      "preimageUtf8Hex": "4e495245434f0048415348005631006e697265636f2e676f7665726e616e63652d6d616e69666573742e7631007b22656e67696e656572696e675374616e6461726456657273696f6e223a22302e312e31222c2266696c6573223a5b7b2270617468223a2265736c696e742e636f6e6669672e6d6a73222c22726177536861323536223a227368613235363a61616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161227d2c7b2270617468223a227061636b6167652e6a736f6e222c22726177536861323536223a227368613235363a62626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262227d5d7d",
+      "expectedHash": "sha256:c1ca6d989f59cebf0de51bc0f700504ccb254b51123010fab11525775f6ff8bf"
+    },
+    {
+      "name": "node",
+      "domain": "nireco.node.v1",
+      "payloadSchemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/manuscript.schema.json#/$defs/ParagraphNode",
+      "payload": {
+        "id": "018f0000-0000-7000-8000-000000000104",
+        "type": "paragraph",
+        "attrs": {
+          "alignment": "start"
+        },
+        "children": []
+      },
+      "canonicalJson": "{\"attrs\":{\"alignment\":\"start\"},\"children\":[],\"id\":\"018f0000-0000-7000-8000-000000000104\",\"type\":\"paragraph\"}",
+      "preimageUtf8Hex": "4e495245434f0048415348005631006e697265636f2e6e6f64652e7631007b226174747273223a7b22616c69676e6d656e74223a227374617274227d2c226368696c6472656e223a5b5d2c226964223a2230313866303030302d303030302d373030302d383030302d303030303030303030313034222c2274797065223a22706172616772617068227d",
+      "expectedHash": "sha256:91c128384b56ca2fcce9a1c44a66af6fe38c5fcc7af2c0d1b5902d99439fff58"
+    },
+    {
+      "name": "proposal-change-group",
+      "domain": "nireco.proposal-change-group.v1",
+      "payloadSchemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/semantic-diff.schema.json#/$defs/ProposalChangeGroupIdentityPayload",
+      "payload": {
+        "algorithmVersion": "nireco-semantic-diff-1",
+        "documentUri": "nireco://workspace-01/document/DocCaseA",
+        "generatedAgainstRevisionId": "018f0000-0000-7000-8000-000000000001",
+        "kind": "insert-content",
+        "operationIds": ["018f0000-0000-7000-8000-000000000006"],
+        "proposalId": "018f0000-0000-7000-8000-000000000002",
+        "proposalRevision": 1,
+        "targetRefs": [
+          {
+            "kind": "node",
+            "document": {
+              "uri": "nireco://workspace-01/document/DocCaseA",
+              "revisionId": "018f0000-0000-7000-8000-000000000001"
+            },
+            "nodeId": "018f0000-0000-7000-8000-000000000103"
+          }
+        ]
+      },
+      "canonicalJson": "{\"algorithmVersion\":\"nireco-semantic-diff-1\",\"documentUri\":\"nireco://workspace-01/document/DocCaseA\",\"generatedAgainstRevisionId\":\"018f0000-0000-7000-8000-000000000001\",\"kind\":\"insert-content\",\"operationIds\":[\"018f0000-0000-7000-8000-000000000006\"],\"proposalId\":\"018f0000-0000-7000-8000-000000000002\",\"proposalRevision\":1,\"targetRefs\":[{\"document\":{\"revisionId\":\"018f0000-0000-7000-8000-000000000001\",\"uri\":\"nireco://workspace-01/document/DocCaseA\"},\"kind\":\"node\",\"nodeId\":\"018f0000-0000-7000-8000-000000000103\"}]}",
+      "preimageUtf8Hex": "4e495245434f0048415348005631006e697265636f2e70726f706f73616c2d6368616e67652d67726f75702e7631007b22616c676f726974686d56657273696f6e223a226e697265636f2d73656d616e7469632d646966662d31222c22646f63756d656e74557269223a226e697265636f3a2f2f776f726b73706163652d30312f646f63756d656e742f446f634361736541222c2267656e657261746564416761696e73745265766973696f6e4964223a2230313866303030302d303030302d373030302d383030302d303030303030303030303031222c226b696e64223a22696e736572742d636f6e74656e74222c226f7065726174696f6e496473223a5b2230313866303030302d303030302d373030302d383030302d303030303030303030303036225d2c2270726f706f73616c4964223a2230313866303030302d303030302d373030302d383030302d303030303030303030303032222c2270726f706f73616c5265766973696f6e223a312c2274617267657452656673223a5b7b22646f63756d656e74223a7b227265766973696f6e4964223a2230313866303030302d303030302d373030302d383030302d303030303030303030303031222c22757269223a226e697265636f3a2f2f776f726b73706163652d30312f646f63756d656e742f446f634361736541227d2c226b696e64223a226e6f6465222c226e6f64654964223a2230313866303030302d303030302d373030302d383030302d303030303030303030313033227d5d7d",
+      "expectedHash": "sha256:1a35d9ac7ac5dcca78889d038e9cae19a7f680fd63eac1e5a504910b4b9b54c5"
+    },
+    {
+      "name": "semantic-diff",
+      "domain": "nireco.semantic-diff.v1",
+      "payloadSchemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/semantic-diff.schema.json",
+      "payload": {
+        "id": "diff-0001",
+        "algorithmVersion": "nireco-semantic-diff-1",
+        "document": {
+          "uri": "nireco://workspace-01/document/DocCaseA",
+          "revisionId": "018f0000-0000-7000-8000-000000000001"
+        },
+        "proposalId": "018f0000-0000-7000-8000-000000000002",
+        "proposalRevision": 1,
+        "generatedAgainstRevisionId": "018f0000-0000-7000-8000-000000000001",
+        "groups": [],
+        "summary": {
+          "groupCount": 0,
+          "insertedContentGroups": 0,
+          "rewrittenContentGroups": 0,
+          "deletedContentGroups": 0,
+          "movedStructureGroups": 0,
+          "citationChangeCount": 0,
+          "evidenceChangeCount": 0,
+          "metadataChangeCount": 0,
+          "changedUtf16Units": 0
+        },
+        "diagnostics": []
+      },
+      "canonicalJson": "{\"algorithmVersion\":\"nireco-semantic-diff-1\",\"diagnostics\":[],\"document\":{\"revisionId\":\"018f0000-0000-7000-8000-000000000001\",\"uri\":\"nireco://workspace-01/document/DocCaseA\"},\"generatedAgainstRevisionId\":\"018f0000-0000-7000-8000-000000000001\",\"groups\":[],\"id\":\"diff-0001\",\"proposalId\":\"018f0000-0000-7000-8000-000000000002\",\"proposalRevision\":1,\"summary\":{\"changedUtf16Units\":0,\"citationChangeCount\":0,\"deletedContentGroups\":0,\"evidenceChangeCount\":0,\"groupCount\":0,\"insertedContentGroups\":0,\"metadataChangeCount\":0,\"movedStructureGroups\":0,\"rewrittenContentGroups\":0}}",
+      "preimageUtf8Hex": "4e495245434f0048415348005631006e697265636f2e73656d616e7469632d646966662e7631007b22616c676f726974686d56657273696f6e223a226e697265636f2d73656d616e7469632d646966662d31222c22646961676e6f7374696373223a5b5d2c22646f63756d656e74223a7b227265766973696f6e4964223a2230313866303030302d303030302d373030302d383030302d303030303030303030303031222c22757269223a226e697265636f3a2f2f776f726b73706163652d30312f646f63756d656e742f446f634361736541227d2c2267656e657261746564416761696e73745265766973696f6e4964223a2230313866303030302d303030302d373030302d383030302d303030303030303030303031222c2267726f757073223a5b5d2c226964223a22646966662d30303031222c2270726f706f73616c4964223a2230313866303030302d303030302d373030302d383030302d303030303030303030303032222c2270726f706f73616c5265766973696f6e223a312c2273756d6d617279223a7b226368616e6765645574663136556e697473223a302c226369746174696f6e4368616e6765436f756e74223a302c2264656c65746564436f6e74656e7447726f757073223a302c2265766964656e63654368616e6765436f756e74223a302c2267726f7570436f756e74223a302c22696e736572746564436f6e74656e7447726f757073223a302c226d657461646174614368616e6765436f756e74223a302c226d6f76656453747275637475726547726f757073223a302c2272657772697474656e436f6e74656e7447726f757073223a307d7d",
+      "expectedHash": "sha256:2a0fbc68df012f997d30fd18612a295c7620db9703fc9e2d329a9e585d4df27b"
+    },
+    {
+      "name": "transaction",
+      "domain": "nireco.transaction.v1",
+      "payloadSchemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/transaction.schema.json",
+      "payload": {
+        "id": "018f0000-0000-7000-8000-000000000004",
+        "target": {
+          "uri": "nireco://workspace-01/document/DocCaseA",
+          "baseRevisionId": "018f0000-0000-7000-8000-000000000001"
+        },
+        "actor": {
+          "type": "human",
+          "id": "user-0001"
+        },
+        "intent": "Schema-valid transaction hash vector.",
+        "operations": [
+          {
+            "id": "018f0000-0000-7000-8000-000000000006",
+            "type": "replace-text",
+            "textNodeId": "018f0000-0000-7000-8000-000000000105",
+            "startUtf16Offset": 0,
+            "endUtf16Offset": 0,
+            "replacement": "A"
+          }
+        ],
+        "preconditions": [
+          {
+            "kind": "node-exists",
+            "nodeId": "018f0000-0000-7000-8000-000000000105"
+          },
+          {
+            "kind": "document-hash",
+            "expected": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+          }
+        ],
+        "metadata": {
+          "source": "command"
+        },
+        "createdAt": "2026-07-16T16:00:00Z"
+      },
+      "canonicalJson": "{\"actor\":{\"id\":\"user-0001\",\"type\":\"human\"},\"createdAt\":\"2026-07-16T16:00:00Z\",\"id\":\"018f0000-0000-7000-8000-000000000004\",\"intent\":\"Schema-valid transaction hash vector.\",\"metadata\":{\"source\":\"command\"},\"operations\":[{\"endUtf16Offset\":0,\"id\":\"018f0000-0000-7000-8000-000000000006\",\"replacement\":\"A\",\"startUtf16Offset\":0,\"textNodeId\":\"018f0000-0000-7000-8000-000000000105\",\"type\":\"replace-text\"}],\"preconditions\":[{\"kind\":\"node-exists\",\"nodeId\":\"018f0000-0000-7000-8000-000000000105\"},{\"expected\":\"sha256:0000000000000000000000000000000000000000000000000000000000000000\",\"kind\":\"document-hash\"}],\"target\":{\"baseRevisionId\":\"018f0000-0000-7000-8000-000000000001\",\"uri\":\"nireco://workspace-01/document/DocCaseA\"}}",
+      "preimageUtf8Hex": "4e495245434f0048415348005631006e697265636f2e7472616e73616374696f6e2e7631007b226163746f72223a7b226964223a22757365722d30303031222c2274797065223a2268756d616e227d2c22637265617465644174223a22323032362d30372d31365431363a30303a30305a222c226964223a2230313866303030302d303030302d373030302d383030302d303030303030303030303034222c22696e74656e74223a22536368656d612d76616c6964207472616e73616374696f6e206861736820766563746f722e222c226d65746164617461223a7b22736f75726365223a22636f6d6d616e64227d2c226f7065726174696f6e73223a5b7b22656e6455746631364f6666736574223a302c226964223a2230313866303030302d303030302d373030302d383030302d303030303030303030303036222c227265706c6163656d656e74223a2241222c22737461727455746631364f6666736574223a302c22746578744e6f64654964223a2230313866303030302d303030302d373030302d383030302d303030303030303030313035222c2274797065223a227265706c6163652d74657874227d5d2c22707265636f6e646974696f6e73223a5b7b226b696e64223a226e6f64652d657869737473222c226e6f64654964223a2230313866303030302d303030302d373030302d383030302d303030303030303030313035227d2c7b226578706563746564223a227368613235363a30303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030222c226b696e64223a22646f63756d656e742d68617368227d5d2c22746172676574223a7b22626173655265766973696f6e4964223a2230313866303030302d303030302d373030302d383030302d303030303030303030303031222c22757269223a226e697265636f3a2f2f776f726b73706163652d30312f646f63756d656e742f446f634361736541227d7d",
+      "expectedHash": "sha256:edba39633cdeae09cbea69e284479c7f9677650dd5f392361641e14a37cafe38"
+    }
+  ]
+}

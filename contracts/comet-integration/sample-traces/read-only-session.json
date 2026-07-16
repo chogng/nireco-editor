@@ -5,11 +5,11 @@
   "workflowId": "inspect-manuscript",
   "document": {
     "uri": "nireco://workspace-01/document/DocCaseA",
-    "revisionId": "rev-0001"
+    "revisionId": "018f0000-0000-7000-8000-000000000001"
   },
   "scenario": "Handshake, open a revision-bound read-only session, and read the canonical snapshot.",
   "status": "ok",
-  "sessionId": "session-read-0001",
+  "sessionId": "018f0000-0000-7000-8000-000000000003",
   "capabilityGrantId": "grant-read-0001",
   "events": [
     {
@@ -33,10 +33,10 @@
       "requestId": "request-read-0002",
       "document": {
         "uri": "nireco://workspace-01/document/DocCaseA",
-        "revisionId": "rev-0001"
+        "revisionId": "018f0000-0000-7000-8000-000000000001"
       },
       "grantedCapabilities": ["document.content.read", "document.outline.read"],
-      "basedOnRevisionId": "rev-0001",
+      "basedOnRevisionId": "018f0000-0000-7000-8000-000000000001",
       "outcome": "ok",
       "summary": "A task-bound session was opened at immutable revision rev-0001."
     },
@@ -49,9 +49,9 @@
       "requestId": "request-read-0003",
       "document": {
         "uri": "nireco://workspace-01/document/DocCaseA",
-        "revisionId": "rev-0001"
+        "revisionId": "018f0000-0000-7000-8000-000000000001"
       },
-      "basedOnRevisionId": "rev-0001",
+      "basedOnRevisionId": "018f0000-0000-7000-8000-000000000001",
       "outcome": "ok",
       "summary": "The minimal manuscript snapshot was returned without reading a mutable head."
     }

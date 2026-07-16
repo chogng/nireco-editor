@@ -1,11 +1,12 @@
 # Nireco–Comet Integration Contract
 
 This directory is the self-contained Gate 0 source bundle for contract version `0.4-preview.1`.
+The matching immutable Nireco package artifact version is `0.4.0-preview.1`.
 
 Normative inputs:
 
-- Nireco development specification `0.4.2`
-- Nireco–Comet roadmap `0.1.1`
+- Nireco development specification `0.4.3`
+- Nireco–Comet roadmap `0.1.2`
 - Nireco–Comet engineering standard `0.1.1`
 
 The JSON Schemas are the source of truth. Deterministic TypeScript declarations generated
@@ -20,6 +21,7 @@ error-codes.json
 capability-matrix.json
 semantic-edits.json
 fixtures/*.json
+recovery-fixtures/*.json
 generated-types/*.d.ts
 mock-service/README.md
 conformance-runner/README.md
@@ -66,7 +68,48 @@ Canonical `nireco:` and `comet:` logical URIs have:
 
 `nireco://workspace-01/document/DocCaseA` is therefore valid and intentionally preserves path case.
 
-IDs are opaque. Fixtures use readable values such as `rev-0001` and `node-0001`; this does not freeze UUID, UUIDv7, Base32, or any other production representation.
+Nireco-owned production identities are now frozen:
+
+- allocated identities use canonical lowercase RFC 9562 UUIDv7;
+- `OperationId` is an allocated UUIDv7 assigned by a trusted compiler or service
+  before reducer entry;
+- `ProposalChangeGroupId` is a deterministic UUIDv8 derived from the frozen
+  domain-separated SHA-256 group-identity preimage;
+- external identities such as a Comet task or tool invocation remain opaque
+  integration-owned strings.
+
+The production parsers reject uppercase UUIDs, non-RFC variants, the wrong UUID
+version, and readable values such as `node-0001`. A named preview-fixture
+compatibility parser exists only for older in-process tests and must never be
+used at a production boundary. Contract fixtures use the production UUID profile.
+
+Clock and entropy access belongs to the injected UUIDv7 seed source. The allocator
+keeps output lexicographically monotonic when a timestamp repeats or moves
+backwards; reducers never read a clock or random source.
+
+## Canonical hash preimages
+
+Protocol hashes use profile `nireco-hash-preimage-1`. The exact byte sequence is:
+
+```text
+UTF8("NIRECO\0HASH\0V1\0" + domain + "\0" + canonicalJson(payload))
+```
+
+There is no BOM, trailing newline, Unicode normalization, locale-dependent sort,
+or implicit field omission. SHA-256 output is lowercase
+`sha256:<64 lowercase hex>`. A semantic change to any domain or payload requires
+a new versioned domain; implementations must not silently reinterpret a V1 hash.
+
+Frozen domains include document content, transaction, node, academic entity,
+Proposal Change Group identity, Semantic Diff, and governance manifest. Document
+content hashes include only `schemaId`, `schemaVersion`, `metadata`, `root`,
+`academicGraph`, and `settings`. They exclude `format`, `formatVersion`,
+`revisionId`, and `documentHash`.
+
+`fixtures/hash-preimages.json` contains a concrete payload Schema ID, schema-valid
+payload, canonical JSON, exact UTF-8 bytes in hex, and expected hash for every
+frozen domain. Conformance validates each payload with Ajv strict mode before
+comparing the browser-safe portable SHA-256 implementation with Node crypto.
 
 ## Manuscript schema
 
@@ -83,7 +126,7 @@ schemaVersion: 1.0.0-preview.1
 
 The V1 preview vocabulary includes `hardBreak`, `horizontalRule`, `footnote`, `footnoteReference`, and `bibliographyPlaceholder` in addition to the structural, inline, figure, table, list, equation, citation, and cross-reference nodes. `frontMatter` remains an optional empty structural boundary in this preview; its semantic fields live in snapshot metadata.
 
-The snapshot content hash covers:
+The snapshot content hash payload covers:
 
 ```text
 schemaId
@@ -100,6 +143,26 @@ It excludes the revision ID and the `documentHash` field itself.
 
 Each fixture is a `golden-fixture.schema.json` envelope. Its `payload` validates against `payloadSchemaId`, and `expectedCanonicalSha256` hashes only the payload using `nireco-canonical-json-0.1`.
 
+`expectedCanonicalSha256` is an envelope drift checksum, not a protocol content
+hash. Protocol content hashes always use the domain-separated preimage above.
+
+## Operation and Semantic Diff identity
+
+Every Operation carries a formal `OperationId` UUIDv7. The compiler persists the
+ordered Operation list; display code must not re-sort it because operation order
+can affect apply semantics.
+
+Semantic Diff declares algorithm version `nireco-semantic-diff-1`. Change Group
+IDs include document/revision identity, Proposal identity and revision, group
+kind, canonical target refs, and persisted ordered Operation IDs. Target display
+order therefore cannot change the ID, while a new Proposal Revision always does.
+
+Canonical Group order is a deterministic topological order. Among simultaneously
+ready groups, the tie-break is canonical target, group-kind rank, then Group ID.
+Rebase `supersedes` mappings match groups of the same kind sharing a stable target
+identity with the document revision removed; mappings and target Group IDs use
+canonical group order. No text-similarity heuristic is permitted.
+
 The minimal manuscript deliberately exercises:
 
 - metadata-based title/authors/abstract/keywords;
@@ -110,6 +173,29 @@ The minimal manuscript deliberately exercises:
 - `bibliographyPlaceholder`.
 
 The transaction appends punctuation after `Hello 🌍` at UTF-16 offset `8`.
+
+Recovery fixtures additionally cover an incomplete trailing WAL frame and checksum
+corruption in a middle frame. They use the ADR-010 frame:
+
+```text
+uint32 big-endian payload length
+uint32 big-endian CRC-32/ISO-HDLC
+canonical-JSON UTF-8 payload
+```
+
+Only an incomplete trailing frame is truncated. Middle corruption enters
+`RECOVERY_REQUIRED` and is never silently skipped.
+
+## Durability acknowledgment
+
+`apply()` acknowledges only an atomic in-memory Revision. Consumers that require a
+reliable save wait for
+`revision.schema.json#/$defs/DurabilityAcknowledgement`.
+
+Durability advances only `memory → wal → snapshot`. WAL append or fsync failure after
+memory commit makes the Authority read-only and returns a typed durability error.
+Snapshot failure leaves the WAL-safe Revision and previous manifest authoritative, so
+an explicit Snapshot retry is safe.
 
 ## Code generation and checks
 

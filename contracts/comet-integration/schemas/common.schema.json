@@ -9,34 +9,47 @@
       "minLength": 1,
       "maxLength": 128,
       "pattern": "^[A-Za-z][A-Za-z0-9._:-]*$",
-      "description": "Opaque identity. The preview contract intentionally does not freeze a UUID representation."
+      "description": "External or integration-owned opaque identity. Nireco-allocated production identities use AllocatedId instead."
+    },
+    "AllocatedId": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "Canonical lowercase RFC 9562 UUIDv7 allocated by a trusted Nireco boundary before reducer entry."
+    },
+    "DerivedId": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "Canonical lowercase RFC 9562 UUIDv8 deterministically derived from a frozen domain-separated SHA-256 preimage."
     },
     "WorkspaceId": {
-      "$ref": "#/$defs/OpaqueId"
+      "$ref": "#/$defs/AllocatedId"
     },
     "RevisionId": {
-      "$ref": "#/$defs/OpaqueId"
+      "$ref": "#/$defs/AllocatedId"
     },
     "TransactionId": {
-      "$ref": "#/$defs/OpaqueId"
+      "$ref": "#/$defs/AllocatedId"
+    },
+    "OperationId": {
+      "$ref": "#/$defs/AllocatedId"
     },
     "NodeId": {
-      "$ref": "#/$defs/OpaqueId"
+      "$ref": "#/$defs/AllocatedId"
     },
     "EntityId": {
-      "$ref": "#/$defs/OpaqueId"
+      "$ref": "#/$defs/AllocatedId"
     },
     "ProposalId": {
-      "$ref": "#/$defs/OpaqueId"
+      "$ref": "#/$defs/AllocatedId"
     },
     "ProposalChangeGroupId": {
-      "$ref": "#/$defs/OpaqueId"
+      "$ref": "#/$defs/DerivedId"
     },
     "SessionId": {
-      "$ref": "#/$defs/OpaqueId"
+      "$ref": "#/$defs/AllocatedId"
     },
     "DebugId": {
-      "$ref": "#/$defs/OpaqueId"
+      "$ref": "#/$defs/AllocatedId"
     },
     "RequestId": {
       "$ref": "#/$defs/OpaqueId"
@@ -66,6 +79,109 @@
     "ContentHash": {
       "type": "string",
       "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "HashDomain": {
+      "enum": [
+        "nireco.academic-entity.v1",
+        "nireco.document-content.v1",
+        "nireco.governance-manifest.v1",
+        "nireco.node.v1",
+        "nireco.proposal-change-group.v1",
+        "nireco.semantic-diff.v1",
+        "nireco.transaction.v1"
+      ]
+    },
+    "HashConformanceVector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "domain",
+        "payloadSchemaId",
+        "payload",
+        "canonicalJson",
+        "preimageUtf8Hex",
+        "expectedHash"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$"
+        },
+        "domain": {
+          "$ref": "#/$defs/HashDomain"
+        },
+        "payloadSchemaId": {
+          "type": "string",
+          "format": "uri"
+        },
+        "payload": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "canonicalJson": {
+          "type": "string"
+        },
+        "preimageUtf8Hex": {
+          "type": "string",
+          "pattern": "^(?:[0-9a-f]{2})+$"
+        },
+        "expectedHash": {
+          "$ref": "#/$defs/ContentHash"
+        }
+      }
+    },
+    "HashConformanceVectorSet": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["profile", "preimageFormula", "vectors"],
+      "properties": {
+        "profile": {
+          "const": "nireco-hash-preimage-1"
+        },
+        "preimageFormula": {
+          "const": "UTF8(NIRECO\\0HASH\\0V1\\0 + domain + \\0 + canonicalJson(payload))"
+        },
+        "vectors": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/HashConformanceVector"
+          }
+        }
+      }
+    },
+    "GovernanceManifestHashPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["engineeringStandardVersion", "files"],
+      "properties": {
+        "engineeringStandardVersion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/GovernanceManifestFileHash"
+          }
+        }
+      }
+    },
+    "GovernanceManifestFileHash": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "rawSha256"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+        },
+        "rawSha256": {
+          "$ref": "#/$defs/ContentHash"
+        }
+      }
     },
     "Rfc3339Timestamp": {
       "type": "string",

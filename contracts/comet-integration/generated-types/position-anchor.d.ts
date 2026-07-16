@@ -14,10 +14,10 @@
  */
 export type DocumentUri = string;
 /**
- * Opaque identity. The preview contract intentionally does not freeze a UUID representation.
+ * Canonical lowercase RFC 9562 UUIDv7 allocated by a trusted Nireco boundary before reducer entry.
  *
  * This interface was referenced by `PositionAnchorSchemaTypes`'s JSON-Schema
- * via the `definition` "OpaqueId".
+ * via the `definition` "AllocatedId".
  *
  * This interface was referenced by `PositionAnchorSchemaTypes`'s JSON-Schema
  * via the `definition` "WorkspaceId".
@@ -29,6 +29,9 @@ export type DocumentUri = string;
  * via the `definition` "TransactionId".
  *
  * This interface was referenced by `PositionAnchorSchemaTypes`'s JSON-Schema
+ * via the `definition` "OperationId".
+ *
+ * This interface was referenced by `PositionAnchorSchemaTypes`'s JSON-Schema
  * via the `definition` "NodeId".
  *
  * This interface was referenced by `PositionAnchorSchemaTypes`'s JSON-Schema
@@ -38,33 +41,12 @@ export type DocumentUri = string;
  * via the `definition` "ProposalId".
  *
  * This interface was referenced by `PositionAnchorSchemaTypes`'s JSON-Schema
- * via the `definition` "ProposalChangeGroupId".
- *
- * This interface was referenced by `PositionAnchorSchemaTypes`'s JSON-Schema
  * via the `definition` "SessionId".
  *
  * This interface was referenced by `PositionAnchorSchemaTypes`'s JSON-Schema
  * via the `definition` "DebugId".
- *
- * This interface was referenced by `PositionAnchorSchemaTypes`'s JSON-Schema
- * via the `definition` "RequestId".
- *
- * This interface was referenced by `PositionAnchorSchemaTypes`'s JSON-Schema
- * via the `definition` "TraceId".
- *
- * This interface was referenced by `PositionAnchorSchemaTypes`'s JSON-Schema
- * via the `definition` "TaskId".
- *
- * This interface was referenced by `PositionAnchorSchemaTypes`'s JSON-Schema
- * via the `definition` "ToolInvocationId".
- *
- * This interface was referenced by `PositionAnchorSchemaTypes`'s JSON-Schema
- * via the `definition` "CapabilityGrantId".
- *
- * This interface was referenced by `PositionAnchorSchemaTypes`'s JSON-Schema
- * via the `definition` "PolicySnapshotId".
  */
-export type OpaqueId = string;
+export type AllocatedId = string;
 /**
  * This interface was referenced by `PositionAnchorSchemaTypes`'s JSON-Schema
  * via the `definition` "SemanticPosition".
@@ -88,6 +70,41 @@ export type Affinity = 'before' | 'after';
  */
 export type ContentHash = string;
 /**
+ * External or integration-owned opaque identity. Nireco-allocated production identities use AllocatedId instead.
+ *
+ * This interface was referenced by `PositionAnchorSchemaTypes`'s JSON-Schema
+ * via the `definition` "OpaqueId".
+ *
+ * This interface was referenced by `PositionAnchorSchemaTypes`'s JSON-Schema
+ * via the `definition` "RequestId".
+ *
+ * This interface was referenced by `PositionAnchorSchemaTypes`'s JSON-Schema
+ * via the `definition` "TraceId".
+ *
+ * This interface was referenced by `PositionAnchorSchemaTypes`'s JSON-Schema
+ * via the `definition` "TaskId".
+ *
+ * This interface was referenced by `PositionAnchorSchemaTypes`'s JSON-Schema
+ * via the `definition` "ToolInvocationId".
+ *
+ * This interface was referenced by `PositionAnchorSchemaTypes`'s JSON-Schema
+ * via the `definition` "CapabilityGrantId".
+ *
+ * This interface was referenced by `PositionAnchorSchemaTypes`'s JSON-Schema
+ * via the `definition` "PolicySnapshotId".
+ */
+export type OpaqueId = string;
+/**
+ * Canonical lowercase RFC 9562 UUIDv8 deterministically derived from a frozen domain-separated SHA-256 preimage.
+ *
+ * This interface was referenced by `PositionAnchorSchemaTypes`'s JSON-Schema
+ * via the `definition` "DerivedId".
+ *
+ * This interface was referenced by `PositionAnchorSchemaTypes`'s JSON-Schema
+ * via the `definition` "ProposalChangeGroupId".
+ */
+export type DerivedId = string;
+/**
  * Untrusted, request-local correlation key. It is never a trusted Nireco identity.
  *
  * This interface was referenced by `PositionAnchorSchemaTypes`'s JSON-Schema
@@ -96,15 +113,16 @@ export type ContentHash = string;
 export type ClientRef = string;
 /**
  * This interface was referenced by `PositionAnchorSchemaTypes`'s JSON-Schema
- * via the `definition` "Rfc3339Timestamp".
+ * via the `definition` "HashDomain".
  */
-export type Rfc3339Timestamp = string;
-/**
- * This interface was referenced by `PositionAnchorSchemaTypes`'s JSON-Schema
- * via the `definition` "ActorRef".
- */
-export type ActorRef =
-  HumanActorRef | CometAgentActorRef | ProductControllerActorRef | SystemActorRef;
+export type HashDomain =
+  | 'nireco.academic-entity.v1'
+  | 'nireco.document-content.v1'
+  | 'nireco.governance-manifest.v1'
+  | 'nireco.node.v1'
+  | 'nireco.proposal-change-group.v1'
+  | 'nireco.semantic-diff.v1'
+  | 'nireco.transaction.v1';
 /**
  * A JSON value used only at explicitly declared extension or patch boundaries.
  *
@@ -117,6 +135,17 @@ export type JsonValue = null | boolean | number | string | JsonArray | JsonObjec
  * via the `definition` "JsonArray".
  */
 export type JsonArray = JsonValue[];
+/**
+ * This interface was referenced by `PositionAnchorSchemaTypes`'s JSON-Schema
+ * via the `definition` "Rfc3339Timestamp".
+ */
+export type Rfc3339Timestamp = string;
+/**
+ * This interface was referenced by `PositionAnchorSchemaTypes`'s JSON-Schema
+ * via the `definition` "ActorRef".
+ */
+export type ActorRef =
+  HumanActorRef | CometAgentActorRef | ProductControllerActorRef | SystemActorRef;
 /**
  * This interface was referenced by `PositionAnchorSchemaTypes`'s JSON-Schema
  * via the `definition` "SemanticTargetRef".
@@ -163,9 +192,9 @@ export interface PositionAnchorSchemaTypes {
 export interface PersistentAnchor {
   document: DocumentRef;
   primary: SemanticPosition;
-  targetNodeId?: OpaqueId;
+  targetNodeId?: AllocatedId;
   textQuote?: TextQuote;
-  pathHint?: OpaqueId[];
+  pathHint?: AllocatedId[];
 }
 /**
  * This interface was referenced by `PositionAnchorSchemaTypes`'s JSON-Schema
@@ -173,7 +202,7 @@ export interface PersistentAnchor {
  */
 export interface DocumentRef {
   uri: DocumentUri;
-  revisionId: OpaqueId;
+  revisionId: AllocatedId;
 }
 /**
  * This interface was referenced by `PositionAnchorSchemaTypes`'s JSON-Schema
@@ -181,7 +210,7 @@ export interface DocumentRef {
  */
 export interface TextPosition {
   kind: 'text';
-  textNodeId: OpaqueId;
+  textNodeId: AllocatedId;
   utf16Offset: Utf16Offset;
   affinity: Affinity;
 }
@@ -191,7 +220,7 @@ export interface TextPosition {
  */
 export interface NodeBoundaryPosition {
   kind: 'node-boundary';
-  parentNodeId: OpaqueId;
+  parentNodeId: AllocatedId;
   childIndex: number;
   affinity: Affinity;
 }
@@ -204,6 +233,54 @@ export interface TextQuote {
   prefix?: string;
   suffix?: string;
   normalizedHash?: ContentHash;
+}
+/**
+ * This interface was referenced by `PositionAnchorSchemaTypes`'s JSON-Schema
+ * via the `definition` "HashConformanceVector".
+ */
+export interface HashConformanceVector {
+  name: string;
+  domain: HashDomain;
+  payloadSchemaId: string;
+  payload: JsonValue;
+  canonicalJson: string;
+  preimageUtf8Hex: string;
+  expectedHash: ContentHash;
+}
+/**
+ * This interface was referenced by `PositionAnchorSchemaTypes`'s JSON-Schema
+ * via the `definition` "JsonObject".
+ */
+export interface JsonObject {
+  [k: string]: JsonValue;
+}
+/**
+ * This interface was referenced by `PositionAnchorSchemaTypes`'s JSON-Schema
+ * via the `definition` "HashConformanceVectorSet".
+ */
+export interface HashConformanceVectorSet {
+  profile: 'nireco-hash-preimage-1';
+  preimageFormula: 'UTF8(NIRECO\\0HASH\\0V1\\0 + domain + \\0 + canonicalJson(payload))';
+  /**
+   * @minItems 1
+   */
+  vectors: [HashConformanceVector, ...HashConformanceVector[]];
+}
+/**
+ * This interface was referenced by `PositionAnchorSchemaTypes`'s JSON-Schema
+ * via the `definition` "GovernanceManifestHashPayload".
+ */
+export interface GovernanceManifestHashPayload {
+  engineeringStandardVersion: string;
+  files: GovernanceManifestFileHash[];
+}
+/**
+ * This interface was referenced by `PositionAnchorSchemaTypes`'s JSON-Schema
+ * via the `definition` "GovernanceManifestFileHash".
+ */
+export interface GovernanceManifestFileHash {
+  path: string;
+  rawSha256: ContentHash;
 }
 /**
  * This interface was referenced by `PositionAnchorSchemaTypes`'s JSON-Schema
@@ -242,13 +319,6 @@ export interface SystemActorRef {
 }
 /**
  * This interface was referenced by `PositionAnchorSchemaTypes`'s JSON-Schema
- * via the `definition` "JsonObject".
- */
-export interface JsonObject {
-  [k: string]: JsonValue;
-}
-/**
- * This interface was referenced by `PositionAnchorSchemaTypes`'s JSON-Schema
  * via the `definition` "SemanticRange".
  */
 export interface SemanticRange {
@@ -261,7 +331,7 @@ export interface SemanticRange {
  */
 export interface NodeRef {
   document: DocumentRef;
-  nodeId: OpaqueId;
+  nodeId: AllocatedId;
 }
 /**
  * This interface was referenced by `PositionAnchorSchemaTypes`'s JSON-Schema
@@ -269,7 +339,7 @@ export interface NodeRef {
  */
 export interface AcademicEntityRef {
   document: DocumentRef;
-  entityId: OpaqueId;
+  entityId: AllocatedId;
 }
 /**
  * This interface was referenced by `PositionAnchorSchemaTypes`'s JSON-Schema
@@ -296,7 +366,7 @@ export interface MetadataTargetRef {
 export interface NodeTargetRef {
   kind: 'node';
   document: DocumentRef;
-  nodeId: OpaqueId;
+  nodeId: AllocatedId;
 }
 /**
  * This interface was referenced by `PositionAnchorSchemaTypes`'s JSON-Schema
@@ -305,7 +375,7 @@ export interface NodeTargetRef {
 export interface EntityTargetRef {
   kind: 'academic-entity';
   document: DocumentRef;
-  entityId: OpaqueId;
+  entityId: AllocatedId;
 }
 /**
  * This interface was referenced by `PositionAnchorSchemaTypes`'s JSON-Schema
@@ -330,5 +400,5 @@ export interface ResourceRef {
  */
 export interface MutableDocumentTarget {
   uri: DocumentUri;
-  baseRevisionId: OpaqueId;
+  baseRevisionId: AllocatedId;
 }

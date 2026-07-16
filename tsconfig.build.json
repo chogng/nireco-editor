@@ -17,6 +17,7 @@
     "src/base/**/*.ts",
     "src/model/**/*.ts",
     "src/proposal/**/*.ts",
+    "src/storage/**/*.ts",
     "src/workspace/**/*.ts",
     "src/integration/**/*.ts",
     "src/platform/**/*.ts",

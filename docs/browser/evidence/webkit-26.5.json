@@ -1,0 +1,104 @@
+{
+  "evidenceVersion": 2,
+  "capture": {
+    "browser": "webkit",
+    "screenshot": {
+      "path": "docs/browser/evidence/screenshots/webkit-26.5.png",
+      "sha256": "sha256:a2b781f8743e378e3f96621e826df8074f966ab936dc226f2b5e32cd9a4060a9"
+    },
+    "tool": "@playwright/cli via Codex wrapper"
+  },
+  "run": {
+    "capabilities": {
+      "beforeInputEvent": true,
+      "clipboardEvent": true,
+      "compositionEvent": true,
+      "dataTransfer": true,
+      "mutationObserver": true,
+      "selection": true
+    },
+    "console": {
+      "errors": 0,
+      "warnings": 0
+    },
+    "engine": {
+      "family": "WebKit",
+      "platform": "MacIntel",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Safari/605.1.15",
+      "version": "26.5"
+    },
+    "scenarioResults": [
+      {
+        "id": "browser-hash-byte-vectors",
+        "observed": {
+          "fixture": {
+            "path": "contracts/comet-integration/fixtures/hash-preimages.json",
+            "sha256": "sha256:1349ec49c10944b08e6f8ccb87c994d89cb447fce7150964e3ad506c7aff28f1"
+          },
+          "profile": "nireco-hash-preimage-1",
+          "vectorsMatched": 7
+        },
+        "status": "pass"
+      },
+      {
+        "id": "beforeinput-to-transaction",
+        "observed": {
+          "defaultPrevented": true,
+          "modelText": "hello!",
+          "transactionCount": 1
+        },
+        "status": "pass"
+      },
+      {
+        "id": "composition-single-transaction",
+        "observed": {
+          "modelText": "论文方法",
+          "transactionCount": 1,
+          "undoGroupId": "composition-1"
+        },
+        "status": "pass"
+      },
+      {
+        "id": "stale-composition-controlled-fallback",
+        "observed": {
+          "diagnostic": "COMPOSITION_TARGET_STALE",
+          "modelText": "外部提交",
+          "transactionCount": 0
+        },
+        "status": "pass"
+      },
+      {
+        "id": "selection-utf16-boundary",
+        "observed": {
+          "invalidBoundaryCode": "INVALID_UTF16_BOUNDARY",
+          "validUtf16Offset": 3
+        },
+        "status": "pass"
+      },
+      {
+        "id": "clipboard-sanitize-atomic-paste",
+        "observed": {
+          "modelText": "引用：安全内容",
+          "scriptExecuted": false,
+          "transactionCount": 1
+        },
+        "status": "pass"
+      },
+      {
+        "id": "dom-divergence-recovery",
+        "observed": {
+          "divergenceCount": 3,
+          "readOnly": true,
+          "transactionCount": 0
+        },
+        "status": "pass"
+      }
+    ],
+    "scope": "isolated-gate-0-spike",
+    "summary": {
+      "failed": 0,
+      "passed": 7,
+      "total": 7
+    }
+  }
+}
