@@ -1,0 +1,77 @@
+{
+  "name": "@comet-internal/nireco-editor",
+  "version": "0.0.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "description": "URI-addressed, revisioned semantic document core for Comet.",
+  "type": "module",
+  "packageManager": "pnpm@11.9.0",
+  "engines": {
+    "node": ">=24 <27",
+    "pnpm": "11.9.0"
+  },
+  "files": [
+    "dist",
+    "contracts/comet-integration"
+  ],
+  "main": "./dist/entrypoints/main.js",
+  "types": "./dist/entrypoints/main.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/entrypoints/main.d.ts",
+      "import": "./dist/entrypoints/main.js"
+    },
+    "./protocol": {
+      "types": "./dist/entrypoints/protocol.d.ts",
+      "import": "./dist/entrypoints/protocol.js"
+    },
+    "./comet-internal": {
+      "types": "./dist/entrypoints/comet-internal.d.ts",
+      "import": "./dist/entrypoints/comet-internal.js"
+    }
+  },
+  "scripts": {
+    "format": "prettier --write --no-error-on-unmatched-pattern package.json 'tsconfig*.json' '*.{config.js,config.mjs,config.ts}' .github scripts src tests contracts fixtures adr docs",
+    "format:check": "prettier --check --no-error-on-unmatched-pattern package.json 'tsconfig*.json' '*.{config.js,config.mjs,config.ts}' .github scripts src tests contracts fixtures adr docs",
+    "lint": "eslint . --max-warnings=0",
+    "typecheck": "pnpm typecheck:core && pnpm typecheck:node && pnpm typecheck:browser && pnpm typecheck:contract && pnpm typecheck:test",
+    "typecheck:core": "tsc -p tsconfig.core.json --pretty false",
+    "typecheck:node": "tsc -p tsconfig.node.json --pretty false",
+    "typecheck:browser": "tsc -p tsconfig.browser.json --pretty false",
+    "typecheck:contract": "tsc -p tsconfig.contract.json --pretty false",
+    "typecheck:test": "tsc -p tsconfig.test.json --pretty false",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:unit": "vitest run tests/unit src",
+    "test:property": "vitest run tests/property",
+    "build": "tsc -p tsconfig.build.json --pretty false",
+    "generate": "node ./scripts/check-generated.mjs --write",
+    "contract:generate": "pnpm generate",
+    "contract:conformance": "vitest run tests/conformance tests/comet-contract",
+    "check:generated": "node ./scripts/check-generated.mjs",
+    "contract:check": "pnpm check:generated && pnpm contract:conformance",
+    "check:architecture": "node ./scripts/check-architecture.mjs",
+    "check:document-versions": "node ./scripts/check-document-versions.mjs",
+    "check:dependencies": "pnpm audit --audit-level high",
+    "check:licenses": "pnpm licenses list --prod",
+    "check": "pnpm format:check && pnpm lint && pnpm check:architecture && pnpm typecheck && pnpm test && pnpm build && pnpm check:generated && pnpm check:document-versions"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@types/node": "26.1.1",
+    "ajv": "8.20.0",
+    "eslint": "10.7.0",
+    "fast-check": "4.9.0",
+    "json-schema-to-typescript": "15.0.4",
+    "prettier": "3.9.5",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.64.0",
+    "vitest": "4.1.10"
+  },
+  "nireco": {
+    "developmentSpecVersion": "0.4.2",
+    "engineeringStandardVersion": "0.1.1",
+    "roadmapVersion": "0.1.1",
+    "configurationHash": "sha256-ddd1024cf3bfa26b82cec69dded5879bb6ac57b095ccaaca82f71d556a966837"
+  }
+}

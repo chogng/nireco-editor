@@ -1,0 +1,752 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/semantic-edit.schema.json",
+  "title": "Nireco High-level Semantic Edit Protocol",
+  "description": "The only Agent-facing write vocabulary. Semantic edits compile inside Nireco to validated operations; raw operations are not an Agent capability.",
+  "$ref": "#/$defs/SemanticEdit",
+  "$defs": {
+    "SemanticEditKind": {
+      "enum": [
+        "insert-block",
+        "replace-block-content",
+        "move-block",
+        "delete-block",
+        "insert-citation",
+        "replace-citation",
+        "create-claim",
+        "link-claim-evidence",
+        "create-evidence-link",
+        "update-metadata"
+      ]
+    },
+    "SemanticEdit": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/InsertBlockEdit"
+        },
+        {
+          "$ref": "#/$defs/ReplaceBlockContentEdit"
+        },
+        {
+          "$ref": "#/$defs/MoveBlockEdit"
+        },
+        {
+          "$ref": "#/$defs/DeleteBlockEdit"
+        },
+        {
+          "$ref": "#/$defs/InsertCitationEdit"
+        },
+        {
+          "$ref": "#/$defs/ReplaceCitationEdit"
+        },
+        {
+          "$ref": "#/$defs/CreateClaimEdit"
+        },
+        {
+          "$ref": "#/$defs/LinkClaimEvidenceEdit"
+        },
+        {
+          "$ref": "#/$defs/CreateEvidenceLinkEdit"
+        },
+        {
+          "$ref": "#/$defs/UpdateMetadataEdit"
+        }
+      ]
+    },
+    "SemanticPrecondition": {
+      "$ref": "transaction.schema.json#/$defs/TransactionPrecondition"
+    },
+    "InsertionTarget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["parentNodeId"],
+      "properties": {
+        "parentNodeId": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        },
+        "afterNodeId": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        },
+        "beforeNodeId": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        }
+      },
+      "not": {
+        "properties": {
+          "afterNodeId": {},
+          "beforeNodeId": {}
+        },
+        "required": ["afterNodeId", "beforeNodeId"]
+      }
+    },
+    "ProposedInlineContent": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ProposedText"
+        },
+        {
+          "$ref": "#/$defs/ProposedHardBreak"
+        },
+        {
+          "$ref": "#/$defs/ProposedInlineEquation"
+        },
+        {
+          "$ref": "#/$defs/ProposedCrossReference"
+        }
+      ]
+    },
+    "ProposedText": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["clientRef", "type", "value", "marks"],
+      "properties": {
+        "clientRef": {
+          "$ref": "common.schema.json#/$defs/ClientRef"
+        },
+        "type": {
+          "const": "text"
+        },
+        "value": {
+          "type": "string"
+        },
+        "marks": {
+          "type": "array",
+          "items": {
+            "$ref": "manuscript.schema.json#/$defs/Mark"
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "ProposedHardBreak": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["clientRef", "type"],
+      "properties": {
+        "clientRef": {
+          "$ref": "common.schema.json#/$defs/ClientRef"
+        },
+        "type": {
+          "const": "hardBreak"
+        }
+      }
+    },
+    "ProposedInlineEquation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["clientRef", "type", "source"],
+      "properties": {
+        "clientRef": {
+          "$ref": "common.schema.json#/$defs/ClientRef"
+        },
+        "type": {
+          "const": "inlineEquation"
+        },
+        "source": {
+          "type": "string"
+        }
+      }
+    },
+    "ProposedCrossReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["clientRef", "type", "targetEntityId"],
+      "properties": {
+        "clientRef": {
+          "$ref": "common.schema.json#/$defs/ClientRef"
+        },
+        "type": {
+          "const": "crossReference"
+        },
+        "targetEntityId": {
+          "$ref": "common.schema.json#/$defs/EntityId"
+        },
+        "label": {
+          "type": "string",
+          "maxLength": 1024
+        }
+      }
+    },
+    "ProposedBlockContent": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ProposedInlineContainerBlock"
+        },
+        {
+          "$ref": "#/$defs/ProposedStructuredBlock"
+        },
+        {
+          "$ref": "#/$defs/ProposedAtomicBlock"
+        }
+      ]
+    },
+    "ProposedInlineContainerBlock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["clientRef", "type", "attrs", "children"],
+      "properties": {
+        "clientRef": {
+          "$ref": "common.schema.json#/$defs/ClientRef"
+        },
+        "type": {
+          "enum": ["paragraph", "heading"]
+        },
+        "attrs": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "common.schema.json#/$defs/JsonValue"
+          },
+          "description": "Intentional open proposal boundary; the canonical manuscript node schema validates compiled attributes."
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ProposedInlineContent"
+          }
+        }
+      }
+    },
+    "ProposedStructuredBlock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["clientRef", "type", "attrs", "children"],
+      "properties": {
+        "clientRef": {
+          "$ref": "common.schema.json#/$defs/ClientRef"
+        },
+        "type": {
+          "enum": ["section", "figure", "table", "list", "listItem", "blockQuote", "footnote"]
+        },
+        "attrs": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "common.schema.json#/$defs/JsonValue"
+          },
+          "description": "Intentional open proposal boundary; final structure and attributes are validated against manuscript.schema.json."
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/ProposedBlockContent"
+              },
+              {
+                "$ref": "#/$defs/ProposedInlineContent"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "ProposedAtomicBlock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["clientRef", "type", "attrs"],
+      "properties": {
+        "clientRef": {
+          "$ref": "common.schema.json#/$defs/ClientRef"
+        },
+        "type": {
+          "enum": ["displayEquation", "codeBlock", "horizontalRule"]
+        },
+        "attrs": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "common.schema.json#/$defs/JsonValue"
+          },
+          "description": "Intentional open proposal boundary; final attributes are validated against manuscript.schema.json."
+        },
+        "text": {
+          "type": "string",
+          "description": "Code block content. Other atomic block kinds must omit this field."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "codeBlock"
+              }
+            },
+            "required": ["type"]
+          },
+          "then": {
+            "properties": {
+              "text": {
+                "type": "string"
+              }
+            },
+            "required": ["text"]
+          },
+          "else": {
+            "properties": {
+              "text": false
+            }
+          }
+        }
+      ]
+    },
+    "InsertBlockEdit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "clientRef", "target", "block"],
+      "properties": {
+        "kind": {
+          "const": "insert-block"
+        },
+        "clientRef": {
+          "$ref": "common.schema.json#/$defs/ClientRef"
+        },
+        "target": {
+          "$ref": "#/$defs/InsertionTarget"
+        },
+        "block": {
+          "$ref": "#/$defs/ProposedBlockContent"
+        },
+        "rationale": {
+          "type": "string",
+          "maxLength": 10000
+        },
+        "preconditions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SemanticPrecondition"
+          }
+        }
+      }
+    },
+    "ReplaceBlockContentEdit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "targetNodeId",
+        "expectedContentHash",
+        "replacement",
+        "preserveCitations",
+        "rationale"
+      ],
+      "properties": {
+        "kind": {
+          "const": "replace-block-content"
+        },
+        "targetNodeId": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        },
+        "expectedContentHash": {
+          "$ref": "common.schema.json#/$defs/ContentHash"
+        },
+        "replacement": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ProposedInlineContent"
+          }
+        },
+        "preserveCitations": {
+          "enum": ["all", "none", "explicit"]
+        },
+        "explicitCitationIds": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/EntityId"
+          },
+          "uniqueItems": true
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 10000
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "preserveCitations": {
+                "const": "explicit"
+              }
+            },
+            "required": ["preserveCitations"]
+          },
+          "then": {
+            "properties": {
+              "explicitCitationIds": {
+                "type": "array",
+                "items": {
+                  "$ref": "common.schema.json#/$defs/EntityId"
+                },
+                "uniqueItems": true
+              }
+            },
+            "required": ["explicitCitationIds"]
+          },
+          "else": {
+            "properties": {
+              "explicitCitationIds": false
+            }
+          }
+        }
+      ]
+    },
+    "MoveBlockEdit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "targetNodeId", "target", "rationale"],
+      "properties": {
+        "kind": {
+          "const": "move-block"
+        },
+        "targetNodeId": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        },
+        "target": {
+          "$ref": "#/$defs/InsertionTarget"
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 10000
+        },
+        "preconditions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SemanticPrecondition"
+          }
+        }
+      }
+    },
+    "DeleteBlockEdit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "targetNodeId", "expectedContentHash", "rationale"],
+      "properties": {
+        "kind": {
+          "const": "delete-block"
+        },
+        "targetNodeId": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        },
+        "expectedContentHash": {
+          "$ref": "common.schema.json#/$defs/ContentHash"
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 10000
+        }
+      }
+    },
+    "CitationRelation": {
+      "enum": ["supports", "partially-supports", "contradicts", "context-only"]
+    },
+    "InsertCitationEdit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "clientRef",
+        "target",
+        "referenceId",
+        "evidenceIds",
+        "relation",
+        "rationale"
+      ],
+      "properties": {
+        "kind": {
+          "const": "insert-citation"
+        },
+        "clientRef": {
+          "$ref": "common.schema.json#/$defs/ClientRef"
+        },
+        "target": {
+          "$ref": "position-anchor.schema.json#/$defs/SemanticPosition"
+        },
+        "claimId": {
+          "$ref": "common.schema.json#/$defs/EntityId"
+        },
+        "referenceId": {
+          "$ref": "common.schema.json#/$defs/EntityId"
+        },
+        "evidenceIds": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/EntityId"
+          },
+          "uniqueItems": true
+        },
+        "relation": {
+          "$ref": "#/$defs/CitationRelation"
+        },
+        "locator": {
+          "$ref": "manuscript.schema.json#/$defs/CitationLocator"
+        },
+        "prefix": {
+          "type": "string"
+        },
+        "suffix": {
+          "type": "string"
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 10000
+        }
+      }
+    },
+    "ReplaceCitationEdit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "targetCitationNodeId",
+        "expectedReferenceId",
+        "referenceId",
+        "evidenceIds",
+        "relation",
+        "rationale"
+      ],
+      "properties": {
+        "kind": {
+          "const": "replace-citation"
+        },
+        "targetCitationNodeId": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        },
+        "expectedReferenceId": {
+          "$ref": "common.schema.json#/$defs/EntityId"
+        },
+        "referenceId": {
+          "$ref": "common.schema.json#/$defs/EntityId"
+        },
+        "evidenceIds": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/EntityId"
+          },
+          "uniqueItems": true
+        },
+        "relation": {
+          "$ref": "#/$defs/CitationRelation"
+        },
+        "locator": {
+          "$ref": "manuscript.schema.json#/$defs/CitationLocator"
+        },
+        "prefix": {
+          "type": "string"
+        },
+        "suffix": {
+          "type": "string"
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 10000
+        }
+      }
+    },
+    "CreateClaimEdit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "clientRef", "anchor", "textSnapshot", "textHash", "rationale"],
+      "properties": {
+        "kind": {
+          "const": "create-claim"
+        },
+        "clientRef": {
+          "$ref": "common.schema.json#/$defs/ClientRef"
+        },
+        "anchor": {
+          "$ref": "position-anchor.schema.json#/$defs/PersistentAnchor"
+        },
+        "textSnapshot": {
+          "type": "string"
+        },
+        "textHash": {
+          "$ref": "common.schema.json#/$defs/ContentHash"
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 10000
+        }
+      }
+    },
+    "LinkClaimEvidenceEdit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "claimId", "evidenceId", "relation", "assessedBy", "rationale"],
+      "properties": {
+        "kind": {
+          "const": "link-claim-evidence"
+        },
+        "claimId": {
+          "$ref": "common.schema.json#/$defs/EntityId"
+        },
+        "evidenceId": {
+          "$ref": "common.schema.json#/$defs/EntityId"
+        },
+        "relation": {
+          "enum": ["supports", "partially-supports", "contradicts", "context-only", "unclear"]
+        },
+        "assessedBy": {
+          "$ref": "common.schema.json#/$defs/ActorRef"
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 10000
+        }
+      }
+    },
+    "CreateEvidenceLinkEdit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "clientRef",
+        "uri",
+        "sourceUri",
+        "sourceContentHash",
+        "locator",
+        "verification",
+        "rationale"
+      ],
+      "properties": {
+        "kind": {
+          "const": "create-evidence-link"
+        },
+        "clientRef": {
+          "$ref": "common.schema.json#/$defs/ClientRef"
+        },
+        "uri": {
+          "$ref": "resource-ref.schema.json#/$defs/CometResourceUri"
+        },
+        "sourceUri": {
+          "$ref": "resource-ref.schema.json#/$defs/ResourceUri"
+        },
+        "sourceContentHash": {
+          "$ref": "common.schema.json#/$defs/ContentHash"
+        },
+        "locator": {
+          "$ref": "manuscript.schema.json#/$defs/EvidenceLocator"
+        },
+        "excerpt": {
+          "type": "string"
+        },
+        "excerptHash": {
+          "$ref": "common.schema.json#/$defs/ContentHash"
+        },
+        "verification": {
+          "$ref": "#/$defs/EvidenceVerification"
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 10000
+        }
+      }
+    },
+    "EvidenceVerification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status"],
+      "properties": {
+        "status": {
+          "enum": ["verified", "provisional", "metadata-only", "stale", "rejected"]
+        },
+        "verifiedBy": {
+          "$ref": "common.schema.json#/$defs/ActorRef"
+        },
+        "verifiedAt": {
+          "$ref": "common.schema.json#/$defs/Rfc3339Timestamp"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "verified"
+              }
+            },
+            "required": ["status"]
+          },
+          "then": {
+            "properties": {
+              "verifiedBy": {
+                "$ref": "common.schema.json#/$defs/ActorRef"
+              },
+              "verifiedAt": {
+                "$ref": "common.schema.json#/$defs/Rfc3339Timestamp"
+              }
+            },
+            "required": ["verifiedBy", "verifiedAt"]
+          }
+        }
+      ]
+    },
+    "UpdateMetadataEdit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "patch", "rationale"],
+      "properties": {
+        "kind": {
+          "const": "update-metadata"
+        },
+        "patch": {
+          "$ref": "#/$defs/MetadataPatch"
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 10000
+        },
+        "preconditions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SemanticPrecondition"
+          }
+        }
+      }
+    },
+    "MetadataPatch": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 2048
+        },
+        "authors": {
+          "type": "array",
+          "items": {
+            "$ref": "manuscript.schema.json#/$defs/ManuscriptAuthor"
+          },
+          "maxItems": 1024
+        },
+        "abstract": {
+          "type": "string",
+          "maxLength": 100000
+        },
+        "keywords": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "uniqueItems": true,
+          "maxItems": 1024
+        }
+      }
+    }
+  }
+}

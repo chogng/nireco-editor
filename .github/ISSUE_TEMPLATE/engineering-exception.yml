@@ -1,0 +1,53 @@
+name: Engineering standard exception
+description: Request a temporary, owned exception to the normative engineering standard.
+title: 'chore(governance): request temporary exception for '
+labels:
+  - engineering-exception
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Exceptions must be narrow, time-bound, and must not weaken security or data-integrity invariants.
+  - type: input
+    id: rule
+    attributes:
+      label: Rule
+      description: Cite the exact normative section or automated check.
+    validations:
+      required: true
+  - type: textarea
+    id: reason
+    attributes:
+      label: Reason
+      description: Explain why the compliant implementation is currently blocked.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope and risk
+      description: Identify affected files, invariants, contracts, security boundaries, and users.
+    validations:
+      required: true
+  - type: input
+    id: owner
+    attributes:
+      label: Owner
+      description: Name the person responsible for removing the exception.
+    validations:
+      required: true
+  - type: input
+    id: expiry
+    attributes:
+      label: Expiration date
+      description: Use YYYY-MM-DD.
+      placeholder: YYYY-MM-DD
+    validations:
+      required: true
+  - type: textarea
+    id: removal
+    attributes:
+      label: Removal plan
+      description: Define the concrete exit criteria and verification.
+    validations:
+      required: true

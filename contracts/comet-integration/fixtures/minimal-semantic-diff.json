@@ -1,0 +1,74 @@
+{
+  "name": "minimal-semantic-diff",
+  "contractVersion": "0.4-preview.1",
+  "schemaVersion": "0.4-preview.1",
+  "payloadSchemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/semantic-diff.schema.json",
+  "canonicalizationProfile": "nireco-canonical-json-0.1",
+  "hashAlgorithm": "sha256",
+  "hashInput": "payload",
+  "expectedCanonicalSha256": "sha256:5cfd4dd2e2857ed9a89fec6fae9342261a1e1841834b0bfb5a96ccde8c2da0e5",
+  "payload": {
+    "id": "diff-0001",
+    "document": {
+      "uri": "nireco://workspace-01/document/DocCaseA",
+      "revisionId": "rev-0001"
+    },
+    "proposalId": "proposal-0001",
+    "proposalRevision": 1,
+    "generatedAgainstRevisionId": "rev-0001",
+    "groups": [
+      {
+        "id": "group-0001",
+        "kind": "insert-content",
+        "targetRefs": [
+          {
+            "kind": "node",
+            "document": {
+              "uri": "nireco://workspace-01/document/DocCaseA",
+              "revisionId": "rev-0001"
+            },
+            "nodeId": "body-0001"
+          }
+        ],
+        "operationIds": ["op-proposal-0001"],
+        "dependsOn": [],
+        "after": {
+          "kind": "block",
+          "nodes": [
+            {
+              "id": "paragraph-proposed-0001",
+              "type": "paragraph",
+              "attrs": {
+                "alignment": "start"
+              },
+              "children": [
+                {
+                  "id": "text-proposed-0001",
+                  "type": "text",
+                  "value": "A proposed paragraph.",
+                  "marks": []
+                }
+              ]
+            }
+          ]
+        },
+        "citationChanges": [],
+        "evidenceChanges": [],
+        "rationale": "Add one small paragraph for the Gate 0 workflow.",
+        "warnings": []
+      }
+    ],
+    "summary": {
+      "groupCount": 1,
+      "insertedContentGroups": 1,
+      "rewrittenContentGroups": 0,
+      "deletedContentGroups": 0,
+      "movedStructureGroups": 0,
+      "citationChangeCount": 0,
+      "evidenceChangeCount": 0,
+      "metadataChangeCount": 0,
+      "changedUtf16Units": 21
+    },
+    "diagnostics": []
+  }
+}

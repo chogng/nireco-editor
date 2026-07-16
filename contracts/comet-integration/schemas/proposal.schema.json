@@ -1,0 +1,210 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/proposal.schema.json",
+  "title": "Nireco Proposal Protocol",
+  "description": "Revision-bound proposal state with optimistic proposalRevision concurrency.",
+  "$ref": "#/$defs/Proposal",
+  "$defs": {
+    "ProposalStatus": {
+      "enum": [
+        "draft",
+        "validating",
+        "validated",
+        "needs-review",
+        "conflicted",
+        "accepted",
+        "partially-accepted",
+        "rejected",
+        "discarded",
+        "expired"
+      ]
+    },
+    "ProposalRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["proposalId", "expectedProposalRevision"],
+      "properties": {
+        "proposalId": {
+          "$ref": "common.schema.json#/$defs/ProposalId"
+        },
+        "expectedProposalRevision": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "Proposal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "documentUri",
+        "baseRevisionId",
+        "proposalRevision",
+        "actor",
+        "status",
+        "semanticEdits",
+        "validation",
+        "provenance",
+        "createdAt",
+        "updatedAt"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/ProposalId"
+        },
+        "documentUri": {
+          "$ref": "resource-ref.schema.json#/$defs/DocumentUri"
+        },
+        "baseRevisionId": {
+          "$ref": "common.schema.json#/$defs/RevisionId"
+        },
+        "proposalRevision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "actor": {
+          "$ref": "common.schema.json#/$defs/ActorRef"
+        },
+        "status": {
+          "$ref": "#/$defs/ProposalStatus"
+        },
+        "semanticEdits": {
+          "type": "array",
+          "items": {
+            "$ref": "semantic-edit.schema.json#/$defs/SemanticEdit"
+          }
+        },
+        "validation": {
+          "$ref": "#/$defs/ProposalValidationSnapshot"
+        },
+        "diff": {
+          "$ref": "semantic-diff.schema.json#/$defs/SemanticDiff"
+        },
+        "provenance": {
+          "$ref": "#/$defs/ProposalProvenance"
+        },
+        "createdAt": {
+          "$ref": "common.schema.json#/$defs/Rfc3339Timestamp"
+        },
+        "updatedAt": {
+          "$ref": "common.schema.json#/$defs/Rfc3339Timestamp"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "enum": ["validated", "needs-review", "accepted", "partially-accepted", "rejected"]
+              }
+            },
+            "required": ["status"]
+          },
+          "then": {
+            "properties": {
+              "diff": {
+                "$ref": "semantic-diff.schema.json#/$defs/SemanticDiff"
+              }
+            },
+            "required": ["diff"]
+          }
+        }
+      ]
+    },
+    "ProposalValidationSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "basedOnRevisionId", "basedOnProposalRevision", "diagnostics"],
+      "properties": {
+        "status": {
+          "enum": ["not-run", "validating", "valid", "warning", "invalid", "conflicted"]
+        },
+        "basedOnRevisionId": {
+          "$ref": "common.schema.json#/$defs/RevisionId"
+        },
+        "basedOnProposalRevision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "diagnostics": {
+          "type": "array",
+          "items": {
+            "$ref": "diagnostic.schema.json#/$defs/Diagnostic"
+          }
+        },
+        "validatedAt": {
+          "$ref": "common.schema.json#/$defs/Rfc3339Timestamp"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "enum": ["valid", "warning", "invalid", "conflicted"]
+              }
+            },
+            "required": ["status"]
+          },
+          "then": {
+            "properties": {
+              "validatedAt": {
+                "$ref": "common.schema.json#/$defs/Rfc3339Timestamp"
+              }
+            },
+            "required": ["validatedAt"]
+          }
+        }
+      ]
+    },
+    "ProposalProvenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "taskId",
+        "traceId",
+        "sessionId",
+        "capabilityGrantId",
+        "workflowId",
+        "toolInvocationIds"
+      ],
+      "properties": {
+        "taskId": {
+          "$ref": "common.schema.json#/$defs/TaskId"
+        },
+        "traceId": {
+          "$ref": "common.schema.json#/$defs/TraceId"
+        },
+        "sessionId": {
+          "$ref": "common.schema.json#/$defs/SessionId"
+        },
+        "capabilityGrantId": {
+          "$ref": "common.schema.json#/$defs/CapabilityGrantId"
+        },
+        "workflowId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "modelRef": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "toolInvocationIds": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/ToolInvocationId"
+          },
+          "uniqueItems": true
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        }
+      }
+    }
+  }
+}

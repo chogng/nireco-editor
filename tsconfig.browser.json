@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": []
+  },
+  "files": [],
+  "include": [
+    "src/editor/browser/**/*.ts",
+    "src/platform/browser/**/*.ts",
+    "tests/browser/**/*.ts"
+  ],
+  "exclude": ["**/generated/**", "**/generated-types/**"]
+}

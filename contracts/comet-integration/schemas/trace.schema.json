@@ -1,0 +1,196 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/trace.schema.json",
+  "title": "Nireco–Comet Sample Trace",
+  "description": "Low-sensitivity, revision-aware trace used for mock and adapter conformance.",
+  "$ref": "#/$defs/IntegrationTrace",
+  "$defs": {
+    "IntegrationTrace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contractVersion",
+        "traceId",
+        "taskId",
+        "workflowId",
+        "document",
+        "scenario",
+        "status",
+        "events"
+      ],
+      "properties": {
+        "contractVersion": {
+          "const": "0.4-preview.1"
+        },
+        "traceId": {
+          "$ref": "common.schema.json#/$defs/TraceId"
+        },
+        "taskId": {
+          "$ref": "common.schema.json#/$defs/TaskId"
+        },
+        "workflowId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "document": {
+          "$ref": "resource-ref.schema.json#/$defs/DocumentRef"
+        },
+        "scenario": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "status": {
+          "enum": ["ok", "error"]
+        },
+        "sessionId": {
+          "$ref": "common.schema.json#/$defs/SessionId"
+        },
+        "capabilityGrantId": {
+          "$ref": "common.schema.json#/$defs/CapabilityGrantId"
+        },
+        "proposal": {
+          "$ref": "#/$defs/TraceProposalRef"
+        },
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TraceEvent"
+          },
+          "minItems": 1
+        }
+      }
+    },
+    "TraceProposalRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["proposalId", "proposalRevision"],
+      "properties": {
+        "proposalId": {
+          "$ref": "common.schema.json#/$defs/ProposalId"
+        },
+        "proposalRevision": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "TraceEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sequence", "at", "component", "type", "outcome", "summary"],
+      "properties": {
+        "sequence": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "at": {
+          "$ref": "common.schema.json#/$defs/Rfc3339Timestamp"
+        },
+        "component": {
+          "enum": [
+            "comet-orchestrator",
+            "comet-adapter",
+            "nireco-contract",
+            "nireco-mock",
+            "nireco-proposal-service",
+            "user-review-controller"
+          ]
+        },
+        "type": {
+          "enum": [
+            "handshake",
+            "session.open",
+            "document.read",
+            "proposal.create",
+            "proposal.stage-edits",
+            "proposal.validate",
+            "proposal.diff",
+            "proposal.submit-review",
+            "proposal.rebase",
+            "review.decision",
+            "transaction.commit",
+            "revision.durable"
+          ]
+        },
+        "service": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*(?:\\.[a-z][a-z0-9_-]*)+$"
+        },
+        "requestId": {
+          "$ref": "common.schema.json#/$defs/RequestId"
+        },
+        "toolInvocationId": {
+          "$ref": "common.schema.json#/$defs/ToolInvocationId"
+        },
+        "document": {
+          "$ref": "resource-ref.schema.json#/$defs/DocumentRef"
+        },
+        "proposal": {
+          "$ref": "#/$defs/TraceProposalRef"
+        },
+        "requestedCapabilities": {
+          "type": "array",
+          "items": {
+            "$ref": "integration.schema.json#/$defs/IntegrationCapability"
+          },
+          "uniqueItems": true
+        },
+        "grantedCapabilities": {
+          "type": "array",
+          "items": {
+            "$ref": "integration.schema.json#/$defs/IntegrationCapability"
+          },
+          "uniqueItems": true
+        },
+        "semanticEditKinds": {
+          "type": "array",
+          "items": {
+            "$ref": "semantic-edit.schema.json#/$defs/SemanticEditKind"
+          },
+          "uniqueItems": true
+        },
+        "basedOnRevisionId": {
+          "$ref": "common.schema.json#/$defs/RevisionId"
+        },
+        "outcome": {
+          "enum": ["ok", "error"]
+        },
+        "errorCode": {
+          "$ref": "error.schema.json#/$defs/NirecoErrorCode"
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "error"
+              }
+            },
+            "required": ["outcome"]
+          },
+          "then": {
+            "properties": {
+              "errorCode": {
+                "$ref": "error.schema.json#/$defs/NirecoErrorCode"
+              }
+            },
+            "required": ["errorCode"]
+          },
+          "else": {
+            "properties": {
+              "errorCode": false
+            }
+          }
+        }
+      ]
+    }
+  }
+}

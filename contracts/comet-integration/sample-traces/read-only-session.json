@@ -1,0 +1,59 @@
+{
+  "contractVersion": "0.4-preview.1",
+  "traceId": "trace-read-0001",
+  "taskId": "task-read-0001",
+  "workflowId": "inspect-manuscript",
+  "document": {
+    "uri": "nireco://workspace-01/document/DocCaseA",
+    "revisionId": "rev-0001"
+  },
+  "scenario": "Handshake, open a revision-bound read-only session, and read the canonical snapshot.",
+  "status": "ok",
+  "sessionId": "session-read-0001",
+  "capabilityGrantId": "grant-read-0001",
+  "events": [
+    {
+      "sequence": 1,
+      "at": "2026-07-16T17:00:00Z",
+      "component": "comet-adapter",
+      "type": "handshake",
+      "service": "integration.handshake",
+      "requestId": "request-read-0001",
+      "requestedCapabilities": ["document.content.read", "document.outline.read"],
+      "grantedCapabilities": ["document.content.read", "document.outline.read"],
+      "outcome": "ok",
+      "summary": "Contract 0.4-preview.1 and the required read capabilities were accepted."
+    },
+    {
+      "sequence": 2,
+      "at": "2026-07-16T17:00:01Z",
+      "component": "nireco-mock",
+      "type": "session.open",
+      "service": "integration.open_session",
+      "requestId": "request-read-0002",
+      "document": {
+        "uri": "nireco://workspace-01/document/DocCaseA",
+        "revisionId": "rev-0001"
+      },
+      "grantedCapabilities": ["document.content.read", "document.outline.read"],
+      "basedOnRevisionId": "rev-0001",
+      "outcome": "ok",
+      "summary": "A task-bound session was opened at immutable revision rev-0001."
+    },
+    {
+      "sequence": 3,
+      "at": "2026-07-16T17:00:02Z",
+      "component": "nireco-mock",
+      "type": "document.read",
+      "service": "document.get_snapshot",
+      "requestId": "request-read-0003",
+      "document": {
+        "uri": "nireco://workspace-01/document/DocCaseA",
+        "revisionId": "rev-0001"
+      },
+      "basedOnRevisionId": "rev-0001",
+      "outcome": "ok",
+      "summary": "The minimal manuscript snapshot was returned without reading a mutable head."
+    }
+  ]
+}

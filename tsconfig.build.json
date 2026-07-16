@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2022"],
+    "types": ["node"],
+    "rootDir": "src",
+    "outDir": "dist",
+    "noEmit": false,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "stripInternal": true
+  },
+  "files": [],
+  "include": [
+    "src/base/**/*.ts",
+    "src/model/**/*.ts",
+    "src/proposal/**/*.ts",
+    "src/workspace/**/*.ts",
+    "src/integration/**/*.ts",
+    "src/platform/**/*.ts",
+    "src/public/**/*.ts",
+    "src/entrypoints/**/*.ts"
+  ],
+  "exclude": [
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "src/platform/browser/**",
+    "**/generated/**",
+    "**/generated-types/**"
+  ]
+}

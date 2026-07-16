@@ -1,0 +1,90 @@
+{
+  "contractVersion": "0.4-preview.1",
+  "traceId": "trace-proposal-0001",
+  "taskId": "task-0001",
+  "workflowId": "draft-paragraph",
+  "document": {
+    "uri": "nireco://workspace-01/document/DocCaseA",
+    "revisionId": "rev-0001"
+  },
+  "scenario": "Handshake, open a scoped session, create a draft proposal, and stage one high-level insert-block edit.",
+  "status": "ok",
+  "sessionId": "session-0001",
+  "capabilityGrantId": "grant-0001",
+  "proposal": {
+    "proposalId": "proposal-0001",
+    "proposalRevision": 2
+  },
+  "events": [
+    {
+      "sequence": 1,
+      "at": "2026-07-16T17:05:00Z",
+      "component": "comet-adapter",
+      "type": "handshake",
+      "service": "integration.handshake",
+      "requestId": "request-proposal-0001",
+      "requestedCapabilities": ["document.content.read", "proposal.create", "proposal.edit"],
+      "grantedCapabilities": ["document.content.read", "proposal.create", "proposal.edit"],
+      "semanticEditKinds": ["insert-block"],
+      "outcome": "ok",
+      "summary": "The adapter confirmed proposal-only write capabilities and insert-block support."
+    },
+    {
+      "sequence": 2,
+      "at": "2026-07-16T17:05:01Z",
+      "component": "nireco-mock",
+      "type": "session.open",
+      "service": "integration.open_session",
+      "requestId": "request-proposal-0002",
+      "document": {
+        "uri": "nireco://workspace-01/document/DocCaseA",
+        "revisionId": "rev-0001"
+      },
+      "grantedCapabilities": ["document.content.read", "proposal.create", "proposal.edit"],
+      "basedOnRevisionId": "rev-0001",
+      "outcome": "ok",
+      "summary": "The trusted host opened a scoped session with no commit, raw transaction, or review capability."
+    },
+    {
+      "sequence": 3,
+      "at": "2026-07-16T17:05:02Z",
+      "component": "nireco-proposal-service",
+      "type": "proposal.create",
+      "service": "proposal.create",
+      "requestId": "request-proposal-0003",
+      "toolInvocationId": "tool-call-0001",
+      "document": {
+        "uri": "nireco://workspace-01/document/DocCaseA",
+        "revisionId": "rev-0001"
+      },
+      "proposal": {
+        "proposalId": "proposal-0001",
+        "proposalRevision": 1
+      },
+      "basedOnRevisionId": "rev-0001",
+      "outcome": "ok",
+      "summary": "A draft proposal was created without modifying the document mainline."
+    },
+    {
+      "sequence": 4,
+      "at": "2026-07-16T17:05:03Z",
+      "component": "nireco-proposal-service",
+      "type": "proposal.stage-edits",
+      "service": "proposal.stage_semantic_edits",
+      "requestId": "request-proposal-0004",
+      "toolInvocationId": "tool-call-0001",
+      "document": {
+        "uri": "nireco://workspace-01/document/DocCaseA",
+        "revisionId": "rev-0001"
+      },
+      "proposal": {
+        "proposalId": "proposal-0001",
+        "proposalRevision": 2
+      },
+      "semanticEditKinds": ["insert-block"],
+      "basedOnRevisionId": "rev-0001",
+      "outcome": "ok",
+      "summary": "One insert-block semantic edit was staged; no raw operation or mainline commit was exposed to the Agent."
+    }
+  ]
+}

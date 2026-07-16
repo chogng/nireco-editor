@@ -1,0 +1,77 @@
+{
+  "name": "minimal-proposal",
+  "contractVersion": "0.4-preview.1",
+  "schemaVersion": "0.4-preview.1",
+  "payloadSchemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/proposal.schema.json",
+  "canonicalizationProfile": "nireco-canonical-json-0.1",
+  "hashAlgorithm": "sha256",
+  "hashInput": "payload",
+  "expectedCanonicalSha256": "sha256:326324dacc9499da9487e91c6811a53ff0cd3acac32c9613490e3d7111261a55",
+  "payload": {
+    "id": "proposal-0001",
+    "documentUri": "nireco://workspace-01/document/DocCaseA",
+    "baseRevisionId": "rev-0001",
+    "proposalRevision": 1,
+    "actor": {
+      "type": "comet-agent",
+      "id": "comet-agent-0001",
+      "workflowId": "draft-paragraph",
+      "modelRef": "fake-model/gate-0"
+    },
+    "status": "draft",
+    "semanticEdits": [
+      {
+        "kind": "insert-block",
+        "clientRef": "edit-0001",
+        "target": {
+          "parentNodeId": "body-0001",
+          "afterNodeId": "paragraph-0001"
+        },
+        "block": {
+          "clientRef": "paragraph-draft-0001",
+          "type": "paragraph",
+          "attrs": {
+            "alignment": "start"
+          },
+          "children": [
+            {
+              "clientRef": "text-draft-0001",
+              "type": "text",
+              "value": "A proposed paragraph.",
+              "marks": []
+            }
+          ]
+        },
+        "rationale": "Add one small paragraph for the Gate 0 workflow.",
+        "preconditions": [
+          {
+            "kind": "node-exists",
+            "nodeId": "body-0001"
+          },
+          {
+            "kind": "document-hash",
+            "expected": "sha256:c533e6231ea69ee996a58115af45cea798c788c6158559c30256c43b32b2f3e4"
+          }
+        ]
+      }
+    ],
+    "validation": {
+      "status": "not-run",
+      "basedOnRevisionId": "rev-0001",
+      "basedOnProposalRevision": 1,
+      "diagnostics": []
+    },
+    "provenance": {
+      "taskId": "task-0001",
+      "traceId": "trace-proposal-0001",
+      "sessionId": "session-0001",
+      "capabilityGrantId": "grant-0001",
+      "workflowId": "draft-paragraph",
+      "modelRef": "fake-model/gate-0",
+      "toolInvocationIds": ["tool-call-0001"],
+      "idempotencyKey": "idem-proposal-0001"
+    },
+    "createdAt": "2026-07-16T16:05:00Z",
+    "updatedAt": "2026-07-16T16:05:00Z"
+  }
+}

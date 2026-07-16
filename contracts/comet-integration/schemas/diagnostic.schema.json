@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/diagnostic.schema.json",
+  "title": "Nireco Diagnostic",
+  "$ref": "#/$defs/Diagnostic",
+  "$defs": {
+    "Diagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "source", "severity", "code", "message", "basedOnRevisionId", "stale"],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/OpaqueId"
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "severity": {
+          "enum": ["info", "warning", "error"]
+        },
+        "code": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]*$"
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "target": {
+          "$ref": "position-anchor.schema.json#/$defs/SemanticTargetRef"
+        },
+        "basedOnRevisionId": {
+          "$ref": "common.schema.json#/$defs/RevisionId"
+        },
+        "stale": {
+          "type": "boolean"
+        },
+        "related": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/DiagnosticRelatedInformation"
+          }
+        },
+        "suggestedFix": {
+          "$ref": "#/$defs/ProposedFix"
+        }
+      }
+    },
+    "ProposedFix": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "description"],
+      "properties": {
+        "kind": {
+          "enum": ["proposal-draft", "transaction-draft"]
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        }
+      },
+      "description": "A non-committing draft suggestion. Applying it still requires the normal Proposal or trusted Transaction validation path."
+    },
+    "DiagnosticRelatedInformation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["message", "target"],
+      "properties": {
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "target": {
+          "$ref": "position-anchor.schema.json#/$defs/SemanticTargetRef"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,312 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/semantic-diff.schema.json",
+  "title": "Nireco Semantic Diff Protocol",
+  "description": "Deterministic proposal review groups bound to a document revision and proposal revision.",
+  "$ref": "#/$defs/SemanticDiff",
+  "$defs": {
+    "SemanticDiff": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "document",
+        "proposalId",
+        "proposalRevision",
+        "generatedAgainstRevisionId",
+        "groups",
+        "summary",
+        "diagnostics"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/OpaqueId"
+        },
+        "document": {
+          "$ref": "resource-ref.schema.json#/$defs/DocumentRef"
+        },
+        "proposalId": {
+          "$ref": "common.schema.json#/$defs/ProposalId"
+        },
+        "proposalRevision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "generatedAgainstRevisionId": {
+          "$ref": "common.schema.json#/$defs/RevisionId"
+        },
+        "groups": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ProposalChangeGroup"
+          }
+        },
+        "summary": {
+          "$ref": "#/$defs/SemanticDiffSummary"
+        },
+        "diagnostics": {
+          "type": "array",
+          "items": {
+            "$ref": "diagnostic.schema.json#/$defs/Diagnostic"
+          }
+        },
+        "supersedes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SupersededGroupMapping"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "description": "document.revisionId and generatedAgainstRevisionId must be equal; this cross-field invariant is enforced by conformance validation."
+        }
+      ]
+    },
+    "ProposalChangeGroupKind": {
+      "enum": [
+        "insert-content",
+        "rewrite-content",
+        "delete-content",
+        "move-structure",
+        "add-citation",
+        "replace-citation",
+        "change-evidence",
+        "change-claim-relation",
+        "metadata"
+      ]
+    },
+    "ProposalChangeGroup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "targetRefs",
+        "operationIds",
+        "dependsOn",
+        "citationChanges",
+        "evidenceChanges",
+        "warnings"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/ProposalChangeGroupId"
+        },
+        "kind": {
+          "$ref": "#/$defs/ProposalChangeGroupKind"
+        },
+        "targetRefs": {
+          "type": "array",
+          "items": {
+            "$ref": "position-anchor.schema.json#/$defs/SemanticTargetRef"
+          },
+          "minItems": 1
+        },
+        "operationIds": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/OpaqueId"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "dependsOn": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/ProposalChangeGroupId"
+          },
+          "uniqueItems": true
+        },
+        "before": {
+          "$ref": "#/$defs/DocumentFragment"
+        },
+        "after": {
+          "$ref": "#/$defs/DocumentFragment"
+        },
+        "citationChanges": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CitationChange"
+          }
+        },
+        "evidenceChanges": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/EvidenceChange"
+          }
+        },
+        "rationale": {
+          "type": "string",
+          "maxLength": 10000
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "$ref": "diagnostic.schema.json#/$defs/Diagnostic"
+          }
+        }
+      }
+    },
+    "DocumentFragment": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/BlockDocumentFragment"
+        },
+        {
+          "$ref": "#/$defs/InlineDocumentFragment"
+        }
+      ]
+    },
+    "BlockDocumentFragment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "nodes"],
+      "properties": {
+        "kind": {
+          "const": "block"
+        },
+        "nodes": {
+          "type": "array",
+          "items": {
+            "$ref": "manuscript.schema.json#/$defs/BlockNode"
+          }
+        }
+      }
+    },
+    "InlineDocumentFragment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "nodes"],
+      "properties": {
+        "kind": {
+          "const": "inline"
+        },
+        "nodes": {
+          "type": "array",
+          "items": {
+            "$ref": "manuscript.schema.json#/$defs/InlineNode"
+          }
+        }
+      }
+    },
+    "CitationChange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind"],
+      "properties": {
+        "kind": {
+          "enum": ["added", "removed", "replaced"]
+        },
+        "citationNodeId": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        },
+        "beforeReferenceId": {
+          "$ref": "common.schema.json#/$defs/EntityId"
+        },
+        "afterReferenceId": {
+          "$ref": "common.schema.json#/$defs/EntityId"
+        },
+        "evidenceIds": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/EntityId"
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "EvidenceChange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "evidenceId"],
+      "properties": {
+        "kind": {
+          "enum": ["added", "removed", "verification-changed", "relation-changed", "stale"]
+        },
+        "evidenceId": {
+          "$ref": "common.schema.json#/$defs/EntityId"
+        },
+        "claimId": {
+          "$ref": "common.schema.json#/$defs/EntityId"
+        },
+        "beforeStatus": {
+          "enum": ["verified", "provisional", "metadata-only", "stale", "rejected"]
+        },
+        "afterStatus": {
+          "enum": ["verified", "provisional", "metadata-only", "stale", "rejected"]
+        }
+      }
+    },
+    "SemanticDiffSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "groupCount",
+        "insertedContentGroups",
+        "rewrittenContentGroups",
+        "deletedContentGroups",
+        "movedStructureGroups",
+        "citationChangeCount",
+        "evidenceChangeCount",
+        "metadataChangeCount",
+        "changedUtf16Units"
+      ],
+      "properties": {
+        "groupCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "insertedContentGroups": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "rewrittenContentGroups": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "deletedContentGroups": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "movedStructureGroups": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "citationChangeCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "evidenceChangeCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "metadataChangeCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "changedUtf16Units": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "SupersededGroupMapping": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["previousGroupId", "currentGroupIds"],
+      "properties": {
+        "previousGroupId": {
+          "$ref": "common.schema.json#/$defs/ProposalChangeGroupId"
+        },
+        "currentGroupIds": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/ProposalChangeGroupId"
+          },
+          "uniqueItems": true
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,243 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/position-anchor.schema.json",
+  "title": "Nireco Semantic Position and Persistent Anchor",
+  "description": "Revision-bound semantic positions using UTF-16 code-unit offsets.",
+  "$ref": "#/$defs/PersistentAnchor",
+  "$defs": {
+    "Affinity": {
+      "enum": ["before", "after"]
+    },
+    "TextPosition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "textNodeId", "utf16Offset", "affinity"],
+      "properties": {
+        "kind": {
+          "const": "text"
+        },
+        "textNodeId": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        },
+        "utf16Offset": {
+          "$ref": "common.schema.json#/$defs/Utf16Offset"
+        },
+        "affinity": {
+          "$ref": "#/$defs/Affinity"
+        }
+      }
+    },
+    "NodeBoundaryPosition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "parentNodeId", "childIndex", "affinity"],
+      "properties": {
+        "kind": {
+          "const": "node-boundary"
+        },
+        "parentNodeId": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        },
+        "childIndex": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "affinity": {
+          "$ref": "#/$defs/Affinity"
+        }
+      }
+    },
+    "SemanticPosition": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/TextPosition"
+        },
+        {
+          "$ref": "#/$defs/NodeBoundaryPosition"
+        }
+      ]
+    },
+    "SemanticRange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["anchor", "focus"],
+      "properties": {
+        "anchor": {
+          "$ref": "#/$defs/SemanticPosition"
+        },
+        "focus": {
+          "$ref": "#/$defs/SemanticPosition"
+        }
+      }
+    },
+    "NodeRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["document", "nodeId"],
+      "properties": {
+        "document": {
+          "$ref": "resource-ref.schema.json#/$defs/DocumentRef"
+        },
+        "nodeId": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        }
+      }
+    },
+    "AcademicEntityRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["document", "entityId"],
+      "properties": {
+        "document": {
+          "$ref": "resource-ref.schema.json#/$defs/DocumentRef"
+        },
+        "entityId": {
+          "$ref": "common.schema.json#/$defs/EntityId"
+        }
+      }
+    },
+    "DocumentRangeRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["document", "start", "end"],
+      "properties": {
+        "document": {
+          "$ref": "resource-ref.schema.json#/$defs/DocumentRef"
+        },
+        "start": {
+          "$ref": "#/$defs/SemanticPosition"
+        },
+        "end": {
+          "$ref": "#/$defs/SemanticPosition"
+        }
+      }
+    },
+    "MetadataTargetRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "document", "field"],
+      "properties": {
+        "kind": {
+          "const": "metadata"
+        },
+        "document": {
+          "$ref": "resource-ref.schema.json#/$defs/DocumentRef"
+        },
+        "field": {
+          "enum": ["title", "authors", "abstract", "keywords"]
+        }
+      }
+    },
+    "NodeTargetRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "document", "nodeId"],
+      "properties": {
+        "kind": {
+          "const": "node"
+        },
+        "document": {
+          "$ref": "resource-ref.schema.json#/$defs/DocumentRef"
+        },
+        "nodeId": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        }
+      }
+    },
+    "EntityTargetRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "document", "entityId"],
+      "properties": {
+        "kind": {
+          "const": "academic-entity"
+        },
+        "document": {
+          "$ref": "resource-ref.schema.json#/$defs/DocumentRef"
+        },
+        "entityId": {
+          "$ref": "common.schema.json#/$defs/EntityId"
+        }
+      }
+    },
+    "RangeTargetRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "document", "start", "end"],
+      "properties": {
+        "kind": {
+          "const": "range"
+        },
+        "document": {
+          "$ref": "resource-ref.schema.json#/$defs/DocumentRef"
+        },
+        "start": {
+          "$ref": "#/$defs/SemanticPosition"
+        },
+        "end": {
+          "$ref": "#/$defs/SemanticPosition"
+        }
+      }
+    },
+    "SemanticTargetRef": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/NodeTargetRef"
+        },
+        {
+          "$ref": "#/$defs/EntityTargetRef"
+        },
+        {
+          "$ref": "#/$defs/RangeTargetRef"
+        },
+        {
+          "$ref": "#/$defs/MetadataTargetRef"
+        }
+      ]
+    },
+    "TextQuote": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["exact"],
+      "properties": {
+        "exact": {
+          "type": "string"
+        },
+        "prefix": {
+          "type": "string"
+        },
+        "suffix": {
+          "type": "string"
+        },
+        "normalizedHash": {
+          "$ref": "common.schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "PersistentAnchor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["document", "primary"],
+      "properties": {
+        "document": {
+          "$ref": "resource-ref.schema.json#/$defs/DocumentRef"
+        },
+        "primary": {
+          "$ref": "#/$defs/SemanticPosition"
+        },
+        "targetNodeId": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        },
+        "textQuote": {
+          "$ref": "#/$defs/TextQuote"
+        },
+        "pathHint": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/NodeId"
+          }
+        }
+      }
+    }
+  }
+}

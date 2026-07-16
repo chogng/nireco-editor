@@ -1,0 +1,299 @@
+{
+  "name": "nireco-comet-integration-contract",
+  "contractVersion": "0.4-preview.1",
+  "status": "preview",
+  "releasedAt": "2026-07-16",
+  "normativeSources": {
+    "spec": {
+      "path": "../../NIRECO_AGENT_NATIVE_EDITOR_DEVELOPMENT_SPEC.md",
+      "version": "0.4.2"
+    },
+    "roadmap": {
+      "path": "../../NIRECO_COMET_ROADMAP.md",
+      "version": "0.1.1"
+    },
+    "engineeringStandard": {
+      "path": "../../NIRECO_COMET_ENGINEERING_CODING_STANDARD.md",
+      "version": "0.1.1"
+    }
+  },
+  "schemaDialect": "https://json-schema.org/draft/2020-12/schema",
+  "protocolVersions": {
+    "documentFormatVersion": "1.0.0-preview.1",
+    "manuscriptSchemaVersion": "1.0.0-preview.1",
+    "transactionProtocolVersion": "0.4-preview.1",
+    "proposalProtocolVersion": "0.4-preview.1",
+    "semanticEditProtocolVersion": "0.4-preview.1",
+    "semanticDiffProtocolVersion": "0.4-preview.1",
+    "traceProtocolVersion": "0.4-preview.1"
+  },
+  "wireFormat": {
+    "fieldNaming": "camelCase",
+    "nodeDiscriminator": "type",
+    "semanticEditDiscriminator": "kind",
+    "unknownFieldPolicy": "reject",
+    "defaultAdditionalProperties": false,
+    "positionEncoding": "utf-16-code-unit",
+    "timestampEncoding": "rfc3339-utc",
+    "hashEncoding": "sha256:<lowercase-hex>"
+  },
+  "canonicalization": {
+    "profile": "nireco-canonical-json-0.1",
+    "style": "RFC 8785",
+    "objectKeyOrder": "unicode-code-point",
+    "arrayOrder": "preserve",
+    "unicodeNormalization": "none",
+    "omitUndefined": true,
+    "finiteNumbersOnly": true,
+    "hashAlgorithm": "sha256"
+  },
+  "identity": {
+    "opaqueIds": true,
+    "idRepresentationFrozen": false,
+    "fixtureIdStyle": "readable-opaque-test-values",
+    "resourceUriWireProfile": {
+      "characterSet": "ascii-visible",
+      "unicodeEncoding": "utf8-percent-encoding",
+      "percentHexCase": "upper"
+    },
+    "documentAddress": ["uri", "revisionId"],
+    "mutableDocumentAddress": ["uri", "baseRevisionId"],
+    "logicalUriProfile": {
+      "schemes": ["nireco", "comet"],
+      "lowercaseScheme": true,
+      "lowercaseHost": true,
+      "userinfoAllowed": false,
+      "queryAllowed": false,
+      "fragmentAllowed": false,
+      "portAllowed": false,
+      "minimumPathSegments": 2,
+      "trailingSlashAllowed": false,
+      "pathCase": "preserve"
+    }
+  },
+  "manuscriptVocabulary": {
+    "schemaId": "nireco.manuscript",
+    "metadataFields": ["title", "authors", "abstract", "keywords"],
+    "nodeTypes": [
+      "manuscript",
+      "frontMatter",
+      "body",
+      "section",
+      "heading",
+      "paragraph",
+      "text",
+      "citation",
+      "crossReference",
+      "inlineEquation",
+      "displayEquation",
+      "figure",
+      "figureAsset",
+      "figureCaption",
+      "table",
+      "tableRow",
+      "tableCell",
+      "tableCaption",
+      "list",
+      "listItem",
+      "blockQuote",
+      "codeBlock",
+      "footnote",
+      "footnoteReference",
+      "hardBreak",
+      "horizontalRule",
+      "bibliographyPlaceholder"
+    ]
+  },
+  "schemas": [
+    {
+      "name": "common",
+      "id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/common.schema.json",
+      "path": "schemas/common.schema.json",
+      "role": "shared identity, hash, timestamp, actor, and JSON scalar definitions"
+    },
+    {
+      "name": "resource-ref",
+      "id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/resource-ref.schema.json",
+      "path": "schemas/resource-ref.schema.json",
+      "role": "canonical URI and revision-bound resource references"
+    },
+    {
+      "name": "position-anchor",
+      "id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/position-anchor.schema.json",
+      "path": "schemas/position-anchor.schema.json",
+      "role": "UTF-16 semantic positions, ranges, targets, and persistent anchors"
+    },
+    {
+      "name": "diagnostic",
+      "id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/diagnostic.schema.json",
+      "path": "schemas/diagnostic.schema.json",
+      "role": "revision-bound diagnostics"
+    },
+    {
+      "name": "manuscript",
+      "id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/manuscript.schema.json",
+      "path": "schemas/manuscript.schema.json",
+      "role": "canonical immutable manuscript snapshot"
+    },
+    {
+      "name": "operation",
+      "id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/operation.schema.json",
+      "path": "schemas/operation.schema.json",
+      "role": "deterministic internal operation algebra"
+    },
+    {
+      "name": "transaction",
+      "id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/transaction.schema.json",
+      "path": "schemas/transaction.schema.json",
+      "role": "atomic transaction protocol"
+    },
+    {
+      "name": "revision",
+      "id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/revision.schema.json",
+      "path": "schemas/revision.schema.json",
+      "role": "single-parent immutable revision protocol"
+    },
+    {
+      "name": "semantic-edit",
+      "id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/semantic-edit.schema.json",
+      "path": "schemas/semantic-edit.schema.json",
+      "role": "high-level proposal-only Agent edit protocol"
+    },
+    {
+      "name": "proposal",
+      "id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/proposal.schema.json",
+      "path": "schemas/proposal.schema.json",
+      "role": "proposal state and optimistic proposal revision protocol"
+    },
+    {
+      "name": "semantic-diff",
+      "id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/semantic-diff.schema.json",
+      "path": "schemas/semantic-diff.schema.json",
+      "role": "deterministic proposal review groups and dependencies"
+    },
+    {
+      "name": "integration",
+      "id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/integration.schema.json",
+      "path": "schemas/integration.schema.json",
+      "role": "trusted adapter handshake, session, scope, limits, and Gate 0 service messages"
+    },
+    {
+      "name": "error",
+      "id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/error.schema.json",
+      "path": "schemas/error.schema.json",
+      "role": "typed contract error envelope"
+    },
+    {
+      "name": "trace",
+      "id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/trace.schema.json",
+      "path": "schemas/trace.schema.json",
+      "role": "low-sensitivity integration trace"
+    },
+    {
+      "name": "golden-fixture",
+      "id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/golden-fixture.schema.json",
+      "path": "schemas/golden-fixture.schema.json",
+      "role": "self-describing golden fixture envelope"
+    }
+  ],
+  "catalogs": [
+    {
+      "name": "error-codes",
+      "path": "error-codes.json",
+      "schemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/error.schema.json"
+    },
+    {
+      "name": "capability-matrix",
+      "path": "capability-matrix.json"
+    },
+    {
+      "name": "semantic-edits",
+      "path": "semantic-edits.json",
+      "schemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/semantic-edit.schema.json"
+    }
+  ],
+  "fixtures": [
+    {
+      "name": "minimal-manuscript",
+      "path": "fixtures/minimal-manuscript.json",
+      "payloadSchemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/manuscript.schema.json",
+      "expectedCanonicalSha256": "sha256:f402fd9772e707d94103bcbe9be8ff883b57c09f54ccb5b1992de42a9189d9b4"
+    },
+    {
+      "name": "minimal-transaction",
+      "path": "fixtures/minimal-transaction.json",
+      "payloadSchemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/transaction.schema.json",
+      "expectedCanonicalSha256": "sha256:5f2aecc2cb13175fda757a1c2dcf5ca000329f5f0d9c1867f75c6468431901b4"
+    },
+    {
+      "name": "minimal-proposal",
+      "path": "fixtures/minimal-proposal.json",
+      "payloadSchemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/proposal.schema.json",
+      "expectedCanonicalSha256": "sha256:326324dacc9499da9487e91c6811a53ff0cd3acac32c9613490e3d7111261a55"
+    },
+    {
+      "name": "minimal-semantic-diff",
+      "path": "fixtures/minimal-semantic-diff.json",
+      "payloadSchemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/semantic-diff.schema.json",
+      "expectedCanonicalSha256": "sha256:5cfd4dd2e2857ed9a89fec6fae9342261a1e1841834b0bfb5a96ccde8c2da0e5"
+    }
+  ],
+  "sampleTraces": [
+    {
+      "name": "read-only-session",
+      "path": "sample-traces/read-only-session.json",
+      "schemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/trace.schema.json"
+    },
+    {
+      "name": "draft-proposal",
+      "path": "sample-traces/draft-proposal.json",
+      "schemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/trace.schema.json"
+    }
+  ],
+  "mockService": {
+    "packageExport": "@comet-internal/nireco-editor/comet-internal",
+    "className": "MockCometIntegrationService",
+    "documentationPath": "mock-service/README.md",
+    "supportedOperations": [
+      "integration.handshake",
+      "integration.open_session",
+      "document.get_snapshot",
+      "proposal.create",
+      "proposal.stage_semantic_edits"
+    ]
+  },
+  "conformanceRunner": {
+    "command": "pnpm contract:conformance",
+    "documentationPath": "conformance-runner/README.md",
+    "sourcePath": "../../tests/conformance"
+  },
+  "agentSafety": {
+    "onlyWritePath": "semantic-edit-to-proposal",
+    "mainlineCommitAllowed": false,
+    "rawTransactionAllowed": false,
+    "reviewAcceptanceAllowed": false,
+    "trustedEnvelopeFieldsModelControlled": false
+  },
+  "gate0CompilerDecisionBlockers": [
+    {
+      "semanticEditKind": "update-metadata",
+      "status": "lowering-deferred",
+      "reason": "The specification defines UpdateMetadataEdit but does not define a document-metadata Operation, and canonical metadata is not stored in manuscript-root attrs.",
+      "behaviorUntilResolved": "Do not advertise update-metadata in supportedSemanticEdits; Proposal validation and compilation return SEMANTIC_EDIT_UNSUPPORTED."
+    }
+  ],
+  "codeGeneration": {
+    "sourceOfTruth": "schemas",
+    "generatedTypesIncluded": true,
+    "outputPath": "generated-types/",
+    "generateCommand": "pnpm contract:generate",
+    "driftCheckCommand": "pnpm contract:check",
+    "policy": "Generated TypeScript or Rust types must be regenerated from the manifest schemas and must never be hand-edited."
+  },
+  "compatibility": {
+    "majorMismatchPolicy": "reject",
+    "requiredCapabilityPolicy": "all-required-must-be-confirmed",
+    "unknownFieldPolicy": "reject",
+    "unsafeSemanticEditFallbackAllowed": false
+  }
+}

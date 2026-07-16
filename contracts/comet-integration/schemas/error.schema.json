@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/error.schema.json",
+  "title": "Nireco–Comet Typed Contract Error",
+  "$ref": "#/$defs/NirecoError",
+  "$defs": {
+    "NirecoErrorCode": {
+      "enum": [
+        "INVALID_RESOURCE_URI",
+        "MODEL_URI_ALREADY_EXISTS",
+        "MODEL_NOT_FOUND",
+        "MODEL_DISPOSED",
+        "CONTRACT_VERSION_UNSUPPORTED",
+        "CAPABILITY_UNSUPPORTED",
+        "SESSION_EXPIRED",
+        "SESSION_REVOKED",
+        "SCOPE_VIOLATION",
+        "BASE_REVISION_MISMATCH",
+        "REVISION_NOT_FOUND",
+        "PROPOSAL_REVISION_MISMATCH",
+        "NODE_NOT_FOUND",
+        "ENTITY_NOT_FOUND",
+        "POSITION_INVALID",
+        "ANCHOR_ORPHANED",
+        "REQUEST_TOO_LARGE",
+        "SCHEMA_INVALID",
+        "SCHEMA_VERSION_UNSUPPORTED",
+        "SEMANTIC_EDIT_UNSUPPORTED",
+        "PROPOSAL_LOCKED",
+        "PROPOSAL_CONFLICT",
+        "EVIDENCE_REQUIRED",
+        "EVIDENCE_STALE",
+        "CITATION_SUPPORT_INVALID",
+        "POLICY_VIOLATION",
+        "IDEMPOTENCY_CONFLICT",
+        "CANCELLED",
+        "TEMPORARY_UNAVAILABLE",
+        "STORAGE_CORRUPT",
+        "INTERNAL_ERROR"
+      ]
+    },
+    "NirecoError": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "category", "retryable", "safeMessage", "debugId", "suggestedAction"],
+      "properties": {
+        "code": {
+          "$ref": "#/$defs/NirecoErrorCode"
+        },
+        "category": {
+          "enum": [
+            "validation",
+            "conflict",
+            "permission",
+            "compatibility",
+            "storage",
+            "transport",
+            "internal"
+          ]
+        },
+        "retryable": {
+          "type": "boolean"
+        },
+        "safeMessage": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "debugId": {
+          "$ref": "common.schema.json#/$defs/DebugId"
+        },
+        "currentRevisionId": {
+          "$ref": "common.schema.json#/$defs/RevisionId"
+        },
+        "requiredCapability": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*(?:\\.[a-z][a-z0-9-]*)+$"
+        },
+        "conflictingTargets": {
+          "type": "array",
+          "items": {
+            "$ref": "position-anchor.schema.json#/$defs/SemanticTargetRef"
+          }
+        },
+        "suggestedAction": {
+          "enum": ["retry", "reread", "rebase", "request-permission", "user-review", "abort"]
+        }
+      }
+    }
+  }
+}

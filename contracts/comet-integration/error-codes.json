@@ -1,0 +1,223 @@
+{
+  "contractVersion": "0.4-preview.1",
+  "schemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/error.schema.json",
+  "errors": [
+    {
+      "code": "INVALID_RESOURCE_URI",
+      "category": "validation",
+      "retryable": false,
+      "suggestedAction": "abort",
+      "safeMessage": "The resource URI is not valid under the negotiated canonical URI profile."
+    },
+    {
+      "code": "MODEL_URI_ALREADY_EXISTS",
+      "category": "conflict",
+      "retryable": false,
+      "suggestedAction": "reread",
+      "safeMessage": "An active model already owns this canonical resource URI."
+    },
+    {
+      "code": "MODEL_NOT_FOUND",
+      "category": "validation",
+      "retryable": false,
+      "suggestedAction": "abort",
+      "safeMessage": "No active model or resource provider is available for this resource URI."
+    },
+    {
+      "code": "MODEL_DISPOSED",
+      "category": "conflict",
+      "retryable": false,
+      "suggestedAction": "reread",
+      "safeMessage": "The requested model has been disposed and is no longer active."
+    },
+    {
+      "code": "CONTRACT_VERSION_UNSUPPORTED",
+      "category": "compatibility",
+      "retryable": false,
+      "suggestedAction": "abort",
+      "safeMessage": "The requested integration contract version is not supported."
+    },
+    {
+      "code": "CAPABILITY_UNSUPPORTED",
+      "category": "compatibility",
+      "retryable": false,
+      "suggestedAction": "abort",
+      "safeMessage": "A required integration capability is not supported."
+    },
+    {
+      "code": "SESSION_EXPIRED",
+      "category": "permission",
+      "retryable": true,
+      "suggestedAction": "retry",
+      "safeMessage": "The task-bound integration session has expired."
+    },
+    {
+      "code": "SESSION_REVOKED",
+      "category": "permission",
+      "retryable": false,
+      "suggestedAction": "request-permission",
+      "safeMessage": "The task-bound integration session has been revoked."
+    },
+    {
+      "code": "SCOPE_VIOLATION",
+      "category": "permission",
+      "retryable": false,
+      "suggestedAction": "abort",
+      "safeMessage": "The requested target is outside the granted document scope."
+    },
+    {
+      "code": "BASE_REVISION_MISMATCH",
+      "category": "conflict",
+      "retryable": false,
+      "suggestedAction": "rebase",
+      "safeMessage": "The document head no longer matches the request base revision."
+    },
+    {
+      "code": "REVISION_NOT_FOUND",
+      "category": "validation",
+      "retryable": false,
+      "suggestedAction": "reread",
+      "safeMessage": "The requested immutable revision could not be found."
+    },
+    {
+      "code": "PROPOSAL_REVISION_MISMATCH",
+      "category": "conflict",
+      "retryable": false,
+      "suggestedAction": "reread",
+      "safeMessage": "The proposal was modified after the supplied proposal revision."
+    },
+    {
+      "code": "NODE_NOT_FOUND",
+      "category": "validation",
+      "retryable": false,
+      "suggestedAction": "reread",
+      "safeMessage": "The referenced node does not exist in the bound document revision."
+    },
+    {
+      "code": "ENTITY_NOT_FOUND",
+      "category": "validation",
+      "retryable": false,
+      "suggestedAction": "reread",
+      "safeMessage": "The referenced academic entity does not exist in the bound document revision."
+    },
+    {
+      "code": "POSITION_INVALID",
+      "category": "validation",
+      "retryable": false,
+      "suggestedAction": "reread",
+      "safeMessage": "The semantic position is not valid for the bound document revision."
+    },
+    {
+      "code": "ANCHOR_ORPHANED",
+      "category": "conflict",
+      "retryable": false,
+      "suggestedAction": "user-review",
+      "safeMessage": "The persistent anchor could not be recovered without ambiguity."
+    },
+    {
+      "code": "REQUEST_TOO_LARGE",
+      "category": "validation",
+      "retryable": false,
+      "suggestedAction": "abort",
+      "safeMessage": "The request exceeds a negotiated contract limit."
+    },
+    {
+      "code": "SCHEMA_INVALID",
+      "category": "validation",
+      "retryable": false,
+      "suggestedAction": "abort",
+      "safeMessage": "The request or resulting document does not satisfy the negotiated schema."
+    },
+    {
+      "code": "SCHEMA_VERSION_UNSUPPORTED",
+      "category": "compatibility",
+      "retryable": false,
+      "suggestedAction": "abort",
+      "safeMessage": "The document schema version is not supported."
+    },
+    {
+      "code": "SEMANTIC_EDIT_UNSUPPORTED",
+      "category": "compatibility",
+      "retryable": false,
+      "suggestedAction": "abort",
+      "safeMessage": "The requested semantic edit kind is not supported."
+    },
+    {
+      "code": "PROPOSAL_LOCKED",
+      "category": "conflict",
+      "retryable": false,
+      "suggestedAction": "user-review",
+      "safeMessage": "The proposal is frozen or terminal and cannot be modified."
+    },
+    {
+      "code": "PROPOSAL_CONFLICT",
+      "category": "conflict",
+      "retryable": false,
+      "suggestedAction": "rebase",
+      "safeMessage": "The proposal cannot be applied cleanly to the target revision."
+    },
+    {
+      "code": "EVIDENCE_REQUIRED",
+      "category": "validation",
+      "retryable": false,
+      "suggestedAction": "user-review",
+      "safeMessage": "The active policy requires evidence for this citation."
+    },
+    {
+      "code": "EVIDENCE_STALE",
+      "category": "conflict",
+      "retryable": false,
+      "suggestedAction": "reread",
+      "safeMessage": "The evidence source content no longer matches the verified content hash."
+    },
+    {
+      "code": "CITATION_SUPPORT_INVALID",
+      "category": "validation",
+      "retryable": false,
+      "suggestedAction": "user-review",
+      "safeMessage": "The proposed citation is not supported by a valid reference and evidence relationship."
+    },
+    {
+      "code": "POLICY_VIOLATION",
+      "category": "permission",
+      "retryable": false,
+      "suggestedAction": "abort",
+      "safeMessage": "The requested action is blocked by the trusted policy snapshot."
+    },
+    {
+      "code": "IDEMPOTENCY_CONFLICT",
+      "category": "conflict",
+      "retryable": false,
+      "suggestedAction": "abort",
+      "safeMessage": "The idempotency key was previously used with a different input."
+    },
+    {
+      "code": "CANCELLED",
+      "category": "transport",
+      "retryable": false,
+      "suggestedAction": "abort",
+      "safeMessage": "The request was cancelled."
+    },
+    {
+      "code": "TEMPORARY_UNAVAILABLE",
+      "category": "transport",
+      "retryable": true,
+      "suggestedAction": "retry",
+      "safeMessage": "The service is temporarily unavailable."
+    },
+    {
+      "code": "STORAGE_CORRUPT",
+      "category": "storage",
+      "retryable": false,
+      "suggestedAction": "abort",
+      "safeMessage": "Stored document state failed an integrity check."
+    },
+    {
+      "code": "INTERNAL_ERROR",
+      "category": "internal",
+      "retryable": true,
+      "suggestedAction": "retry",
+      "safeMessage": "The service could not complete the request."
+    }
+  ]
+}

@@ -1,0 +1,1467 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/manuscript.schema.json",
+  "title": "Nireco Canonical Manuscript Snapshot",
+  "description": "Gate 0 preview of the immutable canonical manuscript snapshot. Title, authors, abstract, and keywords are semantic metadata rather than content nodes.",
+  "$ref": "#/$defs/DocumentSnapshot",
+  "$defs": {
+    "DocumentSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "format",
+        "formatVersion",
+        "schemaId",
+        "schemaVersion",
+        "revisionId",
+        "documentHash",
+        "metadata",
+        "root",
+        "academicGraph",
+        "settings"
+      ],
+      "properties": {
+        "format": {
+          "const": "nireco-document"
+        },
+        "formatVersion": {
+          "const": "1.0.0-preview.1"
+        },
+        "schemaId": {
+          "const": "nireco.manuscript"
+        },
+        "schemaVersion": {
+          "const": "1.0.0-preview.1"
+        },
+        "revisionId": {
+          "$ref": "common.schema.json#/$defs/RevisionId"
+        },
+        "documentHash": {
+          "$ref": "common.schema.json#/$defs/ContentHash"
+        },
+        "metadata": {
+          "$ref": "#/$defs/ManuscriptMetadata"
+        },
+        "root": {
+          "$ref": "#/$defs/ManuscriptNode"
+        },
+        "academicGraph": {
+          "$ref": "#/$defs/AcademicGraphSnapshot"
+        },
+        "settings": {
+          "$ref": "#/$defs/DocumentSemanticSettings"
+        }
+      }
+    },
+    "ManuscriptMetadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "authors", "abstract", "keywords"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 2048
+        },
+        "authors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ManuscriptAuthor"
+          },
+          "maxItems": 1024
+        },
+        "abstract": {
+          "type": "string",
+          "maxLength": 100000
+        },
+        "keywords": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "uniqueItems": true,
+          "maxItems": 1024
+        }
+      }
+    },
+    "ManuscriptAuthor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name"],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/EntityId"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "given": {
+          "type": "string",
+          "maxLength": 512
+        },
+        "family": {
+          "type": "string",
+          "maxLength": 512
+        },
+        "orcid": {
+          "type": "string",
+          "pattern": "^https://orcid\\.org/[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9X]{4}$"
+        },
+        "affiliations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1024
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "DocumentSemanticSettings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["language", "citationStyle", "headingNumbering", "bibliographyEnabled"],
+      "properties": {
+        "language": {
+          "type": "string",
+          "pattern": "^[A-Za-z]{2,8}(?:-[A-Za-z0-9]{1,8})*$"
+        },
+        "citationStyle": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "headingNumbering": {
+          "type": "boolean"
+        },
+        "bibliographyEnabled": {
+          "type": "boolean"
+        }
+      }
+    },
+    "EmptyAttributes": {
+      "type": "object",
+      "additionalProperties": false
+    },
+    "ManuscriptNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "attrs", "children"],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        },
+        "type": {
+          "const": "manuscript"
+        },
+        "attrs": {
+          "$ref": "#/$defs/EmptyAttributes"
+        },
+        "children": {
+          "oneOf": [
+            {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "$ref": "#/$defs/BodyNode"
+                }
+              ],
+              "items": false,
+              "minItems": 1,
+              "maxItems": 1
+            },
+            {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "$ref": "#/$defs/FrontMatterNode"
+                },
+                {
+                  "$ref": "#/$defs/BodyNode"
+                }
+              ],
+              "items": false,
+              "minItems": 2,
+              "maxItems": 2
+            },
+            {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "$ref": "#/$defs/BodyNode"
+                },
+                {
+                  "$ref": "#/$defs/BibliographyPlaceholderNode"
+                }
+              ],
+              "items": false,
+              "minItems": 2,
+              "maxItems": 2
+            },
+            {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "$ref": "#/$defs/FrontMatterNode"
+                },
+                {
+                  "$ref": "#/$defs/BodyNode"
+                },
+                {
+                  "$ref": "#/$defs/BibliographyPlaceholderNode"
+                }
+              ],
+              "items": false,
+              "minItems": 3,
+              "maxItems": 3
+            }
+          ]
+        }
+      }
+    },
+    "FrontMatterNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "attrs", "children"],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        },
+        "type": {
+          "const": "frontMatter"
+        },
+        "attrs": {
+          "$ref": "#/$defs/EmptyAttributes"
+        },
+        "children": {
+          "type": "array",
+          "maxItems": 0,
+          "description": "The preview reserves the structural front-matter node, while title/authors/abstract/keywords live in DocumentSnapshot.metadata."
+        }
+      }
+    },
+    "BodyNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "attrs", "children"],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        },
+        "type": {
+          "const": "body"
+        },
+        "attrs": {
+          "$ref": "#/$defs/EmptyAttributes"
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/BlockNode"
+          },
+          "minItems": 1
+        }
+      }
+    },
+    "DocumentNode": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ManuscriptNode"
+        },
+        {
+          "$ref": "#/$defs/FrontMatterNode"
+        },
+        {
+          "$ref": "#/$defs/BodyNode"
+        },
+        {
+          "$ref": "#/$defs/BlockNode"
+        },
+        {
+          "$ref": "#/$defs/InlineNode"
+        },
+        {
+          "$ref": "#/$defs/FigureAssetNode"
+        },
+        {
+          "$ref": "#/$defs/FigureCaptionNode"
+        },
+        {
+          "$ref": "#/$defs/TableCaptionNode"
+        },
+        {
+          "$ref": "#/$defs/TableRowNode"
+        },
+        {
+          "$ref": "#/$defs/TableCellNode"
+        },
+        {
+          "$ref": "#/$defs/ListItemNode"
+        },
+        {
+          "$ref": "#/$defs/BibliographyPlaceholderNode"
+        }
+      ]
+    },
+    "InsertableNode": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/FrontMatterNode"
+        },
+        {
+          "$ref": "#/$defs/BodyNode"
+        },
+        {
+          "$ref": "#/$defs/BlockNode"
+        },
+        {
+          "$ref": "#/$defs/InlineNode"
+        },
+        {
+          "$ref": "#/$defs/FigureAssetNode"
+        },
+        {
+          "$ref": "#/$defs/FigureCaptionNode"
+        },
+        {
+          "$ref": "#/$defs/TableCaptionNode"
+        },
+        {
+          "$ref": "#/$defs/TableRowNode"
+        },
+        {
+          "$ref": "#/$defs/TableCellNode"
+        },
+        {
+          "$ref": "#/$defs/ListItemNode"
+        },
+        {
+          "$ref": "#/$defs/BibliographyPlaceholderNode"
+        }
+      ]
+    },
+    "BlockNode": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/SectionNode"
+        },
+        {
+          "$ref": "#/$defs/ParagraphNode"
+        },
+        {
+          "$ref": "#/$defs/HeadingNode"
+        },
+        {
+          "$ref": "#/$defs/FigureNode"
+        },
+        {
+          "$ref": "#/$defs/TableNode"
+        },
+        {
+          "$ref": "#/$defs/DisplayEquationNode"
+        },
+        {
+          "$ref": "#/$defs/BlockQuoteNode"
+        },
+        {
+          "$ref": "#/$defs/CodeBlockNode"
+        },
+        {
+          "$ref": "#/$defs/ListNode"
+        },
+        {
+          "$ref": "#/$defs/HorizontalRuleNode"
+        },
+        {
+          "$ref": "#/$defs/FootnoteNode"
+        }
+      ]
+    },
+    "SectionNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "attrs", "children"],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        },
+        "type": {
+          "const": "section"
+        },
+        "attrs": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["level"],
+          "properties": {
+            "level": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 6
+            }
+          }
+        },
+        "children": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "$ref": "#/$defs/HeadingNode"
+            }
+          ],
+          "items": {
+            "$ref": "#/$defs/BlockNode"
+          },
+          "minItems": 1,
+          "contains": {
+            "$ref": "#/$defs/HeadingNode"
+          },
+          "minContains": 1,
+          "maxContains": 1,
+          "description": "A section starts with exactly one direct heading."
+        }
+      }
+    },
+    "ParagraphNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "attrs", "children"],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        },
+        "type": {
+          "const": "paragraph"
+        },
+        "attrs": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["alignment"],
+          "properties": {
+            "alignment": {
+              "enum": ["start", "center", "end", "justify"]
+            }
+          }
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/InlineNode"
+          }
+        }
+      }
+    },
+    "HeadingNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "attrs", "children"],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        },
+        "type": {
+          "const": "heading"
+        },
+        "attrs": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["level"],
+          "properties": {
+            "level": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 6
+            }
+          }
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/InlineNode"
+          }
+        }
+      }
+    },
+    "InlineNode": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/TextNode"
+        },
+        {
+          "$ref": "#/$defs/CitationNode"
+        },
+        {
+          "$ref": "#/$defs/CrossReferenceNode"
+        },
+        {
+          "$ref": "#/$defs/InlineEquationNode"
+        },
+        {
+          "$ref": "#/$defs/FootnoteReferenceNode"
+        },
+        {
+          "$ref": "#/$defs/HardBreakNode"
+        }
+      ]
+    },
+    "TextNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "value", "marks"],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        },
+        "type": {
+          "const": "text"
+        },
+        "value": {
+          "type": "string"
+        },
+        "marks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Mark"
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "Mark": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/SimpleMark"
+        },
+        {
+          "$ref": "#/$defs/LinkMark"
+        }
+      ]
+    },
+    "SimpleMark": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "enum": ["bold", "italic", "underline", "strike", "code", "subscript", "superscript"]
+        }
+      }
+    },
+    "LinkMark": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "href"],
+      "properties": {
+        "type": {
+          "const": "link"
+        },
+        "href": {
+          "$ref": "resource-ref.schema.json#/$defs/ResourceUri"
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 2048
+        }
+      }
+    },
+    "CitationNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "attrs"],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        },
+        "type": {
+          "const": "citation"
+        },
+        "attrs": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["citationId", "referenceId"],
+          "properties": {
+            "citationId": {
+              "$ref": "common.schema.json#/$defs/EntityId"
+            },
+            "referenceId": {
+              "$ref": "common.schema.json#/$defs/EntityId"
+            },
+            "locator": {
+              "$ref": "#/$defs/CitationLocator"
+            },
+            "prefix": {
+              "type": "string"
+            },
+            "suffix": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "CrossReferenceNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "attrs"],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        },
+        "type": {
+          "const": "crossReference"
+        },
+        "attrs": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["targetEntityId"],
+          "properties": {
+            "targetEntityId": {
+              "$ref": "common.schema.json#/$defs/EntityId"
+            },
+            "label": {
+              "type": "string",
+              "maxLength": 1024
+            }
+          }
+        }
+      }
+    },
+    "InlineEquationNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "attrs"],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        },
+        "type": {
+          "const": "inlineEquation"
+        },
+        "attrs": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["source"],
+          "properties": {
+            "source": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "FootnoteReferenceNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "attrs"],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        },
+        "type": {
+          "const": "footnoteReference"
+        },
+        "attrs": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["footnoteNodeId"],
+          "properties": {
+            "footnoteNodeId": {
+              "$ref": "common.schema.json#/$defs/NodeId"
+            }
+          }
+        }
+      }
+    },
+    "HardBreakNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "attrs"],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        },
+        "type": {
+          "const": "hardBreak"
+        },
+        "attrs": {
+          "$ref": "#/$defs/EmptyAttributes"
+        }
+      }
+    },
+    "DisplayEquationNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "attrs"],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        },
+        "type": {
+          "const": "displayEquation"
+        },
+        "attrs": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["source"],
+          "properties": {
+            "source": {
+              "type": "string"
+            },
+            "label": {
+              "type": "string",
+              "maxLength": 256
+            },
+            "entityId": {
+              "$ref": "common.schema.json#/$defs/EntityId"
+            }
+          }
+        }
+      }
+    },
+    "FigureNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "attrs", "children"],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        },
+        "type": {
+          "const": "figure"
+        },
+        "attrs": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "entityId": {
+              "$ref": "common.schema.json#/$defs/EntityId"
+            },
+            "label": {
+              "type": "string",
+              "maxLength": 256
+            }
+          }
+        },
+        "children": {
+          "oneOf": [
+            {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "$ref": "#/$defs/FigureAssetNode"
+                }
+              ],
+              "items": false,
+              "minItems": 1,
+              "maxItems": 1
+            },
+            {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "$ref": "#/$defs/FigureAssetNode"
+                },
+                {
+                  "$ref": "#/$defs/FigureCaptionNode"
+                }
+              ],
+              "items": false,
+              "minItems": 2,
+              "maxItems": 2
+            }
+          ]
+        }
+      }
+    },
+    "FigureAssetNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "attrs"],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        },
+        "type": {
+          "const": "figureAsset"
+        },
+        "attrs": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["uri", "contentHash", "altText"],
+          "properties": {
+            "uri": {
+              "$ref": "resource-ref.schema.json#/$defs/ResourceUri"
+            },
+            "contentHash": {
+              "$ref": "common.schema.json#/$defs/ContentHash"
+            },
+            "altText": {
+              "type": "string",
+              "maxLength": 10000
+            }
+          }
+        }
+      }
+    },
+    "FigureCaptionNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "attrs", "children"],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        },
+        "type": {
+          "const": "figureCaption"
+        },
+        "attrs": {
+          "$ref": "#/$defs/EmptyAttributes"
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/InlineNode"
+          }
+        }
+      }
+    },
+    "TableNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "attrs", "children"],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        },
+        "type": {
+          "const": "table"
+        },
+        "attrs": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "entityId": {
+              "$ref": "common.schema.json#/$defs/EntityId"
+            },
+            "label": {
+              "type": "string",
+              "maxLength": 256
+            }
+          }
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/TableCaptionNode"
+              },
+              {
+                "$ref": "#/$defs/TableRowNode"
+              }
+            ]
+          },
+          "minItems": 1,
+          "allOf": [
+            {
+              "contains": {
+                "$ref": "#/$defs/TableRowNode"
+              },
+              "minContains": 1
+            },
+            {
+              "contains": {
+                "$ref": "#/$defs/TableCaptionNode"
+              },
+              "minContains": 0,
+              "maxContains": 1
+            }
+          ],
+          "description": "A table has one or more rows and at most one caption. Conformance additionally enforces that a caption, when present, is the first child."
+        }
+      }
+    },
+    "TableCaptionNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "attrs", "children"],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        },
+        "type": {
+          "const": "tableCaption"
+        },
+        "attrs": {
+          "$ref": "#/$defs/EmptyAttributes"
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/InlineNode"
+          }
+        }
+      }
+    },
+    "TableRowNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "attrs", "children"],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        },
+        "type": {
+          "const": "tableRow"
+        },
+        "attrs": {
+          "$ref": "#/$defs/EmptyAttributes"
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TableCellNode"
+          },
+          "minItems": 1
+        }
+      }
+    },
+    "TableCellNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "attrs", "children"],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        },
+        "type": {
+          "const": "tableCell"
+        },
+        "attrs": {
+          "$ref": "#/$defs/EmptyAttributes"
+        },
+        "children": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "$ref": "#/$defs/ParagraphNode"
+            }
+          ],
+          "items": {
+            "$ref": "#/$defs/LimitedCellBlockNode"
+          },
+          "minItems": 1
+        }
+      }
+    },
+    "LimitedCellBlockNode": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ParagraphNode"
+        },
+        {
+          "$ref": "#/$defs/BlockQuoteNode"
+        },
+        {
+          "$ref": "#/$defs/CodeBlockNode"
+        },
+        {
+          "$ref": "#/$defs/ListNode"
+        }
+      ]
+    },
+    "ListNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "attrs", "children"],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        },
+        "type": {
+          "const": "list"
+        },
+        "attrs": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["ordered"],
+          "properties": {
+            "ordered": {
+              "type": "boolean"
+            },
+            "start": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "ordered": {
+                    "const": false
+                  }
+                },
+                "required": ["ordered"]
+              },
+              "then": {
+                "properties": {
+                  "start": false
+                }
+              }
+            }
+          ]
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ListItemNode"
+          },
+          "minItems": 1
+        }
+      }
+    },
+    "ListItemNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "attrs", "children"],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        },
+        "type": {
+          "const": "listItem"
+        },
+        "attrs": {
+          "$ref": "#/$defs/EmptyAttributes"
+        },
+        "children": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "$ref": "#/$defs/ParagraphNode"
+            }
+          ],
+          "items": {
+            "$ref": "#/$defs/BlockNode"
+          },
+          "minItems": 1,
+          "contains": {
+            "$ref": "#/$defs/ParagraphNode"
+          },
+          "minContains": 1,
+          "description": "A list item starts with a paragraph."
+        }
+      }
+    },
+    "BlockQuoteNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "attrs", "children"],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        },
+        "type": {
+          "const": "blockQuote"
+        },
+        "attrs": {
+          "$ref": "#/$defs/EmptyAttributes"
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/BlockNode"
+          },
+          "minItems": 1
+        }
+      }
+    },
+    "CodeBlockNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "attrs", "children"],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        },
+        "type": {
+          "const": "codeBlock"
+        },
+        "attrs": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "language": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TextNode"
+          },
+          "maxItems": 1
+        }
+      }
+    },
+    "HorizontalRuleNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "attrs"],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        },
+        "type": {
+          "const": "horizontalRule"
+        },
+        "attrs": {
+          "$ref": "#/$defs/EmptyAttributes"
+        }
+      }
+    },
+    "FootnoteNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "attrs", "children"],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        },
+        "type": {
+          "const": "footnote"
+        },
+        "attrs": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "label": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/FootnoteBlockNode"
+          },
+          "minItems": 1
+        }
+      }
+    },
+    "FootnoteBlockNode": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ParagraphNode"
+        },
+        {
+          "$ref": "#/$defs/BlockQuoteNode"
+        },
+        {
+          "$ref": "#/$defs/CodeBlockNode"
+        },
+        {
+          "$ref": "#/$defs/ListNode"
+        }
+      ]
+    },
+    "BibliographyPlaceholderNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "attrs"],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        },
+        "type": {
+          "const": "bibliographyPlaceholder"
+        },
+        "attrs": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["heading"],
+          "properties": {
+            "heading": {
+              "type": "string",
+              "maxLength": 1024
+            }
+          }
+        }
+      }
+    },
+    "CitationLocator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label", "value"],
+      "properties": {
+        "label": {
+          "enum": [
+            "page",
+            "chapter",
+            "section",
+            "paragraph",
+            "figure",
+            "table",
+            "timestamp",
+            "record"
+          ]
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        }
+      }
+    },
+    "EvidenceLocator": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/PageEvidenceLocator"
+        },
+        {
+          "$ref": "#/$defs/SectionEvidenceLocator"
+        },
+        {
+          "$ref": "#/$defs/TextQuoteEvidenceLocator"
+        },
+        {
+          "$ref": "#/$defs/TimeEvidenceLocator"
+        },
+        {
+          "$ref": "#/$defs/RecordEvidenceLocator"
+        }
+      ]
+    },
+    "PageEvidenceLocator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "page"],
+      "properties": {
+        "kind": {
+          "const": "page"
+        },
+        "page": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "pageLabel": {
+          "type": "string",
+          "maxLength": 128
+        }
+      }
+    },
+    "SectionEvidenceLocator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "section"],
+      "properties": {
+        "kind": {
+          "const": "section"
+        },
+        "section": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        }
+      }
+    },
+    "TextQuoteEvidenceLocator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "exact"],
+      "properties": {
+        "kind": {
+          "const": "text-quote"
+        },
+        "exact": {
+          "type": "string",
+          "minLength": 1
+        },
+        "prefix": {
+          "type": "string"
+        },
+        "suffix": {
+          "type": "string"
+        }
+      }
+    },
+    "TimeEvidenceLocator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "startSeconds"],
+      "properties": {
+        "kind": {
+          "const": "time"
+        },
+        "startSeconds": {
+          "type": "number",
+          "minimum": 0
+        },
+        "endSeconds": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "RecordEvidenceLocator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "recordKey"],
+      "properties": {
+        "kind": {
+          "const": "record"
+        },
+        "recordKey": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        }
+      }
+    },
+    "AcademicGraphSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["referenceSnapshots", "evidenceLinks", "claims", "claimEvidenceRelations"],
+      "properties": {
+        "referenceSnapshots": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ReferenceSnapshot"
+          }
+        },
+        "evidenceLinks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/EvidenceLink"
+          }
+        },
+        "claims": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ClaimEntity"
+          }
+        },
+        "claimEvidenceRelations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ClaimEvidenceRelation"
+          }
+        }
+      }
+    },
+    "ReferenceSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "cslJson", "metadataHash", "capturedAt"],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/EntityId"
+        },
+        "externalUri": {
+          "$ref": "resource-ref.schema.json#/$defs/ResourceUri"
+        },
+        "cslJson": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Intentional open exception: CSL-JSON is an externally governed map and is preserved as canonical JSON."
+        },
+        "metadataHash": {
+          "$ref": "common.schema.json#/$defs/ContentHash"
+        },
+        "capturedAt": {
+          "$ref": "common.schema.json#/$defs/Rfc3339Timestamp"
+        },
+        "sourceProvider": {
+          "type": "string",
+          "maxLength": 256
+        }
+      }
+    },
+    "EvidenceLink": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "uri", "sourceUri", "sourceContentHash", "locator", "verificationStatus"],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/EntityId"
+        },
+        "uri": {
+          "$ref": "resource-ref.schema.json#/$defs/CometResourceUri"
+        },
+        "sourceUri": {
+          "$ref": "resource-ref.schema.json#/$defs/ResourceUri"
+        },
+        "sourceContentHash": {
+          "$ref": "common.schema.json#/$defs/ContentHash"
+        },
+        "locator": {
+          "$ref": "#/$defs/EvidenceLocator"
+        },
+        "excerpt": {
+          "type": "string"
+        },
+        "excerptHash": {
+          "$ref": "common.schema.json#/$defs/ContentHash"
+        },
+        "verificationStatus": {
+          "enum": ["verified", "provisional", "metadata-only", "stale", "rejected"]
+        },
+        "verifiedBy": {
+          "$ref": "common.schema.json#/$defs/ActorRef"
+        },
+        "verifiedAt": {
+          "$ref": "common.schema.json#/$defs/Rfc3339Timestamp"
+        }
+      }
+    },
+    "ClaimEntity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "anchor", "textSnapshot", "textHash"],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/EntityId"
+        },
+        "anchor": {
+          "$ref": "position-anchor.schema.json#/$defs/PersistentAnchor"
+        },
+        "textSnapshot": {
+          "type": "string"
+        },
+        "textHash": {
+          "$ref": "common.schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "ClaimEvidenceRelation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["claimId", "evidenceId", "relation", "assessedBy"],
+      "properties": {
+        "claimId": {
+          "$ref": "common.schema.json#/$defs/EntityId"
+        },
+        "evidenceId": {
+          "$ref": "common.schema.json#/$defs/EntityId"
+        },
+        "relation": {
+          "enum": ["supports", "partially-supports", "contradicts", "context-only", "unclear"]
+        },
+        "assessedBy": {
+          "$ref": "common.schema.json#/$defs/ActorRef"
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    }
+  }
+}

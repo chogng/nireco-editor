@@ -1,0 +1,359 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/operation.schema.json",
+  "title": "Nireco Operation Algebra",
+  "description": "Deterministic, DOM-independent operations. Operations are never directly available as Comet Agent capabilities.",
+  "$ref": "#/$defs/Operation",
+  "$defs": {
+    "Operation": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/InsertNodeOperation"
+        },
+        {
+          "$ref": "#/$defs/DeleteNodeOperation"
+        },
+        {
+          "$ref": "#/$defs/MoveNodeOperation"
+        },
+        {
+          "$ref": "#/$defs/ReplaceTextOperation"
+        },
+        {
+          "$ref": "#/$defs/SetNodeAttributesOperation"
+        },
+        {
+          "$ref": "#/$defs/AddMarkOperation"
+        },
+        {
+          "$ref": "#/$defs/RemoveMarkOperation"
+        },
+        {
+          "$ref": "#/$defs/CreateAcademicEntityOperation"
+        },
+        {
+          "$ref": "#/$defs/UpdateAcademicEntityOperation"
+        },
+        {
+          "$ref": "#/$defs/DeleteAcademicEntityOperation"
+        },
+        {
+          "$ref": "#/$defs/LinkAcademicEntitiesOperation"
+        },
+        {
+          "$ref": "#/$defs/UnlinkAcademicEntitiesOperation"
+        }
+      ]
+    },
+    "InsertNodeOperation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "parentNodeId", "childIndex", "node"],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/OpaqueId"
+        },
+        "type": {
+          "const": "insert-node"
+        },
+        "parentNodeId": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        },
+        "childIndex": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "node": {
+          "$ref": "manuscript.schema.json#/$defs/InsertableNode"
+        }
+      }
+    },
+    "DeleteNodeOperation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "targetNodeId", "expectedNodeHash"],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/OpaqueId"
+        },
+        "type": {
+          "const": "delete-node"
+        },
+        "targetNodeId": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        },
+        "expectedNodeHash": {
+          "$ref": "common.schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "MoveNodeOperation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "targetNodeId", "newParentNodeId", "childIndex"],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/OpaqueId"
+        },
+        "type": {
+          "const": "move-node"
+        },
+        "targetNodeId": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        },
+        "newParentNodeId": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        },
+        "childIndex": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "ReplaceTextOperation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "textNodeId", "startUtf16Offset", "endUtf16Offset", "replacement"],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/OpaqueId"
+        },
+        "type": {
+          "const": "replace-text"
+        },
+        "textNodeId": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        },
+        "startUtf16Offset": {
+          "$ref": "common.schema.json#/$defs/Utf16Offset"
+        },
+        "endUtf16Offset": {
+          "$ref": "common.schema.json#/$defs/Utf16Offset"
+        },
+        "replacement": {
+          "type": "string"
+        }
+      },
+      "allOf": [
+        {
+          "description": "The service additionally enforces startUtf16Offset <= endUtf16Offset and surrogate/grapheme rules."
+        }
+      ]
+    },
+    "SetNodeAttributesOperation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "nodeId", "attributes"],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/OpaqueId"
+        },
+        "type": {
+          "const": "set-node-attributes"
+        },
+        "nodeId": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        },
+        "attributes": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "common.schema.json#/$defs/JsonValue"
+          },
+          "minProperties": 1,
+          "description": "Intentional open exception at the typed operation boundary; the target node schema validates the resulting attributes."
+        }
+      }
+    },
+    "AddMarkOperation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "textNodeId", "startUtf16Offset", "endUtf16Offset", "mark"],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/OpaqueId"
+        },
+        "type": {
+          "const": "add-mark"
+        },
+        "textNodeId": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        },
+        "startUtf16Offset": {
+          "$ref": "common.schema.json#/$defs/Utf16Offset"
+        },
+        "endUtf16Offset": {
+          "$ref": "common.schema.json#/$defs/Utf16Offset"
+        },
+        "mark": {
+          "$ref": "manuscript.schema.json#/$defs/Mark"
+        }
+      }
+    },
+    "RemoveMarkOperation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "textNodeId", "startUtf16Offset", "endUtf16Offset", "mark"],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/OpaqueId"
+        },
+        "type": {
+          "const": "remove-mark"
+        },
+        "textNodeId": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        },
+        "startUtf16Offset": {
+          "$ref": "common.schema.json#/$defs/Utf16Offset"
+        },
+        "endUtf16Offset": {
+          "$ref": "common.schema.json#/$defs/Utf16Offset"
+        },
+        "mark": {
+          "$ref": "manuscript.schema.json#/$defs/Mark"
+        }
+      }
+    },
+    "AcademicEntity": {
+      "oneOf": [
+        {
+          "$ref": "manuscript.schema.json#/$defs/ReferenceSnapshot"
+        },
+        {
+          "$ref": "manuscript.schema.json#/$defs/EvidenceLink"
+        },
+        {
+          "$ref": "manuscript.schema.json#/$defs/ClaimEntity"
+        }
+      ]
+    },
+    "CreateAcademicEntityOperation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "entity"],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/OpaqueId"
+        },
+        "type": {
+          "const": "create-academic-entity"
+        },
+        "entity": {
+          "$ref": "#/$defs/AcademicEntity"
+        }
+      }
+    },
+    "UpdateAcademicEntityOperation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "entityId", "patch"],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/OpaqueId"
+        },
+        "type": {
+          "const": "update-academic-entity"
+        },
+        "entityId": {
+          "$ref": "common.schema.json#/$defs/EntityId"
+        },
+        "patch": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/EntityPatch"
+          },
+          "minItems": 1
+        }
+      }
+    },
+    "EntityPatch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["field", "value"],
+      "properties": {
+        "field": {
+          "type": "string",
+          "pattern": "^[A-Za-z][A-Za-z0-9]*$"
+        },
+        "value": {
+          "$ref": "common.schema.json#/$defs/JsonValue"
+        }
+      }
+    },
+    "DeleteAcademicEntityOperation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "entityId", "expectedEntityHash"],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/OpaqueId"
+        },
+        "type": {
+          "const": "delete-academic-entity"
+        },
+        "entityId": {
+          "$ref": "common.schema.json#/$defs/EntityId"
+        },
+        "expectedEntityHash": {
+          "$ref": "common.schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "AcademicRelationKind": {
+      "enum": [
+        "claim-supports-evidence",
+        "claim-partially-supports-evidence",
+        "claim-contradicts-evidence",
+        "claim-context-only-evidence",
+        "claim-unclear-evidence",
+        "citation-references-reference",
+        "evidence-located-in-source",
+        "cross-reference-targets"
+      ]
+    },
+    "LinkAcademicEntitiesOperation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "fromEntityId", "toEntityId", "relation"],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/OpaqueId"
+        },
+        "type": {
+          "const": "link-academic-entities"
+        },
+        "fromEntityId": {
+          "$ref": "common.schema.json#/$defs/EntityId"
+        },
+        "toEntityId": {
+          "$ref": "common.schema.json#/$defs/EntityId"
+        },
+        "relation": {
+          "$ref": "#/$defs/AcademicRelationKind"
+        }
+      }
+    },
+    "UnlinkAcademicEntitiesOperation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "fromEntityId", "toEntityId", "relation"],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/OpaqueId"
+        },
+        "type": {
+          "const": "unlink-academic-entities"
+        },
+        "fromEntityId": {
+          "$ref": "common.schema.json#/$defs/EntityId"
+        },
+        "toEntityId": {
+          "$ref": "common.schema.json#/$defs/EntityId"
+        },
+        "relation": {
+          "$ref": "#/$defs/AcademicRelationKind"
+        }
+      }
+    }
+  }
+}

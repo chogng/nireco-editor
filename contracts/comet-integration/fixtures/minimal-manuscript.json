@@ -1,0 +1,134 @@
+{
+  "name": "minimal-manuscript",
+  "contractVersion": "0.4-preview.1",
+  "schemaVersion": "1.0.0-preview.1",
+  "payloadSchemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/manuscript.schema.json",
+  "canonicalizationProfile": "nireco-canonical-json-0.1",
+  "hashAlgorithm": "sha256",
+  "hashInput": "payload",
+  "expectedCanonicalSha256": "sha256:f402fd9772e707d94103bcbe9be8ff883b57c09f54ccb5b1992de42a9189d9b4",
+  "payload": {
+    "format": "nireco-document",
+    "formatVersion": "1.0.0-preview.1",
+    "schemaId": "nireco.manuscript",
+    "schemaVersion": "1.0.0-preview.1",
+    "revisionId": "rev-0001",
+    "documentHash": "sha256:c533e6231ea69ee996a58115af45cea798c788c6158559c30256c43b32b2f3e4",
+    "metadata": {
+      "title": "Gate 0 Manuscript",
+      "authors": [
+        {
+          "id": "author-0001",
+          "name": "Test Author"
+        }
+      ],
+      "abstract": "A minimal canonical manuscript for contract conformance.",
+      "keywords": ["contract", "fixture"]
+    },
+    "root": {
+      "id": "manuscript-0001",
+      "type": "manuscript",
+      "attrs": {},
+      "children": [
+        {
+          "id": "frontmatter-0001",
+          "type": "frontMatter",
+          "attrs": {},
+          "children": []
+        },
+        {
+          "id": "body-0001",
+          "type": "body",
+          "attrs": {},
+          "children": [
+            {
+              "id": "paragraph-0001",
+              "type": "paragraph",
+              "attrs": {
+                "alignment": "start"
+              },
+              "children": [
+                {
+                  "id": "text-0001",
+                  "type": "text",
+                  "value": "Hello 🌍",
+                  "marks": []
+                },
+                {
+                  "id": "break-0001",
+                  "type": "hardBreak",
+                  "attrs": {}
+                },
+                {
+                  "id": "text-0002",
+                  "type": "text",
+                  "value": "Gate 0.",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "id": "footnote-ref-0001",
+                  "type": "footnoteReference",
+                  "attrs": {
+                    "footnoteNodeId": "footnote-0001"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "rule-0001",
+              "type": "horizontalRule",
+              "attrs": {}
+            },
+            {
+              "id": "footnote-0001",
+              "type": "footnote",
+              "attrs": {
+                "label": "1"
+              },
+              "children": [
+                {
+                  "id": "paragraph-0002",
+                  "type": "paragraph",
+                  "attrs": {
+                    "alignment": "start"
+                  },
+                  "children": [
+                    {
+                      "id": "text-0003",
+                      "type": "text",
+                      "value": "A minimal footnote.",
+                      "marks": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "bibliography-0001",
+          "type": "bibliographyPlaceholder",
+          "attrs": {
+            "heading": "References"
+          }
+        }
+      ]
+    },
+    "academicGraph": {
+      "referenceSnapshots": [],
+      "evidenceLinks": [],
+      "claims": [],
+      "claimEvidenceRelations": []
+    },
+    "settings": {
+      "language": "en",
+      "citationStyle": "apa",
+      "headingNumbering": true,
+      "bibliographyEnabled": true
+    }
+  }
+}

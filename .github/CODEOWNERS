@@ -1,0 +1,22 @@
+# Default repository owner.
+* @chogng
+
+# Core invariants require explicit review.
+/src/base/ @chogng
+/src/model/ @chogng
+/src/proposal/ @chogng
+/src/workspace/ @chogng
+
+# Cross-repository contracts and generated artifacts.
+/contracts/ @chogng
+/src/integration/ @chogng
+
+# Governance and required checks.
+/.github/ @chogng
+/adr/ @chogng
+/scripts/check-architecture.mjs @chogng
+/scripts/check-document-versions.mjs @chogng
+/scripts/check-generated.mjs @chogng
+/NIRECO_AGENT_NATIVE_EDITOR_DEVELOPMENT_SPEC.md @chogng
+/NIRECO_COMET_ENGINEERING_CODING_STANDARD.md @chogng
+/NIRECO_COMET_ROADMAP.md @chogng

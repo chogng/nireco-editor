@@ -1,0 +1,483 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/integration.schema.json",
+  "title": "Nireco–Comet Integration Handshake and Session Protocol",
+  "description": "Trusted adapter protocol. Model-generated tool input is not represented by this schema.",
+  "$ref": "#/$defs/CometIntegrationHandshakeRequest",
+  "$defs": {
+    "IntegrationCapability": {
+      "enum": [
+        "document.outline.read",
+        "document.content.read",
+        "document.search",
+        "document.diagnostics.read",
+        "academic.references.read",
+        "academic.evidence.read",
+        "academic.claims.read",
+        "proposal.create",
+        "proposal.edit",
+        "proposal.validate",
+        "proposal.rebase",
+        "proposal.submit-review",
+        "citation.propose",
+        "evidence.propose"
+      ]
+    },
+    "TransportFeature": {
+      "enum": ["in-process", "worker", "ipc", "internal-rpc", "cursor-pagination", "idempotency"]
+    },
+    "CometIntegrationHandshakeRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requestedContractVersion",
+        "cometBuildId",
+        "adapterVersion",
+        "workflowId",
+        "requiredCapabilities",
+        "requiredSemanticEdits",
+        "requiredTransportFeatures"
+      ],
+      "properties": {
+        "requestedContractVersion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "cometBuildId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "adapterVersion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "workflowId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "requiredCapabilities": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/IntegrationCapability"
+          },
+          "uniqueItems": true
+        },
+        "requiredSemanticEdits": {
+          "type": "array",
+          "items": {
+            "$ref": "semantic-edit.schema.json#/$defs/SemanticEditKind"
+          },
+          "uniqueItems": true
+        },
+        "requiredTransportFeatures": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TransportFeature"
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "CometIntegrationHandshakeResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "acceptedContractVersion",
+        "nirecoBuildId",
+        "documentFormatVersion",
+        "schemaVersion",
+        "transactionProtocolVersion",
+        "proposalProtocolVersion",
+        "semanticEditProtocolVersion",
+        "supportedCapabilities",
+        "supportedSemanticEdits",
+        "limits",
+        "featureFlags",
+        "transportFeatures"
+      ],
+      "properties": {
+        "acceptedContractVersion": {
+          "const": "0.4-preview.1"
+        },
+        "nirecoBuildId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "documentFormatVersion": {
+          "const": "1.0.0-preview.1"
+        },
+        "schemaVersion": {
+          "const": "1.0.0-preview.1"
+        },
+        "transactionProtocolVersion": {
+          "const": "0.4-preview.1"
+        },
+        "proposalProtocolVersion": {
+          "const": "0.4-preview.1"
+        },
+        "semanticEditProtocolVersion": {
+          "const": "0.4-preview.1"
+        },
+        "supportedCapabilities": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/IntegrationCapability"
+          },
+          "uniqueItems": true
+        },
+        "supportedSemanticEdits": {
+          "type": "array",
+          "items": {
+            "$ref": "semantic-edit.schema.json#/$defs/SemanticEditKind"
+          },
+          "uniqueItems": true
+        },
+        "limits": {
+          "$ref": "#/$defs/ContractLimits"
+        },
+        "featureFlags": {
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[a-z][A-Za-z0-9]*$"
+          },
+          "additionalProperties": {
+            "type": "boolean"
+          },
+          "description": "Intentional map exception: feature-flag keys are negotiated and namespaced by this private contract."
+        },
+        "transportFeatures": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TransportFeature"
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "ContractLimits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "maxRequestBytes",
+        "maxResponseBytes",
+        "maxPageItems",
+        "maxChangedUtf16Units",
+        "maxOperations",
+        "maxNewReferences",
+        "maxDeletedNodes",
+        "maxMovedNodes",
+        "sessionTtlSeconds",
+        "cursorTtlSeconds"
+      ],
+      "properties": {
+        "maxRequestBytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "maxResponseBytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "maxPageItems": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "maxChangedUtf16Units": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maxOperations": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "maxNewReferences": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maxDeletedNodes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maxMovedNodes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "sessionTtlSeconds": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "cursorTtlSeconds": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "CometDocumentScope": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "allowedSectionIds": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/NodeId"
+          },
+          "uniqueItems": true
+        },
+        "allowedNodeIds": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/NodeId"
+          },
+          "uniqueItems": true
+        },
+        "allowReadOutsideScopeForContext": {
+          "type": "boolean"
+        },
+        "maxContextDistance": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "CometIntegrationConstraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requireEvidenceForCitation",
+        "requireVerifiedEvidence",
+        "allowMetadataOnlyCitation",
+        "allowDelete",
+        "allowStructureMove"
+      ],
+      "properties": {
+        "maxChangedUtf16Units": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maxOperations": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "maxNewReferences": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maxDeletedNodes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maxMovedNodes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "requireEvidenceForCitation": {
+          "type": "boolean"
+        },
+        "requireVerifiedEvidence": {
+          "type": "boolean"
+        },
+        "allowMetadataOnlyCitation": {
+          "type": "boolean"
+        },
+        "allowDelete": {
+          "type": "boolean"
+        },
+        "allowStructureMove": {
+          "type": "boolean"
+        }
+      }
+    },
+    "OpenCometSessionRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contractVersion",
+        "target",
+        "taskId",
+        "traceId",
+        "actor",
+        "requestedCapabilities",
+        "scope",
+        "constraints",
+        "policySnapshotId"
+      ],
+      "properties": {
+        "contractVersion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "target": {
+          "$ref": "resource-ref.schema.json#/$defs/DocumentRef"
+        },
+        "taskId": {
+          "$ref": "common.schema.json#/$defs/TaskId"
+        },
+        "traceId": {
+          "$ref": "common.schema.json#/$defs/TraceId"
+        },
+        "actor": {
+          "$ref": "common.schema.json#/$defs/CometAgentActorRef"
+        },
+        "requestedCapabilities": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/IntegrationCapability"
+          },
+          "uniqueItems": true
+        },
+        "scope": {
+          "$ref": "#/$defs/CometDocumentScope"
+        },
+        "constraints": {
+          "$ref": "#/$defs/CometIntegrationConstraints"
+        },
+        "policySnapshotId": {
+          "$ref": "common.schema.json#/$defs/PolicySnapshotId"
+        }
+      }
+    },
+    "OpenCometSessionResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contractVersion",
+        "sessionId",
+        "target",
+        "grantedCapabilities",
+        "scope",
+        "constraints",
+        "limits",
+        "capabilityGrantId",
+        "expiresAt"
+      ],
+      "properties": {
+        "contractVersion": {
+          "const": "0.4-preview.1"
+        },
+        "sessionId": {
+          "$ref": "common.schema.json#/$defs/SessionId"
+        },
+        "target": {
+          "$ref": "resource-ref.schema.json#/$defs/DocumentRef"
+        },
+        "grantedCapabilities": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/IntegrationCapability"
+          },
+          "uniqueItems": true
+        },
+        "scope": {
+          "$ref": "#/$defs/CometDocumentScope"
+        },
+        "constraints": {
+          "$ref": "#/$defs/CometIntegrationConstraints"
+        },
+        "limits": {
+          "$ref": "#/$defs/ContractLimits"
+        },
+        "capabilityGrantId": {
+          "$ref": "common.schema.json#/$defs/CapabilityGrantId"
+        },
+        "expiresAt": {
+          "$ref": "common.schema.json#/$defs/Rfc3339Timestamp"
+        }
+      }
+    },
+    "GetSnapshotRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sessionId", "document"],
+      "properties": {
+        "sessionId": {
+          "$ref": "common.schema.json#/$defs/SessionId"
+        },
+        "document": {
+          "$ref": "resource-ref.schema.json#/$defs/DocumentRef"
+        }
+      }
+    },
+    "GetSnapshotResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["document", "snapshot"],
+      "properties": {
+        "document": {
+          "$ref": "resource-ref.schema.json#/$defs/DocumentRef"
+        },
+        "snapshot": {
+          "$ref": "manuscript.schema.json#/$defs/DocumentSnapshot"
+        }
+      }
+    },
+    "CreateProposalRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sessionId", "target", "idempotencyKey"],
+      "properties": {
+        "sessionId": {
+          "$ref": "common.schema.json#/$defs/SessionId"
+        },
+        "target": {
+          "$ref": "resource-ref.schema.json#/$defs/DocumentRef"
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        }
+      }
+    },
+    "CreateProposalResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["proposal"],
+      "properties": {
+        "proposal": {
+          "$ref": "proposal.schema.json#/$defs/Proposal"
+        }
+      }
+    },
+    "StageSemanticEditsRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sessionId", "proposal", "semanticEdits", "idempotencyKey"],
+      "properties": {
+        "sessionId": {
+          "$ref": "common.schema.json#/$defs/SessionId"
+        },
+        "proposal": {
+          "$ref": "proposal.schema.json#/$defs/ProposalRef"
+        },
+        "semanticEdits": {
+          "type": "array",
+          "items": {
+            "$ref": "semantic-edit.schema.json#/$defs/SemanticEdit"
+          },
+          "minItems": 1
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        }
+      }
+    },
+    "StageSemanticEditsResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["proposal"],
+      "properties": {
+        "proposal": {
+          "$ref": "proposal.schema.json#/$defs/Proposal"
+        }
+      }
+    }
+  }
+}

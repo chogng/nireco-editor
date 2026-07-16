@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/golden-fixture.schema.json",
+  "title": "Nireco–Comet Golden Fixture Envelope",
+  "description": "Self-describing fixture envelope. A conformance runner validates payload against payloadSchemaId and hashes only payload.",
+  "$ref": "#/$defs/GoldenFixture",
+  "$defs": {
+    "GoldenFixture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "contractVersion",
+        "schemaVersion",
+        "payloadSchemaId",
+        "canonicalizationProfile",
+        "hashAlgorithm",
+        "hashInput",
+        "expectedCanonicalSha256",
+        "payload"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$"
+        },
+        "contractVersion": {
+          "const": "0.4-preview.1"
+        },
+        "schemaVersion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "payloadSchemaId": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://contracts\\.nireco\\.dev/comet-integration/0\\.4-preview\\.1/schemas/[a-z0-9-]+\\.schema\\.json$"
+        },
+        "canonicalizationProfile": {
+          "const": "nireco-canonical-json-0.1"
+        },
+        "hashAlgorithm": {
+          "const": "sha256"
+        },
+        "hashInput": {
+          "const": "payload"
+        },
+        "expectedCanonicalSha256": {
+          "$ref": "common.schema.json#/$defs/ContentHash"
+        },
+        "payload": {
+          "description": "Validated separately against payloadSchemaId."
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,203 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/transaction.schema.json",
+  "title": "Nireco Transaction Protocol",
+  "description": "Atomic transaction targeted at an explicit URI and base revision.",
+  "$ref": "#/$defs/Transaction",
+  "$defs": {
+    "Transaction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "target", "actor", "operations", "preconditions", "metadata", "createdAt"],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/TransactionId"
+        },
+        "target": {
+          "$ref": "resource-ref.schema.json#/$defs/MutableDocumentTarget"
+        },
+        "actor": {
+          "$ref": "common.schema.json#/$defs/ActorRef"
+        },
+        "intent": {
+          "type": "string",
+          "maxLength": 2048
+        },
+        "operations": {
+          "type": "array",
+          "items": {
+            "$ref": "operation.schema.json#/$defs/Operation"
+          },
+          "minItems": 1
+        },
+        "preconditions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TransactionPrecondition"
+          }
+        },
+        "metadata": {
+          "$ref": "#/$defs/TransactionMetadata"
+        },
+        "createdAt": {
+          "$ref": "common.schema.json#/$defs/Rfc3339Timestamp"
+        }
+      }
+    },
+    "TransactionPrecondition": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/NodeExistsPrecondition"
+        },
+        {
+          "$ref": "#/$defs/NodeHashPrecondition"
+        },
+        {
+          "$ref": "#/$defs/EntityExistsPrecondition"
+        },
+        {
+          "$ref": "#/$defs/SchemaVersionPrecondition"
+        },
+        {
+          "$ref": "#/$defs/DocumentHashPrecondition"
+        }
+      ]
+    },
+    "NodeExistsPrecondition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "nodeId"],
+      "properties": {
+        "kind": {
+          "const": "node-exists"
+        },
+        "nodeId": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        }
+      }
+    },
+    "NodeHashPrecondition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "nodeId", "expected"],
+      "properties": {
+        "kind": {
+          "const": "node-hash"
+        },
+        "nodeId": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        },
+        "expected": {
+          "$ref": "common.schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "EntityExistsPrecondition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "entityId"],
+      "properties": {
+        "kind": {
+          "const": "entity-exists"
+        },
+        "entityId": {
+          "$ref": "common.schema.json#/$defs/EntityId"
+        }
+      }
+    },
+    "SchemaVersionPrecondition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "expected"],
+      "properties": {
+        "kind": {
+          "const": "schema-version"
+        },
+        "expected": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "DocumentHashPrecondition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "expected"],
+      "properties": {
+        "kind": {
+          "const": "document-hash"
+        },
+        "expected": {
+          "$ref": "common.schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "TransactionMetadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source"],
+      "properties": {
+        "source": {
+          "enum": [
+            "human-input",
+            "command",
+            "import",
+            "migration",
+            "validator-fix",
+            "proposal-accept"
+          ]
+        },
+        "undoGroupId": {
+          "$ref": "common.schema.json#/$defs/OpaqueId"
+        },
+        "proposalId": {
+          "$ref": "common.schema.json#/$defs/ProposalId"
+        },
+        "proposalRevision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "cometTaskId": {
+          "$ref": "common.schema.json#/$defs/TaskId"
+        },
+        "toolInvocationIds": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/ToolInvocationId"
+          },
+          "uniqueItems": true
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "source": {
+                "const": "proposal-accept"
+              }
+            },
+            "required": ["source"]
+          },
+          "then": {
+            "properties": {
+              "proposalId": {
+                "$ref": "common.schema.json#/$defs/ProposalId"
+              },
+              "proposalRevision": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "required": ["proposalId", "proposalRevision"]
+          }
+        }
+      ]
+    }
+  }
+}

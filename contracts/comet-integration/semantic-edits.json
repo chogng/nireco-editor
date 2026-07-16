@@ -1,0 +1,123 @@
+{
+  "contractVersion": "0.4-preview.1",
+  "semanticEditProtocolVersion": "0.4-preview.1",
+  "schemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/semantic-edit.schema.json",
+  "rawOperationsAccepted": false,
+  "compiledBy": "nireco.proposal-service",
+  "edits": [
+    {
+      "kind": "insert-block",
+      "requiredCapability": "proposal.edit",
+      "agentAvailable": true,
+      "compilesTo": ["insert-node"],
+      "invariants": [
+        "target parent and sibling references must exist at the proposal base revision",
+        "new clientRef values are mapped to trusted Nireco IDs",
+        "compiled content must satisfy the canonical manuscript schema"
+      ]
+    },
+    {
+      "kind": "replace-block-content",
+      "requiredCapability": "proposal.edit",
+      "agentAvailable": true,
+      "compilesTo": ["replace-text", "insert-node", "delete-node"],
+      "invariants": [
+        "expectedContentHash is mandatory",
+        "citation preservation policy is explicit",
+        "claim and evidence relations are revalidated when claim text changes"
+      ]
+    },
+    {
+      "kind": "move-block",
+      "requiredCapability": "proposal.edit",
+      "agentAvailable": true,
+      "compilesTo": ["move-node"],
+      "invariants": [
+        "move is not represented as delete plus insert",
+        "scope must allow structure movement",
+        "anchors and cross-references are mapped"
+      ]
+    },
+    {
+      "kind": "delete-block",
+      "requiredCapability": "proposal.edit",
+      "agentAvailable": true,
+      "compilesTo": ["delete-node"],
+      "invariants": [
+        "expectedContentHash is mandatory",
+        "scope and delete policy must allow the change",
+        "citation and academic relation removals are explicit in Semantic Diff"
+      ]
+    },
+    {
+      "kind": "insert-citation",
+      "requiredCapability": "citation.propose",
+      "agentAvailable": true,
+      "compilesTo": ["insert-node", "link-academic-entities"],
+      "invariants": [
+        "target uses a UTF-16 SemanticPosition",
+        "reference and evidence entities already exist",
+        "evidence policy is enforced before staging"
+      ]
+    },
+    {
+      "kind": "replace-citation",
+      "requiredCapability": "citation.propose",
+      "agentAvailable": true,
+      "compilesTo": ["set-node-attributes", "link-academic-entities", "unlink-academic-entities"],
+      "invariants": [
+        "the expected current reference is supplied",
+        "replacement evidence and relation are validated",
+        "stale evidence is rejected or downgraded by policy"
+      ]
+    },
+    {
+      "kind": "create-claim",
+      "requiredCapability": "proposal.edit",
+      "agentAvailable": true,
+      "compilesTo": ["create-academic-entity"],
+      "invariants": [
+        "the anchor is revision-bound",
+        "textSnapshot and textHash describe the same claim content",
+        "orphaned anchors fail closed"
+      ]
+    },
+    {
+      "kind": "link-claim-evidence",
+      "requiredCapability": "evidence.propose",
+      "agentAvailable": true,
+      "compilesTo": ["link-academic-entities"],
+      "invariants": [
+        "claim and evidence entities exist",
+        "relation is explicit",
+        "context-only is never represented as support"
+      ]
+    },
+    {
+      "kind": "create-evidence-link",
+      "requiredCapability": "evidence.propose",
+      "agentAvailable": true,
+      "compilesTo": ["create-academic-entity"],
+      "invariants": [
+        "source identity, sourceContentHash, and locator are present",
+        "verified status is injected only after trusted source revalidation",
+        "the model cannot self-assert verification"
+      ]
+    },
+    {
+      "kind": "update-metadata",
+      "requiredCapability": "proposal.edit",
+      "agentAvailable": false,
+      "negotiable": true,
+      "gate0Status": "staged-only-lowering-deferred",
+      "validationErrorBeforeEnablement": "SEMANTIC_EDIT_UNSUPPORTED",
+      "compilesTo": [],
+      "invariants": [
+        "only title, authors, abstract, and keywords are writable in this preview",
+        "metadata remains part of the document content hash",
+        "metadata is not encoded as manuscript-root attributes",
+        "Proposal validation and compilation fail with SEMANTIC_EDIT_UNSUPPORTED until a spec-approved lowering is enabled"
+      ]
+    }
+  ]
+}

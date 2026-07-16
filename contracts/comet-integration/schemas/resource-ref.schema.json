@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/resource-ref.schema.json",
+  "title": "Nireco–Comet Resource References",
+  "description": "Canonical logical URI and revision-bound document reference types.",
+  "$ref": "#/$defs/DocumentRef",
+  "$defs": {
+    "CanonicalSegment": {
+      "type": "string",
+      "minLength": 1
+    },
+    "ResourceUri": {
+      "type": "string",
+      "format": "nireco-canonical-resource-uri",
+      "minLength": 3,
+      "maxLength": 2048,
+      "pattern": "^(?:[\\x21-\\x24\\x26-\\x7E]|%[0-9A-F]{2})+$",
+      "description": "ASCII-visible canonical wire URI. Raw Unicode is forbidden and must be UTF-8 percent-encoded; percent escapes use uppercase hexadecimal. Nireco and Comet logical URIs are further constrained by LogicalResourceUri."
+    },
+    "LogicalResourceUri": {
+      "type": "string",
+      "format": "nireco-logical-resource-uri",
+      "maxLength": 2048,
+      "pattern": "^(?:nireco|comet)://[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?/(?:(?:[A-Za-z0-9._~!$&'()*+,;=:@-]|%[0-9A-F]{2})+/)+(?:[A-Za-z0-9._~!$&'()*+,;=:@-]|%[0-9A-F]{2})+$",
+      "description": "Canonical logical URI: lowercase scheme and host; no userinfo, query, fragment, or port; at least two non-empty path segments; no trailing slash. Path case is preserved."
+    },
+    "DocumentUri": {
+      "type": "string",
+      "format": "nireco-document-uri",
+      "maxLength": 2048,
+      "pattern": "^nireco://[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?/(?:(?:[A-Za-z0-9._~!$&'()*+,;=:@-]|%[0-9A-F]{2})+/)+(?:[A-Za-z0-9._~!$&'()*+,;=:@-]|%[0-9A-F]{2})+$",
+      "description": "Canonical Nireco document URI under the Gate 0 logical URI profile."
+    },
+    "CometResourceUri": {
+      "type": "string",
+      "format": "comet-resource-uri",
+      "maxLength": 2048,
+      "pattern": "^comet://[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?/(?:(?:[A-Za-z0-9._~!$&'()*+,;=:@-]|%[0-9A-F]{2})+/)+(?:[A-Za-z0-9._~!$&'()*+,;=:@-]|%[0-9A-F]{2})+$",
+      "description": "Canonical Comet-owned logical resource URI under the Gate 0 logical URI profile."
+    },
+    "ResourceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["uri"],
+      "properties": {
+        "uri": {
+          "$ref": "#/$defs/ResourceUri"
+        }
+      }
+    },
+    "DocumentRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["uri", "revisionId"],
+      "properties": {
+        "uri": {
+          "$ref": "#/$defs/DocumentUri"
+        },
+        "revisionId": {
+          "$ref": "common.schema.json#/$defs/RevisionId"
+        }
+      }
+    },
+    "MutableDocumentTarget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["uri", "baseRevisionId"],
+      "properties": {
+        "uri": {
+          "$ref": "#/$defs/DocumentUri"
+        },
+        "baseRevisionId": {
+          "$ref": "common.schema.json#/$defs/RevisionId"
+        }
+      }
+    }
+  }
+}

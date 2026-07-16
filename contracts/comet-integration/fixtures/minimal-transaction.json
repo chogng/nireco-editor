@@ -1,0 +1,51 @@
+{
+  "name": "minimal-transaction",
+  "contractVersion": "0.4-preview.1",
+  "schemaVersion": "0.4-preview.1",
+  "payloadSchemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/transaction.schema.json",
+  "canonicalizationProfile": "nireco-canonical-json-0.1",
+  "hashAlgorithm": "sha256",
+  "hashInput": "payload",
+  "expectedCanonicalSha256": "sha256:5f2aecc2cb13175fda757a1c2dcf5ca000329f5f0d9c1867f75c6468431901b4",
+  "payload": {
+    "id": "tx-0001",
+    "target": {
+      "uri": "nireco://workspace-01/document/DocCaseA",
+      "baseRevisionId": "rev-0001"
+    },
+    "actor": {
+      "type": "human",
+      "id": "user-0001"
+    },
+    "intent": "Append punctuation after an emoji using a UTF-16 offset.",
+    "operations": [
+      {
+        "id": "op-0001",
+        "type": "replace-text",
+        "textNodeId": "text-0001",
+        "startUtf16Offset": 8,
+        "endUtf16Offset": 8,
+        "replacement": "."
+      }
+    ],
+    "preconditions": [
+      {
+        "kind": "node-exists",
+        "nodeId": "text-0001"
+      },
+      {
+        "kind": "schema-version",
+        "expected": "1.0.0-preview.1"
+      },
+      {
+        "kind": "document-hash",
+        "expected": "sha256:c533e6231ea69ee996a58115af45cea798c788c6158559c30256c43b32b2f3e4"
+      }
+    ],
+    "metadata": {
+      "source": "human-input",
+      "undoGroupId": "undo-0001"
+    },
+    "createdAt": "2026-07-16T16:00:00Z"
+  }
+}

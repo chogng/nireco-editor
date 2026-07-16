@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2022"],
+    "types": ["node"]
+  },
+  "files": [],
+  "include": [
+    "src/integration/**/*.ts",
+    "src/platform/**/*.ts",
+    "src/public/**/*.ts",
+    "src/entrypoints/**/*.ts"
+  ],
+  "exclude": [
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "src/platform/browser/**",
+    "**/generated/**",
+    "**/generated-types/**"
+  ]
+}

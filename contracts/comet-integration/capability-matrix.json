@@ -1,0 +1,155 @@
+{
+  "contractVersion": "0.4-preview.1",
+  "defaultAgentGrant": "deny",
+  "trustedContextMayBeModelSupplied": false,
+  "capabilities": [
+    {
+      "name": "document.outline.read",
+      "agentGrantable": true,
+      "access": "read",
+      "mutatesProposal": false,
+      "mutatesMainline": false,
+      "services": ["document.get_outline"]
+    },
+    {
+      "name": "document.content.read",
+      "agentGrantable": true,
+      "access": "read",
+      "mutatesProposal": false,
+      "mutatesMainline": false,
+      "services": [
+        "document.get_snapshot",
+        "document.read_nodes",
+        "document.read_node_neighborhood"
+      ]
+    },
+    {
+      "name": "document.search",
+      "agentGrantable": true,
+      "access": "read",
+      "mutatesProposal": false,
+      "mutatesMainline": false,
+      "services": ["document.search"]
+    },
+    {
+      "name": "document.diagnostics.read",
+      "agentGrantable": true,
+      "access": "read",
+      "mutatesProposal": false,
+      "mutatesMainline": false,
+      "services": ["document.get_diagnostics"]
+    },
+    {
+      "name": "academic.references.read",
+      "agentGrantable": true,
+      "access": "read",
+      "mutatesProposal": false,
+      "mutatesMainline": false,
+      "services": ["academic.get_reference_snapshots"]
+    },
+    {
+      "name": "academic.evidence.read",
+      "agentGrantable": true,
+      "access": "read",
+      "mutatesProposal": false,
+      "mutatesMainline": false,
+      "services": ["academic.get_evidence_links"]
+    },
+    {
+      "name": "academic.claims.read",
+      "agentGrantable": true,
+      "access": "read",
+      "mutatesProposal": false,
+      "mutatesMainline": false,
+      "services": ["academic.get_claims"]
+    },
+    {
+      "name": "proposal.create",
+      "agentGrantable": true,
+      "access": "write-proposal",
+      "mutatesProposal": true,
+      "mutatesMainline": false,
+      "services": ["proposal.create"]
+    },
+    {
+      "name": "proposal.edit",
+      "agentGrantable": true,
+      "access": "write-proposal",
+      "mutatesProposal": true,
+      "mutatesMainline": false,
+      "services": ["proposal.stage_semantic_edits", "proposal.discard"]
+    },
+    {
+      "name": "proposal.validate",
+      "agentGrantable": true,
+      "access": "write-proposal",
+      "mutatesProposal": true,
+      "mutatesMainline": false,
+      "services": ["proposal.validate", "proposal.get_diff"]
+    },
+    {
+      "name": "proposal.rebase",
+      "agentGrantable": true,
+      "access": "write-proposal",
+      "mutatesProposal": true,
+      "mutatesMainline": false,
+      "services": ["proposal.rebase"]
+    },
+    {
+      "name": "proposal.submit-review",
+      "agentGrantable": true,
+      "access": "write-proposal",
+      "mutatesProposal": true,
+      "mutatesMainline": false,
+      "services": ["proposal.submit_for_review"]
+    },
+    {
+      "name": "citation.propose",
+      "agentGrantable": true,
+      "access": "write-proposal",
+      "mutatesProposal": true,
+      "mutatesMainline": false,
+      "services": ["proposal.stage_semantic_edits", "academic.validate_citation_support"]
+    },
+    {
+      "name": "evidence.propose",
+      "agentGrantable": true,
+      "access": "write-proposal",
+      "mutatesProposal": true,
+      "mutatesMainline": false,
+      "services": ["proposal.stage_semantic_edits"]
+    }
+  ],
+  "forbiddenAgentCapabilities": [
+    {
+      "name": "document.commit",
+      "agentGrantable": false,
+      "reason": "Only a user review controller or explicitly authorized non-model product controller may commit."
+    },
+    {
+      "name": "document.raw-transaction",
+      "agentGrantable": false,
+      "reason": "The Agent write path is high-level Semantic Edit to Proposal only."
+    },
+    {
+      "name": "document.storage.write",
+      "agentGrantable": false,
+      "reason": "Storage is an internal trusted service boundary."
+    },
+    {
+      "name": "document.schema.mutate",
+      "agentGrantable": false,
+      "reason": "The preview contract has one built-in manuscript schema and no Agent schema mutation."
+    },
+    {
+      "name": "review.accept",
+      "agentGrantable": false,
+      "reason": "An Agent cannot accept proposal groups."
+    },
+    {
+      "name": "review.commit",
+      "agentGrantable": false,
+      "reason": "An Agent cannot merge or commit a reviewed proposal."
+    }
+  ]
+}

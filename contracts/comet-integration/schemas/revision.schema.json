@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/revision.schema.json",
+  "title": "Nireco Linear Revision Protocol",
+  "description": "Immutable, single-parent mainline revision identity and durability state.",
+  "$ref": "#/$defs/Revision",
+  "$defs": {
+    "Revision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "uri",
+        "parentRevisionId",
+        "transactionId",
+        "sequence",
+        "documentHash",
+        "actor",
+        "createdAt",
+        "durability"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/RevisionId"
+        },
+        "uri": {
+          "$ref": "resource-ref.schema.json#/$defs/DocumentUri"
+        },
+        "parentRevisionId": {
+          "oneOf": [
+            {
+              "$ref": "common.schema.json#/$defs/RevisionId"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "transactionId": {
+          "$ref": "common.schema.json#/$defs/TransactionId"
+        },
+        "sequence": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "documentHash": {
+          "$ref": "common.schema.json#/$defs/ContentHash"
+        },
+        "actor": {
+          "$ref": "common.schema.json#/$defs/ActorRef"
+        },
+        "createdAt": {
+          "$ref": "common.schema.json#/$defs/Rfc3339Timestamp"
+        },
+        "durability": {
+          "enum": ["memory", "wal", "snapshot"]
+        }
+      }
+    },
+    "CommitResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["revision", "transactionHash"],
+      "properties": {
+        "revision": {
+          "$ref": "#/$defs/Revision"
+        },
+        "transactionHash": {
+          "$ref": "common.schema.json#/$defs/ContentHash"
+        }
+      }
+    }
+  }
+}

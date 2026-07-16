@@ -1,0 +1,197 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/common.schema.json",
+  "title": "Nireco–Comet Common Contract Types",
+  "description": "Closed, transport-neutral scalar and identity definitions shared by the Gate 0 contract.",
+  "$defs": {
+    "OpaqueId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z][A-Za-z0-9._:-]*$",
+      "description": "Opaque identity. The preview contract intentionally does not freeze a UUID representation."
+    },
+    "WorkspaceId": {
+      "$ref": "#/$defs/OpaqueId"
+    },
+    "RevisionId": {
+      "$ref": "#/$defs/OpaqueId"
+    },
+    "TransactionId": {
+      "$ref": "#/$defs/OpaqueId"
+    },
+    "NodeId": {
+      "$ref": "#/$defs/OpaqueId"
+    },
+    "EntityId": {
+      "$ref": "#/$defs/OpaqueId"
+    },
+    "ProposalId": {
+      "$ref": "#/$defs/OpaqueId"
+    },
+    "ProposalChangeGroupId": {
+      "$ref": "#/$defs/OpaqueId"
+    },
+    "SessionId": {
+      "$ref": "#/$defs/OpaqueId"
+    },
+    "DebugId": {
+      "$ref": "#/$defs/OpaqueId"
+    },
+    "RequestId": {
+      "$ref": "#/$defs/OpaqueId"
+    },
+    "TraceId": {
+      "$ref": "#/$defs/OpaqueId"
+    },
+    "TaskId": {
+      "$ref": "#/$defs/OpaqueId"
+    },
+    "ToolInvocationId": {
+      "$ref": "#/$defs/OpaqueId"
+    },
+    "CapabilityGrantId": {
+      "$ref": "#/$defs/OpaqueId"
+    },
+    "PolicySnapshotId": {
+      "$ref": "#/$defs/OpaqueId"
+    },
+    "ClientRef": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z][A-Za-z0-9._:-]*$",
+      "description": "Untrusted, request-local correlation key. It is never a trusted Nireco identity."
+    },
+    "ContentHash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "Rfc3339Timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "Utf16Offset": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Offset measured in UTF-16 code units. A service must additionally reject a value inside a surrogate pair."
+    },
+    "ActorRef": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/HumanActorRef"
+        },
+        {
+          "$ref": "#/$defs/CometAgentActorRef"
+        },
+        {
+          "$ref": "#/$defs/ProductControllerActorRef"
+        },
+        {
+          "$ref": "#/$defs/SystemActorRef"
+        }
+      ]
+    },
+    "HumanActorRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "id"],
+      "properties": {
+        "type": {
+          "const": "human"
+        },
+        "id": {
+          "$ref": "#/$defs/OpaqueId"
+        }
+      }
+    },
+    "CometAgentActorRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "id", "workflowId"],
+      "properties": {
+        "type": {
+          "const": "comet-agent"
+        },
+        "id": {
+          "$ref": "#/$defs/OpaqueId"
+        },
+        "workflowId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "modelRef": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        }
+      }
+    },
+    "ProductControllerActorRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "id"],
+      "properties": {
+        "type": {
+          "const": "product-controller"
+        },
+        "id": {
+          "$ref": "#/$defs/OpaqueId"
+        }
+      }
+    },
+    "SystemActorRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "id", "role"],
+      "properties": {
+        "type": {
+          "const": "system"
+        },
+        "id": {
+          "$ref": "#/$defs/OpaqueId"
+        },
+        "role": {
+          "enum": ["importer", "migration", "validator", "recovery"]
+        }
+      }
+    },
+    "JsonValue": {
+      "description": "A JSON value used only at explicitly declared extension or patch boundaries.",
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "string"
+        },
+        {
+          "$ref": "#/$defs/JsonArray"
+        },
+        {
+          "$ref": "#/$defs/JsonObject"
+        }
+      ]
+    },
+    "JsonArray": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/JsonValue"
+      }
+    },
+    "JsonObject": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/JsonValue"
+      }
+    }
+  }
+}
