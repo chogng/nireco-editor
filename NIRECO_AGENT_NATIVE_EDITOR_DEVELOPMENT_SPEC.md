@@ -1,8 +1,11 @@
 ---
 title: Nireco Editor 开发规格与 Comet 特化智能体集成契约
-version: 0.4.1
+version: 0.4.2
 status: Core-first Parallel Implementation Plan
 language: zh-CN
+companion_documents:
+  - NIRECO_COMET_ROADMAP.md v0.1.1
+  - NIRECO_COMET_ENGINEERING_CODING_STANDARD.md v0.1.1
 updated_at: 2026-07-16
 owners:
   - Nireco Editor Team
@@ -30,7 +33,7 @@ Monaco Editor : VS Code
 
 Nireco 采用 clean-room 自主实现原则。其他编辑器项目仅用于研究公开问题、交互行为、架构取舍和失败模式；不得复制、移植或改写其源码、私有接口、测试夹具、模块结构或实现表达。
 
-### 0.1 0.4.1 的核心修订
+### 0.1 0.4.2 的核心修订
 
 本版本不再按“功能模块并列”组织规格，而改为按实现脊柱组织：
 
@@ -68,6 +71,7 @@ Resource URI
 16. **实施顺序改为 Gate 驱动。** Proposal、Semantic Diff、Revision-bound Read 和 Contract Preview 必须在完整 Web Editor 与 Comet Writing Agent 之前完成。
 17. **Contract 不再作为后置阶段一次性交付。** Nireco 从 Phase 0 开始持续发布 Preview Bundle，Comet 从只读 Adapter 开始并行接入，随后逐 Gate 增加 Proposal 与 Academic 能力。
 18. **浏览器运行时允许提前做隔离 Spike，但不得先于 Core Gate 冻结公开 API。** DOM、IME 和 Selection 原型只能消费已冻结的 Model/Position/Transaction 契约。
+19. **工程与编码规范成为规范性配套文档。** 两个仓库必须共同固定 `NIRECO_COMET_ENGINEERING_CODING_STANDARD.md` 的版本，并通过自动化配置落实格式、类型、架构边界、Contract、测试和安全门禁；不得维护第二份并行权威规范。
 
 ### 0.2 规范性术语
 
@@ -90,6 +94,28 @@ Resource URI
 - **Evidence**：可定位到来源具体内容、用于支持、反驳或提供上下文的材料。
 - **Nireco–Comet Integration Contract**：Nireco 与 Comet 之间私有、版本化、传输无关的确定性服务契约。
 - **Comet Private Agent Tools**：仅存在于 Comet 仓库、仅供 Comet Agent 使用的模型 Tool Schema 和执行器。
+
+### 0.3 文档层级与同步治理
+
+本项目只有以下三份长期规范性文档：
+
+| 文档 | 唯一职责 | 不得替代的内容 |
+|---|---|---|
+| 本开发规格 | 产品边界、Nireco Core、领域模型、Nireco–Comet Contract 与系统不变量 | 不负责具体 Sprint 日期和机械代码格式 |
+| `NIRECO_COMET_ROADMAP.md` | 阶段、Sprint、Gate、人员假设和交付顺序 | 不得自行改写 Core 或 Contract 语义 |
+| `NIRECO_COMET_ENGINEERING_CODING_STANDARD.md` | 代码风格、模块边界、测试、CI、评审、安全和工程门禁 | 不得自行创造新的产品能力或 Contract 语义 |
+
+`NIRECO_COMET_ENGINEERING_CODING_STANDARD.md` 是唯一权威编码规范文件。任何别名、摘录或生成页面只能声明其来源和版本，不得成为第二规范源。
+
+文档同步规则如下：
+
+1. Core、Schema、Transaction、Revision、Proposal 或 Contract 语义变更，必须先更新本规格和 ADR；若影响交付顺序或代码门禁，还必须同步 Roadmap 或编码规范。
+2. Roadmap 日期或资源变化只修改 Roadmap；若改变 Gate 语义、产品范围或架构顺序，必须同时更新本规格。
+3. 机械代码风格、lint、测试和 CI 规则只在编码规范中定义，并由仓库配置生成或验证。
+4. 三份文档的 front matter 必须固定所依赖文档版本。CI 必须检测陈旧版本引用和重复权威文件。
+5. 任何规范变更必须附 Changelog；重大变化需要 ADR，并说明对两个仓库、Contract Bundle、Fixture 和迁移的影响。
+
+---
 
 ## 1. 产品定义与边界
 
@@ -3399,7 +3425,8 @@ URI / Workspace
 - typed Error Catalog；
 - `IdAllocator`、`Clock` 与 Canonical JSON 规则；
 - Contract Bundle `0.4-preview.1`；
-- 一份最小 Manuscript Golden Fixture。
+- 一份最小 Manuscript Golden Fixture；
+- 工程规范 v0.1.1 的机器可执行基线：`.editorconfig`、formatter、TypeScript strict 基线、lint/architecture rules、PR/ADR template 与 generated-code check。
 
 #### Comet 交付
 
@@ -3410,7 +3437,8 @@ URI / Workspace
 - Tool Taxonomy 初稿；
 - Fake Task Orchestrator；
 - Fake Model/Fake Provider；
-- Tool → Service Mapping 初稿。
+- Tool → Service Mapping 初稿；
+- 固定工程规范 v0.1.1，并在 Comet 仓库启用相同 formatter、typecheck、lint、Trusted Context boundary 和 generated-contract drift check。
 
 #### 退出标准
 
@@ -3418,7 +3446,9 @@ URI / Workspace
 - Snapshot、Transaction、Revision、Proposal 和 Semantic Diff 均通过 Schema；
 - Comet 可仅依赖 Mock 完成 Handshake、固定 Revision 读取和创建 Draft Proposal；
 - 核心术语不存在 `ChangeSet` 歧义；
-- 不存在 Public Tool、MCP 或 BYOA 路线。
+- 不存在 Public Tool、MCP 或 BYOA 路线；
+- 两个仓库固定同一工程规范版本，`format:check`、lint、typecheck、architecture boundary 和 generated-code consistency 已成为 PR 门禁；
+- 不存在第二份并行权威编码规范。
 
 ### 32.3 Nireco Track N1：URI、Workspace 与 Model Registry
 
@@ -3992,6 +4022,7 @@ Gate 0–3 通过后，Comet 实现正式特化智能体：
 19. `ADR-019 Contract Bundle and Cross-repo Conformance`
 20. `ADR-020 No Public Tools, MCP, or BYOA in 0.x`
 21. `ADR-021 Gate-driven Cross-repo Delivery Order`
+22. `ADR-022 Normative Engineering Standard and Automated Governance`
 
 ## 39. 最终定义
 
