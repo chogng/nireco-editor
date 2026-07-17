@@ -1,5 +1,5 @@
 {
-  "contractVersion": "0.4-preview.1",
+  "contractVersion": "0.4-preview.2",
   "traceId": "trace-read-0001",
   "taskId": "task-read-0001",
   "workflowId": "inspect-manuscript",
@@ -7,7 +7,7 @@
     "uri": "nireco://workspace-01/document/DocCaseA",
     "revisionId": "018f0000-0000-7000-8000-000000000001"
   },
-  "scenario": "Handshake, open a revision-bound read-only session, and read the canonical snapshot.",
+  "scenario": "Schema-only Gate 1 illustration of a revision-bound read; not Mock or Real service conformance evidence.",
   "status": "ok",
   "sessionId": "018f0000-0000-7000-8000-000000000003",
   "capabilityGrantId": "grant-read-0001",
@@ -15,19 +15,19 @@
     {
       "sequence": 1,
       "at": "2026-07-16T17:00:00Z",
-      "component": "comet-adapter",
+      "component": "nireco-contract",
       "type": "handshake",
       "service": "integration.handshake",
       "requestId": "request-read-0001",
       "requestedCapabilities": ["document.content.read", "document.outline.read"],
       "grantedCapabilities": ["document.content.read", "document.outline.read"],
       "outcome": "ok",
-      "summary": "Contract 0.4-preview.1 and the required read capabilities were accepted."
+      "summary": "Contract 0.4-preview.2 read schemas and required capabilities were inspected; this trace is not runtime-conformance evidence."
     },
     {
       "sequence": 2,
       "at": "2026-07-16T17:00:01Z",
-      "component": "nireco-mock",
+      "component": "nireco-contract",
       "type": "session.open",
       "service": "integration.open_session",
       "requestId": "request-read-0002",
@@ -38,12 +38,12 @@
       "grantedCapabilities": ["document.content.read", "document.outline.read"],
       "basedOnRevisionId": "018f0000-0000-7000-8000-000000000001",
       "outcome": "ok",
-      "summary": "A task-bound session was opened at immutable revision rev-0001."
+      "summary": "Illustrative session state is fixed to the immutable fixture Revision."
     },
     {
       "sequence": 3,
       "at": "2026-07-16T17:00:02Z",
-      "component": "nireco-mock",
+      "component": "nireco-contract",
       "type": "document.read",
       "service": "document.get_snapshot",
       "requestId": "request-read-0003",
@@ -53,7 +53,7 @@
       },
       "basedOnRevisionId": "018f0000-0000-7000-8000-000000000001",
       "outcome": "ok",
-      "summary": "The minimal manuscript snapshot was returned without reading a mutable head."
+      "summary": "Illustrative revision-bound output includes basedOnRevisionId; no runtime support is asserted."
     }
   ]
 }

@@ -33,7 +33,7 @@ Committed screenshots produced by the same runs:
   `sha256:a2b781f8743e378e3f96621e826df8074f966ab936dc226f2b5e32cd9a4060a9`
 
 The browser hash scenario fetched the non-ASCII fixture as raw UTF-8 bytes and recorded
-`sha256:1349ec49c10944b08e6f8ccb87c994d89cb447fce7150964e3ad506c7aff28f1`
+`sha256:5cce2af87cc5493e2a6380f07eaef6da0d27c964a47b0eab73e1578434c67f35`
 for `contracts/comet-integration/fixtures/hash-preimages.json` in both engines.
 
 ## Evidence integrity

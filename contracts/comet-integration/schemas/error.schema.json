@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/error.schema.json",
+  "$id": "https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/error.schema.json",
   "title": "Nireco–Comet Typed Contract Error",
   "$ref": "#/$defs/NirecoError",
   "$defs": {

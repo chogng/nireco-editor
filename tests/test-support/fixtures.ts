@@ -33,6 +33,8 @@ import {
   type WorkspaceId,
 } from '../../src/base/ids/identifiers.js';
 import { createUuidV7 } from '../../src/base/ids/uuid-v7-allocator.js';
+import { HASH_DOMAINS } from '../../src/base/hashing/hash-preimage.js';
+import { hashCanonicalJsonPortable } from '../../src/base/hashing/portable-sha-256.js';
 import { parseIsoTimestamp, type IClock, type IsoTimestamp } from '../../src/base/time/clock.js';
 import {
   canonicalizeResourceUri,
@@ -42,7 +44,7 @@ import {
   type DocumentUri,
   type ResourceUri,
 } from '../../src/base/uri/resource-uri.js';
-import type { DocumentSnapshot } from '../../src/model/snapshot.js';
+import { createDocumentHashPayload, type DocumentSnapshot } from '../../src/model/snapshot.js';
 import type { IIdAllocator } from '../../src/workspace/id-allocator.js';
 
 export class FixedClock implements IClock {
@@ -133,7 +135,7 @@ export const MINIMAL_FIXTURE_IDS = {
 } as const;
 
 export function createMinimalSnapshot(revisionId = MINIMAL_FIXTURE_IDS.revision): DocumentSnapshot {
-  return {
+  const snapshot: DocumentSnapshot = {
     format: 'nireco-document',
     formatVersion: '1.0.0-preview.1',
     schemaId: 'nireco.manuscript',
@@ -207,6 +209,17 @@ export function createMinimalSnapshot(revisionId = MINIMAL_FIXTURE_IDS.revision)
       headingNumbering: true,
       bibliographyEnabled: true,
     },
+  };
+  const hashed = hashCanonicalJsonPortable(
+    HASH_DOMAINS.documentContent,
+    createDocumentHashPayload(snapshot),
+  );
+  if (hashed.type === 'error') {
+    throw new Error('The minimal Snapshot fixture is not canonical JSON.');
+  }
+  return {
+    ...snapshot,
+    documentHash: hashed.hash,
   };
 }
 

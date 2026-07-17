@@ -1,5 +1,27 @@
 # Changelog
 
+## Package 0.4.0-preview.2
+
+- Publishes Contract Bundle `0.4-preview.2` with the Gate 1 revision-bound read
+  data model and generated declarations.
+- Defines all nine required Model/read request and result pairs, explicit
+  `basedOnRevisionId`, strict paging, stable semantic search targets, and
+  shallow scope-filtered node projections with no DOM offsets.
+- Freezes the opaque read cursor profile at 1024 unpadded base64url characters,
+  authenticated and bound to Session, Revision, service, complete Scope, query
+  hash, logical position, and expiry.
+- Marks preview.2 as schema-only. Neither Mock nor Real service conformance is
+  claimed; the existing Mock and independent consumer evidence remain explicitly
+  pinned to `0.4-preview.1`.
+- Moves Bundle schema IDs, catalogs, fixture envelopes, recovery fixtures,
+  traces, generated declarations, and package metadata to preview.2. Unchanged
+  document, transaction, durability, proposal, and Semantic Edit protocol
+  versions remain preview.1 and are not silently reinterpreted.
+
+## 0.4-preview.2 - 2026-07-16
+
+Gate 1 revision-bound read schema milestone based on specification `0.4.3`.
+
 ## Package 0.4.0-preview.1
 
 - Pins the installable Nireco artifact used by the Comet Gate 0 consumer to Contract Bundle `0.4-preview.1`.

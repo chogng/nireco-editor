@@ -1,6 +1,16 @@
 {
   "evidenceVersion": 1,
   "contractVersion": "0.4-preview.1",
+  "bundleContractVersion": "0.4-preview.2",
+  "compatibility": {
+    "currentContractVersion": "0.4-preview.2",
+    "previousContractVersion": "0.4-preview.1",
+    "currentStatus": "schema-only-no-runtime-conformance-claim",
+    "currentRuntimeExitCriteriaSatisfied": false,
+    "currentMockSupported": false,
+    "currentConsumerValidated": false,
+    "gate1ReadServiceCount": 9
+  },
   "consumerBoundary": {
     "runtimePackageExport": "@comet-internal/nireco-editor",
     "mockPackageExport": "@comet-internal/nireco-editor/comet-internal",
@@ -47,6 +57,10 @@
     },
     {
       "id": "manifest-evidence-index",
+      "status": "pass"
+    },
+    {
+      "id": "current-schema-previous-runtime-matrix",
       "status": "pass"
     },
     {

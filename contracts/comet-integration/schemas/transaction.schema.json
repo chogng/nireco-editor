@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/transaction.schema.json",
+  "$id": "https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/transaction.schema.json",
   "title": "Nireco Transaction Protocol",
   "description": "Atomic transaction targeted at an explicit URI and base revision.",
   "$ref": "#/$defs/Transaction",
@@ -28,13 +28,15 @@
           "items": {
             "$ref": "operation.schema.json#/$defs/Operation"
           },
-          "minItems": 1
+          "minItems": 1,
+          "maxItems": 1024
         },
         "preconditions": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/TransactionPrecondition"
-          }
+          },
+          "maxItems": 4096
         },
         "metadata": {
           "$ref": "#/$defs/TransactionMetadata"
@@ -166,6 +168,7 @@
           "items": {
             "$ref": "common.schema.json#/$defs/ToolInvocationId"
           },
+          "maxItems": 1024,
           "uniqueItems": true
         },
         "idempotencyKey": {

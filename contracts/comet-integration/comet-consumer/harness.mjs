@@ -16,8 +16,10 @@ import {
 
 const consumerRoot = path.dirname(fileURLToPath(import.meta.url));
 const contractRoot = path.resolve(consumerRoot, '..');
+const currentBundleContractVersion = '0.4-preview.2';
+const previousRuntimeContractVersion = '0.4-preview.1';
 const integrationSchemaId =
-  'https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/integration.schema.json';
+  'https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/integration.schema.json';
 
 export async function runConsumerHarness() {
   assert.match(
@@ -72,6 +74,7 @@ export async function runConsumerHarness() {
   assertDefinitionValid(validator, 'CometIntegrationHandshakeRequest', handshakeRequest);
   const handshake = requireOk(service.handshake(handshakeRequest), 'integration handshake');
   assertDefinitionValid(validator, 'CometIntegrationHandshakeResult', handshake);
+  assert.equal(handshake.acceptedContractVersion, previousRuntimeContractVersion);
 
   const target = {
     uri: documentUri,
@@ -190,12 +193,46 @@ export async function runConsumerHarness() {
   assert.equal(handshake.featureFlags.reviewCommit, false);
 
   const manifestRecord = requireRecord(manifest, 'contract manifest');
+  assert.equal(COMET_CONTRACT_VERSION, previousRuntimeContractVersion);
+  assert.equal(manifestRecord['contractVersion'], currentBundleContractVersion);
+  const compatibility = requireRecord(
+    manifestRecord['compatibility'],
+    'contract manifest compatibility',
+  );
+  assert.equal(compatibility['currentContractVersion'], currentBundleContractVersion);
+  assert.equal(compatibility['previousContractVersion'], previousRuntimeContractVersion);
+  assert.equal(compatibility['currentStatus'], 'schema-only-no-runtime-conformance-claim');
+  const gate1Read = requireRecord(
+    manifestRecord['gate1RevisionBoundRead'],
+    'contract manifest Gate 1 read contract',
+  );
+  assert.equal(gate1Read['maturity'], 'schema-only');
+  assert.equal(gate1Read['runtimeExitCriteriaSatisfied'], false);
+  assert.equal(gate1Read['readConformanceStatus'], 'not-run');
+  const gate1Services = requireArray(gate1Read['services'], 'contract manifest Gate 1 services');
+  assert.equal(gate1Services.length, 9);
+  for (const [index, serviceEntry] of gate1Services.entries()) {
+    const serviceRecord = requireRecord(serviceEntry, `Gate 1 service ${index}`);
+    assert.equal(serviceRecord['contract'], 'defined');
+    assert.equal(serviceRecord['mock'], 'not-implemented');
+    assert.equal(serviceRecord['real'], 'not-implemented');
+  }
+  const mockService = requireRecord(
+    manifestRecord['mockService'],
+    'contract manifest Mock service',
+  );
+  assert.equal(mockService['implementedContractVersion'], previousRuntimeContractVersion);
+  assert.equal(mockService['currentContractVersionSupported'], false);
+  assert.equal(mockService['compatibilityStatus'], 'previous-contract-only');
   const consumerEvidence = requireRecord(
     manifestRecord['independentConsumerEvidence'],
     'contract manifest independentConsumerEvidence',
   );
   assert.equal(consumerEvidence['verificationCommand'], 'pnpm contract:consumer');
   assert.equal(consumerEvidence['privateSourceImportsAllowed'], false);
+  assert.equal(consumerEvidence['validatedContractVersion'], previousRuntimeContractVersion);
+  assert.equal(consumerEvidence['currentContractVersionValidated'], false);
+  assert.equal(consumerEvidence['status'], 'previous-contract-compatibility-evidence-only');
   assert.deepEqual(consumerEvidence['packageExports'], [
     '@comet-internal/nireco-editor',
     '@comet-internal/nireco-editor/protocol',
@@ -209,6 +246,16 @@ export async function runConsumerHarness() {
   return {
     evidenceVersion: 1,
     contractVersion: COMET_CONTRACT_VERSION,
+    bundleContractVersion: manifestRecord['contractVersion'],
+    compatibility: {
+      currentContractVersion: compatibility['currentContractVersion'],
+      previousContractVersion: compatibility['previousContractVersion'],
+      currentStatus: compatibility['currentStatus'],
+      currentRuntimeExitCriteriaSatisfied: gate1Read['runtimeExitCriteriaSatisfied'],
+      currentMockSupported: mockService['currentContractVersionSupported'],
+      currentConsumerValidated: consumerEvidence['currentContractVersionValidated'],
+      gate1ReadServiceCount: gate1Services.length,
+    },
     consumerBoundary: {
       runtimePackageExport: '@comet-internal/nireco-editor',
       mockPackageExport: '@comet-internal/nireco-editor/comet-internal',
@@ -245,6 +292,7 @@ export async function runConsumerHarness() {
     checks: [
       'public-package-export-resolution',
       'manifest-evidence-index',
+      'current-schema-previous-runtime-matrix',
       'handshake-schema-and-runtime',
       'task-bound-session-schema-and-runtime',
       'fixed-revision-snapshot-read',

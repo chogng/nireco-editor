@@ -95,8 +95,12 @@ export interface SnapshotManifest {
   readonly manifestVersion: 1;
   readonly uri: ResourceUri;
   readonly revisionId: RevisionId;
+  readonly parentRevisionId: Revision['parentRevisionId'];
+  readonly transactionId: Revision['transactionId'];
   readonly sequence: number;
   readonly documentHash: ContentHash;
+  readonly actor: Revision['actor'];
+  readonly createdAt: Revision['createdAt'];
   readonly snapshotKey: string;
   readonly generation: number;
 }
@@ -109,6 +113,7 @@ export interface SnapshotCommitInput {
 
 export interface SnapshotReadResult {
   readonly manifest: SnapshotManifest;
+  readonly revision: Revision;
   readonly snapshot: DocumentSnapshot;
 }
 

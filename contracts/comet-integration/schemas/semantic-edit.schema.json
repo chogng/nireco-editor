@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/semantic-edit.schema.json",
+  "$id": "https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/semantic-edit.schema.json",
   "title": "Nireco High-level Semantic Edit Protocol",
   "description": "The only Agent-facing write vocabulary. Semantic edits compile inside Nireco to validated operations; raw operations are not an Agent capability.",
   "$ref": "#/$defs/SemanticEdit",

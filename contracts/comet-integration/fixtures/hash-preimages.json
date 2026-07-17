@@ -5,7 +5,7 @@
     {
       "name": "academic-entity",
       "domain": "nireco.academic-entity.v1",
-      "payloadSchemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/operation.schema.json#/$defs/AcademicEntity",
+      "payloadSchemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/operation.schema.json#/$defs/AcademicEntity",
       "payload": {
         "id": "018f0000-0000-7000-8000-000000000010",
         "cslJson": {
@@ -21,7 +21,7 @@
     {
       "name": "document-content",
       "domain": "nireco.document-content.v1",
-      "payloadSchemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/manuscript.schema.json#/$defs/DocumentHashPayload",
+      "payloadSchemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/manuscript.schema.json#/$defs/DocumentHashPayload",
       "payload": {
         "schemaId": "nireco.manuscript",
         "schemaVersion": "1.0.0-preview.1",
@@ -73,7 +73,7 @@
     {
       "name": "governance-manifest",
       "domain": "nireco.governance-manifest.v1",
-      "payloadSchemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/common.schema.json#/$defs/GovernanceManifestHashPayload",
+      "payloadSchemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/common.schema.json#/$defs/GovernanceManifestHashPayload",
       "payload": {
         "engineeringStandardVersion": "0.1.1",
         "files": [
@@ -94,7 +94,7 @@
     {
       "name": "node",
       "domain": "nireco.node.v1",
-      "payloadSchemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/manuscript.schema.json#/$defs/ParagraphNode",
+      "payloadSchemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/manuscript.schema.json#/$defs/ParagraphNode",
       "payload": {
         "id": "018f0000-0000-7000-8000-000000000104",
         "type": "paragraph",
@@ -110,7 +110,7 @@
     {
       "name": "proposal-change-group",
       "domain": "nireco.proposal-change-group.v1",
-      "payloadSchemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/semantic-diff.schema.json#/$defs/ProposalChangeGroupIdentityPayload",
+      "payloadSchemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/semantic-diff.schema.json#/$defs/ProposalChangeGroupIdentityPayload",
       "payload": {
         "algorithmVersion": "nireco-semantic-diff-1",
         "documentUri": "nireco://workspace-01/document/DocCaseA",
@@ -137,7 +137,7 @@
     {
       "name": "semantic-diff",
       "domain": "nireco.semantic-diff.v1",
-      "payloadSchemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/semantic-diff.schema.json",
+      "payloadSchemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/semantic-diff.schema.json",
       "payload": {
         "id": "diff-0001",
         "algorithmVersion": "nireco-semantic-diff-1",
@@ -169,7 +169,7 @@
     {
       "name": "transaction",
       "domain": "nireco.transaction.v1",
-      "payloadSchemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/transaction.schema.json",
+      "payloadSchemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/transaction.schema.json",
       "payload": {
         "id": "018f0000-0000-7000-8000-000000000004",
         "target": {

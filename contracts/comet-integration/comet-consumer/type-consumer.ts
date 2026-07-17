@@ -17,10 +17,28 @@ import type {
   CometIntegrationHandshakeRequest as GeneratedHandshakeRequest,
   CreateProposalRequest as GeneratedCreateProposalRequest,
   CreateProposalResult as GeneratedCreateProposalResult,
+  GetDocumentChangesSinceRequest as GeneratedGetDocumentChangesSinceRequest,
+  GetDocumentChangesSinceResult as GeneratedGetDocumentChangesSinceResult,
+  GetDocumentDiagnosticsRequest as GeneratedGetDocumentDiagnosticsRequest,
+  GetDocumentDiagnosticsResult as GeneratedGetDocumentDiagnosticsResult,
+  GetDocumentHeadRequest as GeneratedGetDocumentHeadRequest,
+  GetDocumentHeadResult as GeneratedGetDocumentHeadResult,
+  GetDocumentOutlineRequest as GeneratedGetDocumentOutlineRequest,
+  GetDocumentOutlineResult as GeneratedGetDocumentOutlineResult,
+  GetDocumentSnapshotRequest as GeneratedGetDocumentSnapshotRequest,
+  GetDocumentSnapshotResult as GeneratedGetDocumentSnapshotResult,
   GetSnapshotRequest as GeneratedGetSnapshotRequest,
   GetSnapshotResult as GeneratedGetSnapshotResult,
   OpenCometSessionRequest as GeneratedOpenSessionRequest,
   OpenCometSessionResult as GeneratedOpenSessionResult,
+  ReadDocumentNodeNeighborhoodRequest as GeneratedReadDocumentNodeNeighborhoodRequest,
+  ReadDocumentNodeNeighborhoodResult as GeneratedReadDocumentNodeNeighborhoodResult,
+  ReadDocumentNodesRequest as GeneratedReadDocumentNodesRequest,
+  ReadDocumentNodesResult as GeneratedReadDocumentNodesResult,
+  ResolveModelRequest as GeneratedResolveModelRequest,
+  ResolveModelResult as GeneratedResolveModelResult,
+  SearchDocumentRequest as GeneratedSearchDocumentRequest,
+  SearchDocumentResult as GeneratedSearchDocumentResult,
   StageSemanticEditsRequest as GeneratedStageSemanticEditsRequest,
   StageSemanticEditsResult as GeneratedStageSemanticEditsResult,
 } from '@comet-internal/nireco-editor/contract-types/integration';
@@ -124,6 +142,46 @@ export const generatedStageSemanticEditsRequest = {
 
 export const publicStageSemanticEditsRequest: PublicStageSemanticEditsRequest =
   generatedStageSemanticEditsRequest;
+
+/** Schema-only preview.2 declarations. No runtime implementation is asserted here. */
+export interface GeneratedGate1ReadContract {
+  readonly resolveModel: {
+    readonly request: GeneratedResolveModelRequest;
+    readonly result: GeneratedResolveModelResult;
+  };
+  readonly getHead: {
+    readonly request: GeneratedGetDocumentHeadRequest;
+    readonly result: GeneratedGetDocumentHeadResult;
+  };
+  readonly getSnapshot: {
+    readonly request: GeneratedGetDocumentSnapshotRequest;
+    readonly result: GeneratedGetDocumentSnapshotResult;
+  };
+  readonly getOutline: {
+    readonly request: GeneratedGetDocumentOutlineRequest;
+    readonly result: GeneratedGetDocumentOutlineResult;
+  };
+  readonly readNodes: {
+    readonly request: GeneratedReadDocumentNodesRequest;
+    readonly result: GeneratedReadDocumentNodesResult;
+  };
+  readonly readNodeNeighborhood: {
+    readonly request: GeneratedReadDocumentNodeNeighborhoodRequest;
+    readonly result: GeneratedReadDocumentNodeNeighborhoodResult;
+  };
+  readonly search: {
+    readonly request: GeneratedSearchDocumentRequest;
+    readonly result: GeneratedSearchDocumentResult;
+  };
+  readonly getChangesSince: {
+    readonly request: GeneratedGetDocumentChangesSinceRequest;
+    readonly result: GeneratedGetDocumentChangesSinceResult;
+  };
+  readonly getDiagnostics: {
+    readonly request: GeneratedGetDocumentDiagnosticsRequest;
+    readonly result: GeneratedGetDocumentDiagnosticsResult;
+  };
+}
 
 export interface GeneratedResultEvidence {
   readonly openSession: GeneratedOpenSessionResult;

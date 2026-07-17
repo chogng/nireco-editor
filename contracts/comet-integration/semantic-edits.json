@@ -1,7 +1,7 @@
 {
-  "contractVersion": "0.4-preview.1",
+  "contractVersion": "0.4-preview.2",
   "semanticEditProtocolVersion": "0.4-preview.1",
-  "schemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/semantic-edit.schema.json",
+  "schemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/semantic-edit.schema.json",
   "rawOperationsAccepted": false,
   "compiledBy": "nireco.proposal-service",
   "edits": [

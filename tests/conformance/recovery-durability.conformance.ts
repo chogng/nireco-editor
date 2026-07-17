@@ -146,6 +146,8 @@ describe('Snapshot + WAL recovery conformance', () => {
       base: {
         ...fixture.base,
         revisionId: coveredHead.revisionId,
+        parentRevisionId: coveredHead.parentRevisionId,
+        transactionId: coveredHead.transactionId,
         sequence: coveredHead.sequence,
       },
       records: mutate(fixture.records),
@@ -197,6 +199,146 @@ describe('Snapshot + WAL recovery conformance', () => {
     });
   });
 
+  it('rejects a duplicate Transaction ID in an otherwise continuous WAL history', async () => {
+    const fixture = await loadRecoveryFixture('recovery-middle-corruption.json');
+    const duplicateTransactionId = requiredWalRecord(fixture.records, 0).transactionId;
+    const duplicateTransactionRecords = fixture.records.map((record, index) =>
+      index === fixture.records.length - 1
+        ? {
+            ...record,
+            transactionId: duplicateTransactionId,
+          }
+        : record,
+    );
+    const duplicateFixture: RecoveryFixture = {
+      ...fixture,
+      records: duplicateTransactionRecords,
+    };
+    const harness = createRecoveryHarness(duplicateFixture);
+    harness.storage.seedDurableWal(
+      duplicateFixture.uri,
+      concatenateAll(
+        duplicateFixture.records.map((record) => encodeOrThrow(harness.codec, record)),
+      ),
+    );
+
+    await expect(recoverFixture(harness, duplicateFixture)).resolves.toMatchObject({
+      type: 'error',
+      error: {
+        code: 'RECOVERY_REQUIRED',
+        reason: 'history-discontinuous',
+      },
+    });
+  });
+
+  it('validates WAL records already covered by the recovery Snapshot', async () => {
+    const fixture = await loadRecoveryFixture('recovery-tail-truncation.json');
+    const coveredHead = requiredWalRecord(fixture.records, 1);
+    const coveredFixture: RecoveryFixture = {
+      ...fixture,
+      base: {
+        revisionId: coveredHead.revisionId,
+        parentRevisionId: coveredHead.parentRevisionId,
+        transactionId: coveredHead.transactionId,
+        sequence: coveredHead.sequence,
+        documentHash: coveredHead.documentHash,
+      },
+    };
+    const harness = createRecoveryHarness(coveredFixture);
+    harness.storage.seedDurableWal(
+      coveredFixture.uri,
+      concatenateAll(coveredFixture.records.map((record) => encodeOrThrow(harness.codec, record))),
+    );
+
+    await expect(
+      recoverFixture(harness, coveredFixture, (record) =>
+        record.sequence === 1
+          ? validationError('Covered WAL record failed Transaction validation.')
+          : ok(),
+      ),
+    ).resolves.toMatchObject({
+      type: 'error',
+      error: {
+        code: 'RECOVERY_REQUIRED',
+        reason: 'record-invalid',
+      },
+    });
+  });
+
+  it('rejects a retained WAL predecessor that disagrees with the Snapshot parent identity', async () => {
+    const fixture = await loadRecoveryFixture('recovery-tail-truncation.json');
+    const predecessor = requiredWalRecord(fixture.records, 0);
+    const snapshotHead = requiredWalRecord(fixture.records, 1);
+    const boundaryFixture: RecoveryFixture = {
+      ...fixture,
+      base: {
+        revisionId: snapshotHead.revisionId,
+        parentRevisionId: snapshotHead.parentRevisionId,
+        transactionId: snapshotHead.transactionId,
+        sequence: snapshotHead.sequence,
+        documentHash: snapshotHead.documentHash,
+      },
+      records: [
+        {
+          ...predecessor,
+          revisionId: productionRevisionId('018f0000-0001-7000-8000-000000009999'),
+        },
+      ],
+    };
+    const harness = createRecoveryHarness(boundaryFixture);
+    harness.storage.seedDurableWal(
+      boundaryFixture.uri,
+      encodeOrThrow(harness.codec, requiredWalRecord(boundaryFixture.records, 0)),
+    );
+
+    await expect(recoverFixture(harness, boundaryFixture)).resolves.toMatchObject({
+      type: 'error',
+      error: {
+        code: 'RECOVERY_REQUIRED',
+        reason: 'history-discontinuous',
+      },
+    });
+  });
+
+  it('rejects reuse of the recovery Snapshot Revision ID in a continuous WAL tail', async () => {
+    const fixture = await loadRecoveryFixture('recovery-middle-corruption.json');
+    const seedRevisionId = fixture.base.revisionId;
+    const seedReuseRecords = fixture.records.map((record, index) => {
+      if (index === 1) {
+        return {
+          ...record,
+          revisionId: seedRevisionId,
+        };
+      }
+      if (index === 2) {
+        return {
+          ...record,
+          parentRevisionId: seedRevisionId,
+        };
+      }
+      return record;
+    });
+    const seedReuseFixture: RecoveryFixture = {
+      ...fixture,
+      records: seedReuseRecords,
+    };
+    const harness = createRecoveryHarness(seedReuseFixture);
+    harness.storage.seedDurableWal(
+      seedReuseFixture.uri,
+      concatenateAll(
+        seedReuseFixture.records.map((record) => encodeOrThrow(harness.codec, record)),
+      ),
+    );
+
+    await expect(recoverFixture(harness, seedReuseFixture)).resolves.toMatchObject({
+      type: 'error',
+      error: {
+        code: 'RECOVERY_REQUIRED',
+        reason: 'history-discontinuous',
+      },
+    });
+  });
+
   it('uses the observed WAL byte length as a compare-and-truncate precondition', async () => {
     const fixture = await loadRecoveryFixture('recovery-tail-truncation.json');
     const harness = createRecoveryHarness(fixture);
@@ -220,6 +362,8 @@ interface RecoveryFixture {
   readonly uri: DocumentUri;
   readonly base: {
     readonly revisionId: RevisionId;
+    readonly parentRevisionId?: RevisionId | null;
+    readonly transactionId?: TransactionId;
     readonly sequence: number;
     readonly documentHash: ContentHash;
   };
@@ -274,13 +418,18 @@ function createRecoveryHarness(fixture: RecoveryFixture): RecoveryHarness {
 async function recoverFixture(
   harness: RecoveryHarness,
   fixture: RecoveryFixture,
+  validateRecord: Parameters<typeof recoverDocument>[0]['validateRecord'] = () => ok(),
 ): Promise<Awaited<ReturnType<typeof recoverDocument>>> {
-  const snapshot = createMinimalSnapshot(fixture.base.revisionId);
+  const snapshot: DocumentSnapshot = {
+    ...createMinimalSnapshot(fixture.base.revisionId),
+    documentHash: fixture.base.documentHash,
+  };
   const revision: Revision = {
     id: fixture.base.revisionId,
     uri: fixture.uri,
-    parentRevisionId: null,
-    transactionId: productionTransactionId('018f0000-0001-7000-8000-000000000000'),
+    parentRevisionId: fixture.base.parentRevisionId ?? null,
+    transactionId:
+      fixture.base.transactionId ?? productionTransactionId('018f0000-0001-7000-8000-000000000000'),
     sequence: fixture.base.sequence,
     documentHash: fixture.base.documentHash,
     actor: {
@@ -301,17 +450,30 @@ async function recoverFixture(
       revision,
       snapshot,
     },
-    validateRecord: () => ok(),
+    validateRecord,
     validateSnapshot: (candidate) =>
       candidate.documentHash === fixture.base.documentHash
         ? ok()
         : validationError('The document hash is not expected by this recovery vector.'),
-    replay: (current, record) => ({
+    replay: (current, headRevision, record) => ({
       type: 'ok',
       value: {
-        ...current,
-        revisionId: record.revisionId,
-        documentHash: record.documentHash,
+        revision: {
+          id: record.revisionId,
+          uri: headRevision.uri,
+          parentRevisionId: record.parentRevisionId,
+          transactionId: record.transactionId,
+          sequence: record.sequence,
+          documentHash: record.documentHash,
+          actor: headRevision.actor,
+          createdAt: headRevision.createdAt,
+          durability: 'wal',
+        },
+        snapshot: {
+          ...current,
+          revisionId: record.revisionId,
+          documentHash: record.documentHash,
+        },
       },
     }),
   });

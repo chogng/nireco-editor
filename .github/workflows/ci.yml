@@ -78,6 +78,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
@@ -90,6 +92,12 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Build ESM package
         run: pnpm build
+      - name: Check locked reference corpus identities
+        run: node ./scripts/check-reference-corpora.mjs
+      - name: Check append-only reference corpus history
+        env:
+          CORPUS_HISTORY_BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: pnpm check:reference-corpus-history
       - name: Check Contract Bundle and independent consumer
         run: pnpm contract:check
 

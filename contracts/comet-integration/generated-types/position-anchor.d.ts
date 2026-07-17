@@ -3,7 +3,7 @@
  * Source: contracts/comet-integration/schemas/position-anchor.schema.json
  * Generator: json-schema-to-typescript
  * Generator version: 15.0.4
- * Source SHA-256: c2c466cd03ec8cc2c727fb2133cb379a51d8074e2f1e46efcb45d090f02c897b
+ * Source SHA-256: ea081ca446eaddf055d80f42191246bbd08e72a4cdd7a0d2445d51c32e913274
  */
 
 /**

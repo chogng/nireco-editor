@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/common.schema.json",
+  "$id": "https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/common.schema.json",
   "title": "Nireco–Comet Common Contract Types",
   "description": "Closed, transport-neutral scalar and identity definitions shared by the Gate 0 contract.",
   "$defs": {

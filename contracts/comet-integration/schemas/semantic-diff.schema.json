@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/semantic-diff.schema.json",
+  "$id": "https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/semantic-diff.schema.json",
   "title": "Nireco Semantic Diff Protocol",
   "description": "Deterministic proposal review groups bound to a document revision and proposal revision.",
   "$ref": "#/$defs/SemanticDiff",

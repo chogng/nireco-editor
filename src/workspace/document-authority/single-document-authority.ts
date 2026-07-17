@@ -5,13 +5,39 @@ import type {
   NirecoSuggestedAction,
   Result,
 } from '../../base/errors/nireco-error.js';
+import { HASH_DOMAINS } from '../../base/hashing/hash-preimage.js';
+import { hashCanonicalJsonPortable } from '../../base/hashing/portable-sha-256.js';
 import { deepFreeze } from '../../base/immutability/deep-freeze.js';
-import type { ContentHash, RevisionId } from '../../base/ids/identifiers.js';
+import type { ContentHash, RevisionId, TransactionId } from '../../base/ids/identifiers.js';
+import {
+  parseContentHash,
+  parseRevisionId,
+  parseTransactionId,
+} from '../../base/ids/identifiers.js';
 import type { JsonValue } from '../../base/serialization/canonical-json.js';
-import type { ResourceUri } from '../../base/uri/resource-uri.js';
+import { serializeCanonicalJson } from '../../base/serialization/canonical-json.js';
+import { parseIsoTimestamp } from '../../base/time/clock.js';
+import type { DocumentUri, ResourceUri } from '../../base/uri/resource-uri.js';
+import { isDocumentUri } from '../../base/uri/resource-uri.js';
+import type { PositionMap } from '../../model/mapping/position-map.js';
+import {
+  activateKernelDerivedDocumentSnapshotCache,
+  cacheVerifiedFrozenDocumentSnapshot,
+  retireVerifiedDocumentSnapshotCache,
+} from '../../model/document-snapshot-cache.js';
 import type { Revision, DurabilityLevel } from '../../model/revision/revision.js';
-import type { DocumentSnapshot } from '../../model/snapshot.js';
+import { validateDocumentSnapshot } from '../../model/schema/manuscript-validator.js';
+import { createDocumentHashPayload, type DocumentSnapshot } from '../../model/snapshot.js';
+import {
+  prepareKernelTransaction,
+  TRANSACTION_REPLAY_PROFILE,
+  type TransactionInversePlan,
+} from '../../model/transaction/transaction-kernel.js';
 import type { Transaction } from '../../model/transaction/transaction.js';
+import {
+  decodeStrictActorRef,
+  decodeStrictTransactionV1,
+} from '../../model/transaction/transaction-runtime.js';
 import type {
   AuthorityMode,
   CommitResult,
@@ -29,11 +55,14 @@ import type {
   WalCommitRecord,
 } from './durability-ports.js';
 import { isDurabilityAtLeast } from './durability-ports.js';
+import { createKernelCommitPreparer } from './kernel-commit-preparer.js';
 
 export interface PreparedCommit {
   readonly revision: Revision;
   readonly snapshot: DocumentSnapshot;
   readonly transactionHash: ContentHash;
+  readonly positionMap: PositionMap;
+  readonly inverse: TransactionInversePlan;
   readonly replayInput: JsonValue;
 }
 
@@ -44,7 +73,7 @@ export type CommitPreparer = (
 ) => Result<PreparedCommit>;
 
 export interface SingleDocumentAuthorityOptions {
-  readonly uri: ResourceUri;
+  readonly uri: DocumentUri;
   readonly initialRevision: Revision;
   readonly initialSnapshot: DocumentSnapshot;
   readonly lease: AuthorityLease;
@@ -52,7 +81,6 @@ export interface SingleDocumentAuthorityOptions {
   readonly walCodec: IWalRecordCodec;
   readonly snapshots: IAtomicSnapshotStore;
   readonly ids: IIdAllocator;
-  readonly prepareCommit: CommitPreparer;
 }
 
 type RevisionIdentity = Omit<Revision, 'durability'>;
@@ -68,7 +96,7 @@ interface DurabilityWaiter {
 }
 
 export class SingleDocumentAuthority implements IDocumentAuthority {
-  readonly #uri: ResourceUri;
+  readonly #uri: DocumentUri;
   readonly #lease: AuthorityLease;
   readonly #wal: IWriteAheadLog;
   readonly #walCodec: IWalRecordCodec;
@@ -76,6 +104,7 @@ export class SingleDocumentAuthority implements IDocumentAuthority {
   readonly #ids: IIdAllocator;
   readonly #prepareCommit: CommitPreparer;
   readonly #revisions = new Map<RevisionId, StoredRevision>();
+  readonly #transactionIds = new Set<TransactionId>();
   readonly #documentSnapshots = new Map<RevisionId, DocumentSnapshot>();
   readonly #terminalDurabilityFailures = new Map<RevisionId, NirecoError>();
   readonly #snapshotFailures = new Map<RevisionId, NirecoError>();
@@ -86,19 +115,29 @@ export class SingleDocumentAuthority implements IDocumentAuthority {
   #mode: AuthorityMode = 'read-write';
   #pendingWalRevisionId: RevisionId | undefined;
   #pendingWalTask: Promise<void> | undefined;
+  #isDisposed = false;
+  #disposePromise: Promise<void> | undefined;
 
   constructor(options: SingleDocumentAuthorityOptions) {
-    assertInitialState(options);
-    this.#uri = options.uri;
+    const initialRevision = assertInitialState(options);
+    this.#uri = initialRevision.uri;
     this.#lease = options.lease;
     this.#wal = options.wal;
     this.#walCodec = options.walCodec;
     this.#snapshots = options.snapshots;
     this.#ids = options.ids;
-    this.#prepareCommit = options.prepareCommit;
-    this.#headRevisionId = options.initialRevision.id;
-    this.#revisions.set(options.initialRevision.id, storeRevision(options.initialRevision));
-    this.#documentSnapshots.set(options.initialRevision.id, deepFreeze(options.initialSnapshot));
+    this.#prepareCommit = createKernelCommitPreparer({
+      ids: options.ids,
+    });
+    this.#headRevisionId = initialRevision.id;
+    this.#revisions.set(initialRevision.id, storeRevision(initialRevision));
+    this.#transactionIds.add(initialRevision.transactionId);
+    const initialSnapshot = deepFreeze(options.initialSnapshot);
+    const cached = cacheVerifiedFrozenDocumentSnapshot(initialSnapshot);
+    if (cached.type === 'error') {
+      throw new TypeError('The initial Authority Snapshot could not enter the verified cache.');
+    }
+    this.#documentSnapshots.set(initialRevision.id, initialSnapshot);
   }
 
   get mode(): AuthorityMode {
@@ -108,6 +147,9 @@ export class SingleDocumentAuthority implements IDocumentAuthority {
   async open(uri: ResourceUri): Promise<Result<DocumentHandle>> {
     if (uri !== this.#uri) {
       return this.#modelNotFound();
+    }
+    if (this.#isDisposed) {
+      return this.#disposed();
     }
     return {
       type: 'ok',
@@ -122,44 +164,89 @@ export class SingleDocumentAuthority implements IDocumentAuthority {
     if (uri !== this.#uri) {
       return this.#modelNotFound();
     }
+    if (this.#isDisposed) {
+      return this.#disposed();
+    }
     return {
       type: 'ok',
       value: this.#headRevisionId,
     };
   }
 
+  getSnapshot(uri: ResourceUri, revisionId = this.#headRevisionId): Result<DocumentSnapshot> {
+    if (uri !== this.#uri) {
+      return this.#modelNotFound();
+    }
+    if (this.#isDisposed) {
+      return this.#disposed();
+    }
+    const snapshot = this.#documentSnapshots.get(revisionId);
+    return snapshot === undefined
+      ? this.#revisionNotFound(revisionId)
+      : {
+          type: 'ok',
+          value: snapshot,
+        };
+  }
+
   async apply(transaction: Transaction): Promise<Result<CommitResult>> {
-    const writable = this.#checkWritable(transaction.target.uri, transaction.target.baseRevisionId);
+    const decoded = this.#decodeTransaction(transaction);
+    if (decoded.type === 'error') {
+      return decoded;
+    }
+    const normalized = decoded.value;
+    const writable = this.#checkWritable(normalized.target.uri, normalized.target.baseRevisionId);
     if (writable.type === 'error') {
       return writable;
+    }
+    const identity = this.#checkTransactionIdentity(normalized.id);
+    if (identity.type === 'error') {
+      return identity;
     }
 
     const headRevision = this.#revision(this.#headRevisionId);
     const headSnapshot = this.#snapshot(this.#headRevisionId);
-    const prepared = this.#prepareCommit(transaction, headRevision, headSnapshot);
+    const prepared = this.#prepareCommit(normalized, headRevision, headSnapshot);
     if (prepared.type === 'error') {
       return prepared;
     }
-    return this.applyPrepared(transaction, prepared.value);
+    const validation = this.#validateTrustedPreparedCommit(normalized, prepared.value);
+    return validation.type === 'error'
+      ? validation
+      : this.#installPreparedCommit(normalized, validation.value);
   }
 
   async applyPrepared(
     transaction: Transaction,
     prepared: PreparedCommit,
   ): Promise<Result<CommitResult>> {
-    const writable = this.#checkWritable(transaction.target.uri, transaction.target.baseRevisionId);
+    const decoded = this.#decodeTransaction(transaction);
+    if (decoded.type === 'error') {
+      return decoded;
+    }
+    const normalized = decoded.value;
+    const writable = this.#checkWritable(normalized.target.uri, normalized.target.baseRevisionId);
     if (writable.type === 'error') {
       return writable;
     }
+    const identity = this.#checkTransactionIdentity(normalized.id);
+    if (identity.type === 'error') {
+      return identity;
+    }
 
-    const validation = this.#validatePreparedCommit(transaction, prepared);
+    const validation = this.#validatePreparedCommit(normalized, prepared);
     if (validation.type === 'error') {
       return validation;
     }
+    return this.#installPreparedCommit(normalized, validation.value);
+  }
 
-    const record = createWalRecord(prepared);
+  #installPreparedCommit(transaction: Transaction, commit: PreparedCommit): Result<CommitResult> {
+    const previousSnapshot = this.#snapshot(this.#headRevisionId);
+    const record = createWalRecord(commit);
     const framed = this.#walCodec.encode(record);
     if (framed.type === 'error') {
+      retireVerifiedDocumentSnapshotCache(commit.snapshot);
       return {
         type: 'error',
         error: this.#error(
@@ -173,20 +260,26 @@ export class SingleDocumentAuthority implements IDocumentAuthority {
       };
     }
 
-    const frozenSnapshot = deepFreeze(prepared.snapshot);
-    this.#revisions.set(prepared.revision.id, storeRevision(prepared.revision));
-    this.#documentSnapshots.set(prepared.revision.id, frozenSnapshot);
-    this.#headRevisionId = prepared.revision.id;
-    this.#pendingWalRevisionId = prepared.revision.id;
-    this.#pendingWalTask = this.#persistWal(prepared.revision.id, framed.value);
+    const frozenSnapshot = deepFreeze(commit.snapshot);
+    const frozenPositionMap = deepFreeze(commit.positionMap);
+    const frozenInverse = deepFreeze(commit.inverse);
+    this.#revisions.set(commit.revision.id, storeRevision(commit.revision));
+    this.#transactionIds.add(transaction.id);
+    this.#documentSnapshots.set(commit.revision.id, frozenSnapshot);
+    this.#headRevisionId = commit.revision.id;
+    this.#activateCommittedSnapshotCache(previousSnapshot, frozenSnapshot);
+    this.#pendingWalRevisionId = commit.revision.id;
+    this.#pendingWalTask = this.#persistWal(commit.revision.id, framed.value);
     this.#notifyCommit();
 
     return {
       type: 'ok',
       value: {
-        revisionId: prepared.revision.id,
+        revisionId: commit.revision.id,
         snapshot: frozenSnapshot,
-        transactionHash: prepared.transactionHash,
+        transactionHash: commit.transactionHash,
+        positionMap: frozenPositionMap,
+        inverse: frozenInverse,
         achievedDurability: 'memory',
       },
     };
@@ -195,6 +288,9 @@ export class SingleDocumentAuthority implements IDocumentAuthority {
   getDurability(uri: ResourceUri, revisionId: RevisionId): Result<DurabilityLevel> {
     if (uri !== this.#uri) {
       return this.#modelNotFound();
+    }
+    if (this.#isDisposed) {
+      return this.#disposed();
     }
     const revision = this.#revisions.get(revisionId);
     return revision === undefined
@@ -212,6 +308,22 @@ export class SingleDocumentAuthority implements IDocumentAuthority {
   ): Promise<Result<DurabilityAcknowledgement>> {
     if (uri !== this.#uri) {
       return Promise.resolve(this.#modelNotFound());
+    }
+    if (this.#isDisposed) {
+      return Promise.resolve(this.#disposed());
+    }
+    if (!isDurabilityLevel(target)) {
+      return Promise.resolve({
+        type: 'error',
+        error: this.#error(
+          'SCHEMA_INVALID',
+          'validation',
+          false,
+          'The requested durability target is invalid.',
+          'abort',
+          this.#headRevisionId,
+        ),
+      });
     }
     const revision = this.#revisions.get(revisionId);
     if (revision === undefined) {
@@ -238,6 +350,12 @@ export class SingleDocumentAuthority implements IDocumentAuthority {
         error: snapshotFailure,
       });
     }
+    if (this.#mode !== 'read-write') {
+      return Promise.resolve({
+        type: 'error',
+        error: this.#readOnlyDurabilityError(revisionId),
+      });
+    }
 
     const pending = new Promise<Result<DurabilityAcknowledgement>>((resolve) => {
       const waiter: DurabilityWaiter = {
@@ -256,6 +374,9 @@ export class SingleDocumentAuthority implements IDocumentAuthority {
   }
 
   getRevision(revisionId: RevisionId): Result<Revision> {
+    if (this.#isDisposed) {
+      return this.#disposed();
+    }
     const stored = this.#revisions.get(revisionId);
     return stored === undefined
       ? this.#revisionNotFound(revisionId)
@@ -266,6 +387,13 @@ export class SingleDocumentAuthority implements IDocumentAuthority {
   }
 
   checkpoint(revisionId: RevisionId): Promise<Result<DurabilityAcknowledgement>> {
+    if (this.#isDisposed) {
+      return Promise.resolve(this.#disposed());
+    }
+    return this.#getOrStartCheckpoint(revisionId);
+  }
+
+  #getOrStartCheckpoint(revisionId: RevisionId): Promise<Result<DurabilityAcknowledgement>> {
     const pending = this.#snapshotTasks.get(revisionId);
     if (pending !== undefined) {
       return pending;
@@ -310,6 +438,14 @@ export class SingleDocumentAuthority implements IDocumentAuthority {
         value: this.#acknowledgement(revisionId, 'snapshot'),
       };
     }
+    if (this.#mode !== 'read-write') {
+      const error = this.#readOnlyDurabilityError(revisionId);
+      this.#rejectSnapshotWaiters(revisionId, error);
+      return {
+        type: 'error',
+        error,
+      };
+    }
     if (!this.#lease.isCurrent()) {
       this.#mode = 'read-only';
       const error = this.#snapshotError({
@@ -352,7 +488,7 @@ export class SingleDocumentAuthority implements IDocumentAuthority {
   }
 
   subscribe(uri: ResourceUri, listener: () => void): { dispose(): void } {
-    if (uri !== this.#uri) {
+    if (uri !== this.#uri || this.#isDisposed) {
       return {
         dispose: () => undefined,
       };
@@ -370,15 +506,42 @@ export class SingleDocumentAuthority implements IDocumentAuthority {
     await Promise.all(this.#snapshotTasks.values());
   }
 
-  async dispose(): Promise<void> {
-    await this.whenIdle();
+  dispose(): Promise<void> {
+    if (this.#disposePromise !== undefined) {
+      return this.#disposePromise;
+    }
+    this.#isDisposed = true;
     this.#mode = 'read-only';
+    this.#rejectUnstartedSnapshotWaitersOnDispose(this.#disposedError());
+    this.#disposePromise = this.#finishDispose();
+    return this.#disposePromise;
+  }
+
+  async #finishDispose(): Promise<void> {
+    await this.whenIdle();
     this.#lease.release();
+    this.#listeners.clear();
+    for (const snapshot of this.#documentSnapshots.values()) {
+      retireVerifiedDocumentSnapshotCache(snapshot);
+    }
   }
 
   #checkWritable(uri: ResourceUri, baseRevisionId: RevisionId): Result<void> {
     if (uri !== this.#uri) {
       return this.#modelNotFound();
+    }
+    if (this.#isDisposed) {
+      return {
+        type: 'error',
+        error: this.#error(
+          'MODEL_DISPOSED',
+          'conflict',
+          false,
+          'The Document Authority has been disposed.',
+          'abort',
+          this.#headRevisionId,
+        ),
+      };
     }
     if (this.#mode !== 'read-write') {
       return {
@@ -439,33 +602,167 @@ export class SingleDocumentAuthority implements IDocumentAuthority {
     };
   }
 
-  #validatePreparedCommit(transaction: Transaction, prepared: PreparedCommit): Result<void> {
-    const parent = this.#revision(this.#headRevisionId);
-    const isValid =
-      prepared.revision.durability === 'memory' &&
-      !this.#revisions.has(prepared.revision.id) &&
-      prepared.revision.uri === this.#uri &&
-      prepared.revision.parentRevisionId === this.#headRevisionId &&
-      prepared.revision.sequence === parent.sequence + 1 &&
-      prepared.revision.transactionId === transaction.id &&
-      prepared.snapshot.revisionId === prepared.revision.id &&
-      prepared.snapshot.documentHash === prepared.revision.documentHash;
-    return isValid
+  #checkTransactionIdentity(transactionId: TransactionId): Result<void> {
+    return this.#transactionIds.has(transactionId)
       ? {
+          type: 'error',
+          error: this.#error(
+            'IDEMPOTENCY_CONFLICT',
+            'conflict',
+            false,
+            'The Transaction ID has already been committed by this Authority.',
+            'reread',
+            this.#headRevisionId,
+          ),
+        }
+      : {
           type: 'ok',
           value: undefined,
-        }
+        };
+  }
+
+  #decodeTransaction(transaction: unknown): Result<Transaction> {
+    const decoded = decodeStrictTransactionV1(transaction);
+    return decoded.type === 'ok'
+      ? decoded
       : {
           type: 'error',
           error: this.#error(
-            'SCHEMA_INVALID',
+            decoded.error.reason === 'transaction-too-large'
+              ? 'REQUEST_TOO_LARGE'
+              : 'SCHEMA_INVALID',
             'validation',
             false,
-            'The prepared commit is inconsistent with the current head.',
+            decoded.error.safeMessage,
             'abort',
             this.#headRevisionId,
           ),
         };
+  }
+
+  #validatePreparedCommit(
+    transaction: Transaction,
+    prepared: PreparedCommit,
+  ): Result<PreparedCommit> {
+    let derivedSnapshot: DocumentSnapshot | undefined;
+    try {
+      const parent = this.#revision(this.#headRevisionId);
+      const derived = prepareKernelTransaction({
+        transaction,
+        headRevision: parent,
+        headSnapshot: this.#snapshot(this.#headRevisionId),
+        nextRevisionId: prepared.revision.id,
+      });
+      if (derived.type === 'error') {
+        return this.#invalidPreparedCommit();
+      }
+      derivedSnapshot = derived.value.snapshot;
+      const expected: PreparedCommit = {
+        revision: {
+          id: prepared.revision.id,
+          uri: this.#uri,
+          parentRevisionId: this.#headRevisionId,
+          transactionId: transaction.id,
+          sequence: parent.sequence + 1,
+          documentHash: derived.value.snapshot.documentHash,
+          actor: transaction.actor,
+          createdAt: transaction.createdAt,
+          durability: 'memory',
+        },
+        snapshot: derived.value.snapshot,
+        transactionHash: derived.value.transactionHash,
+        positionMap: derived.value.positionMap,
+        inverse: derived.value.inverse,
+        replayInput: derived.value.replayInput,
+      };
+      const isValid = [
+        validatePreparedSnapshot(prepared),
+        !this.#revisions.has(prepared.revision.id),
+        !this.#transactionIds.has(transaction.id),
+        Number.isSafeInteger(prepared.revision.sequence),
+        canonicalValuesEqual(prepared.revision, expected.revision),
+        canonicalValuesEqual(prepared.snapshot, expected.snapshot),
+        prepared.transactionHash === expected.transactionHash,
+        prepared.positionMap.fromRevisionId === this.#headRevisionId,
+        prepared.positionMap.toRevisionId === prepared.revision.id,
+        canonicalValuesEqual(prepared.inverse, expected.inverse),
+        canonicalValuesEqual(prepared.replayInput, expected.replayInput),
+        validatePreparedReplay(transaction, prepared),
+      ].every(Boolean);
+      if (!isValid) {
+        retireVerifiedDocumentSnapshotCache(derived.value.snapshot);
+        return this.#invalidPreparedCommit();
+      }
+      return {
+        type: 'ok',
+        value: expected,
+      };
+    } catch {
+      if (derivedSnapshot !== undefined) {
+        retireVerifiedDocumentSnapshotCache(derivedSnapshot);
+      }
+      return this.#invalidPreparedCommit();
+    }
+  }
+
+  #validateTrustedPreparedCommit(
+    transaction: Transaction,
+    prepared: PreparedCommit,
+  ): Result<PreparedCommit> {
+    const parent = this.#revision(this.#headRevisionId);
+    const revision = prepared.revision;
+    const isValid = [
+      !this.#revisions.has(revision.id),
+      !this.#transactionIds.has(transaction.id),
+      revision.uri === this.#uri,
+      revision.parentRevisionId === this.#headRevisionId,
+      revision.transactionId === transaction.id,
+      revision.sequence === parent.sequence + 1,
+      Number.isSafeInteger(revision.sequence),
+      revision.actor === transaction.actor,
+      revision.createdAt === transaction.createdAt,
+      revision.durability === 'memory',
+      prepared.snapshot.revisionId === revision.id,
+      prepared.snapshot.documentHash === revision.documentHash,
+      prepared.positionMap.fromRevisionId === this.#headRevisionId,
+      prepared.positionMap.toRevisionId === revision.id,
+    ].every(Boolean);
+    if (!isValid) {
+      retireVerifiedDocumentSnapshotCache(prepared.snapshot);
+      return this.#invalidPreparedCommit();
+    }
+    return {
+      type: 'ok',
+      value: prepared,
+    };
+  }
+
+  #activateCommittedSnapshotCache(
+    previousSnapshot: DocumentSnapshot,
+    snapshot: DocumentSnapshot,
+  ): void {
+    if (activateKernelDerivedDocumentSnapshotCache(previousSnapshot, snapshot)) {
+      return;
+    }
+    const cached = cacheVerifiedFrozenDocumentSnapshot(snapshot);
+    retireVerifiedDocumentSnapshotCache(previousSnapshot);
+    if (cached.type === 'error') {
+      retireVerifiedDocumentSnapshotCache(snapshot);
+    }
+  }
+
+  #invalidPreparedCommit(): Result<never> {
+    return {
+      type: 'error',
+      error: this.#error(
+        'SCHEMA_INVALID',
+        'validation',
+        false,
+        'The prepared commit is inconsistent with the current head.',
+        'abort',
+        this.#headRevisionId,
+      ),
+    };
   }
 
   async #persistWal(revisionId: RevisionId, framedRecord: Uint8Array): Promise<void> {
@@ -645,6 +942,24 @@ export class SingleDocumentAuthority implements IDocumentAuthority {
     };
   }
 
+  #disposed<TValue>(): Result<TValue> {
+    return {
+      type: 'error',
+      error: this.#disposedError(),
+    };
+  }
+
+  #disposedError(): NirecoError {
+    return this.#error(
+      'MODEL_DISPOSED',
+      'conflict',
+      false,
+      'The Document Authority has been disposed.',
+      'abort',
+      this.#headRevisionId,
+    );
+  }
+
   #snapshotError(portFailure: DurabilityPortError): NirecoError {
     if (portFailure.reason === 'stale-fence') {
       return this.#error(
@@ -666,6 +981,17 @@ export class SingleDocumentAuthority implements IDocumentAuthority {
     );
   }
 
+  #readOnlyDurabilityError(revisionId: RevisionId): NirecoError {
+    return this.#error(
+      'DURABILITY_UNREACHABLE',
+      'storage',
+      false,
+      'The read-only Authority cannot start additional durability writes.',
+      'abort',
+      revisionId,
+    );
+  }
+
   #scheduleSnapshotForWaiters(revisionId: RevisionId): void {
     const stored = this.#revisions.get(revisionId);
     const waiters = this.#waiters.get(revisionId);
@@ -677,7 +1003,15 @@ export class SingleDocumentAuthority implements IDocumentAuthority {
     ) {
       return;
     }
-    void this.checkpoint(revisionId);
+    void this.#getOrStartCheckpoint(revisionId);
+  }
+
+  #rejectUnstartedSnapshotWaitersOnDispose(error: NirecoError): void {
+    for (const revisionId of this.#waiters.keys()) {
+      if (!this.#snapshotTasks.has(revisionId)) {
+        this.#rejectSnapshotWaiters(revisionId, error);
+      }
+    }
   }
 
   #deleteSnapshotTask(
@@ -707,6 +1041,68 @@ export class SingleDocumentAuthority implements IDocumentAuthority {
       ...(currentRevisionId === undefined ? {} : { currentRevisionId }),
     };
   }
+}
+
+function validatePreparedSnapshot(prepared: PreparedCommit): boolean {
+  return isCanonicalSnapshot(prepared.snapshot);
+}
+
+function validatePreparedReplay(transaction: Transaction, prepared: PreparedCommit): boolean {
+  const normalized = decodeStrictTransactionV1(transaction);
+  const replayInput = asRecord(prepared.replayInput);
+  if (
+    normalized.type === 'error' ||
+    replayInput === undefined ||
+    !hasExactKeys(replayInput, ['profile', 'transaction']) ||
+    replayInput['profile'] !== TRANSACTION_REPLAY_PROFILE
+  ) {
+    return false;
+  }
+  const replayTransaction = decodeStrictTransactionV1(replayInput['transaction']);
+  if (replayTransaction.type === 'error') {
+    return false;
+  }
+  const hashed = hashCanonicalJsonPortable(HASH_DOMAINS.transaction, normalized.value);
+  const normalizedJson = serializeCanonicalJson(normalized.value);
+  const replayJson = serializeCanonicalJson(replayTransaction.value);
+  return (
+    hashed.type === 'ok' &&
+    hashed.hash === prepared.transactionHash &&
+    normalizedJson.type === 'ok' &&
+    replayJson.type === 'ok' &&
+    normalizedJson.value === replayJson.value
+  );
+}
+
+function isCanonicalSnapshot(snapshot: DocumentSnapshot): boolean {
+  if (validateDocumentSnapshot(snapshot).type === 'error') {
+    return false;
+  }
+  const hashed = hashCanonicalJsonPortable(
+    HASH_DOMAINS.documentContent,
+    createDocumentHashPayload(snapshot),
+  );
+  return hashed.type === 'ok' && hashed.hash === snapshot.documentHash;
+}
+
+function asRecord(value: unknown): Readonly<Record<string, unknown>> | undefined {
+  return value !== null && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Readonly<Record<string, unknown>>)
+    : undefined;
+}
+
+function hasExactKeys(
+  value: Readonly<Record<string, unknown>>,
+  expected: readonly string[],
+): boolean {
+  const keys = Object.keys(value);
+  return keys.length === expected.length && expected.every((key) => Object.hasOwn(value, key));
+}
+
+function canonicalValuesEqual(left: unknown, right: unknown): boolean {
+  const leftJson = serializeCanonicalJson(left);
+  const rightJson = serializeCanonicalJson(right);
+  return leftJson.type === 'ok' && rightJson.type === 'ok' && leftJson.value === rightJson.value;
 }
 
 function createWalRecord(prepared: PreparedCommit): WalCommitRecord {
@@ -739,18 +1135,159 @@ function projectRevision(stored: StoredRevision): Revision {
   };
 }
 
-function assertInitialState(options: SingleDocumentAuthorityOptions): void {
-  if (
-    options.uri !== options.initialRevision.uri ||
-    options.uri !== options.lease.fence.uri ||
-    options.initialSnapshot.revisionId !== options.initialRevision.id ||
-    options.initialSnapshot.documentHash !== options.initialRevision.documentHash ||
-    options.initialRevision.durability === 'memory'
-  ) {
-    throw new Error(
-      'Initial Authority Revision, Snapshot, URI, and lease must agree and be durable.',
-    );
+function isDurabilityLevel(value: unknown): value is DurabilityLevel {
+  return value === 'memory' || value === 'wal' || value === 'snapshot';
+}
+
+function assertInitialState(options: SingleDocumentAuthorityOptions): Revision {
+  try {
+    const revision = normalizeInitialRevision(options.initialRevision);
+    if (
+      options.uri === revision.uri &&
+      options.uri === options.lease.fence.uri &&
+      options.initialSnapshot.revisionId === revision.id &&
+      options.initialSnapshot.documentHash === revision.documentHash &&
+      isCanonicalSnapshot(options.initialSnapshot) &&
+      revision.durability !== 'memory'
+    ) {
+      return revision;
+    }
+  } catch {
+    // A hostile runtime value is invalid initial state.
   }
+  throw new Error(
+    'Initial Authority Revision, Snapshot, URI, and lease must agree and be durable.',
+  );
+}
+
+function normalizeInitialRevision(value: unknown): Revision {
+  const revision = readClosedDataRecord(value, [
+    'id',
+    'uri',
+    'parentRevisionId',
+    'transactionId',
+    'sequence',
+    'documentHash',
+    'actor',
+    'createdAt',
+    'durability',
+  ]);
+  if (revision === undefined) {
+    return invalidInitialRevision();
+  }
+
+  const id = requireParsedString(revision['id'], parseRevisionId);
+  const uri = requireDocumentUri(revision['uri']);
+  const parentRevisionId = requireParentRevisionId(revision['parentRevisionId']);
+  const transactionId = requireParsedString(revision['transactionId'], parseTransactionId);
+  const sequence = requireInitialSequence(revision['sequence']);
+  const documentHash = requireParsedString(revision['documentHash'], parseContentHash);
+  const actor = requireActor(revision['actor']);
+  const createdAt = requireParsedString(revision['createdAt'], parseIsoTimestamp);
+  const durability = requireDurability(revision['durability']);
+  if (
+    (sequence === 0 && parentRevisionId !== null) ||
+    (sequence > 0 && parentRevisionId === null) ||
+    parentRevisionId === id
+  ) {
+    return invalidInitialRevision();
+  }
+  return {
+    id,
+    uri,
+    parentRevisionId,
+    transactionId,
+    sequence,
+    documentHash,
+    actor,
+    createdAt,
+    durability,
+  };
+}
+
+function requireDocumentUri(value: unknown): DocumentUri {
+  return typeof value === 'string' && isDocumentUri(value) ? value : invalidInitialRevision();
+}
+
+function requireParentRevisionId(value: unknown): RevisionId | null {
+  return value === null ? null : requireParsedString(value, parseRevisionId);
+}
+
+function requireInitialSequence(value: unknown): number {
+  if (
+    typeof value !== 'number' ||
+    !Number.isSafeInteger(value) ||
+    value < 0 ||
+    value >= Number.MAX_SAFE_INTEGER
+  ) {
+    return invalidInitialRevision();
+  }
+  return value;
+}
+
+function requireActor(value: unknown): Revision['actor'] {
+  return decodeStrictActorRef(value) ?? invalidInitialRevision();
+}
+
+function requireDurability(value: unknown): DurabilityLevel {
+  return isDurabilityLevel(value) ? value : invalidInitialRevision();
+}
+
+function invalidInitialRevision(): never {
+  throw new TypeError('The initial Revision does not match its closed runtime schema.');
+}
+
+function readClosedDataRecord(
+  value: unknown,
+  expectedKeys: readonly string[],
+): Readonly<Record<string, unknown>> | undefined {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+    return undefined;
+  }
+  const prototype = Reflect.getPrototypeOf(value);
+  if (prototype !== Object.prototype && prototype !== null) {
+    return undefined;
+  }
+  const ownKeys = Reflect.ownKeys(value);
+  if (
+    ownKeys.length !== expectedKeys.length ||
+    ownKeys.some((key) => typeof key !== 'string' || !expectedKeys.includes(key))
+  ) {
+    return undefined;
+  }
+  for (const key of expectedKeys) {
+    const descriptor = Reflect.getOwnPropertyDescriptor(value, key);
+    if (descriptor === undefined || !descriptor.enumerable || !('value' in descriptor)) {
+      return undefined;
+    }
+  }
+  return value as Readonly<Record<string, unknown>>;
+}
+
+function parseString<TValue>(
+  value: unknown,
+  parse: (input: string) =>
+    | { readonly type: 'valid'; readonly value: TValue }
+    | {
+        readonly type: 'invalid';
+      },
+): TValue | undefined {
+  if (typeof value !== 'string') {
+    return undefined;
+  }
+  const parsed = parse(value);
+  return parsed.type === 'valid' ? parsed.value : undefined;
+}
+
+function requireParsedString<TValue>(
+  value: unknown,
+  parse: (input: string) =>
+    | { readonly type: 'valid'; readonly value: TValue }
+    | {
+        readonly type: 'invalid';
+      },
+): TValue {
+  return parseString(value, parse) ?? invalidInitialRevision();
 }
 
 function portException(

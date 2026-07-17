@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/resource-ref.schema.json",
+  "$id": "https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/resource-ref.schema.json",
   "title": "Nireco–Comet Resource References",
   "description": "Canonical logical URI and revision-bound document reference types.",
   "$ref": "#/$defs/DocumentRef",

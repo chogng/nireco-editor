@@ -1,6 +1,10 @@
 # Gate 0 Mock Service
 
-The version-matched in-memory mock is exported from:
+This Mock implements only the previous `0.4-preview.1` contract. It is retained
+in package `0.4.0-preview.2` for explicit compatibility evidence and does not
+claim support for the schema-only preview.2 Gate 1 read contract.
+
+The previous-contract in-memory Mock is exported from:
 
 ```ts
 import { MockCometIntegrationService } from '@comet-internal/nireco-editor/comet-internal';

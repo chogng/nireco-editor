@@ -1,6 +1,9 @@
 import { parseContentHash, parseRevisionId, parseTransactionId } from '../base/ids/identifiers.js';
 import type { JsonValue } from '../base/serialization/canonical-json.js';
-import { serializeCanonicalJson } from '../base/serialization/canonical-json.js';
+import {
+  MAX_CANONICAL_JSON_DEPTH,
+  serializeCanonicalJson,
+} from '../base/serialization/canonical-json.js';
 import { canonicalizeResourceUri } from '../base/uri/resource-uri.js';
 import type {
   IWalRecordCodec,
@@ -12,6 +15,8 @@ import type {
 
 const HEADER_BYTE_LENGTH = 8;
 const DEFAULT_MAX_PAYLOAD_BYTE_LENGTH = 16 * 1024 * 1024;
+const MAX_RESYNC_CANDIDATE_OFFSETS = 4_096;
+const MAX_RESYNC_CHECKSUM_BYTES = 1024 * 1024;
 const WAL_RECORD_KEYS = new Set([
   'documentHash',
   'parentRevisionId',
@@ -85,14 +90,15 @@ export class PortableWalRecordCodec implements IWalRecordCodec {
 
       const recordEnd = offset + HEADER_BYTE_LENGTH + payloadLength;
       if (recordEnd > bytes.byteLength) {
-        if (
-          remaining >= HEADER_BYTE_LENGTH &&
-          hasCompleteCanonicalFrameAfter(
-            bytes,
-            offset + HEADER_BYTE_LENGTH,
-            this.#maxPayloadByteLength,
-          )
-        ) {
+        const resync =
+          remaining >= HEADER_BYTE_LENGTH
+            ? findCompleteCanonicalFrameAfter(
+                bytes,
+                offset + HEADER_BYTE_LENGTH,
+                this.#maxPayloadByteLength,
+              )
+            : 'not-found';
+        if (resync !== 'not-found') {
           return corruptResult(records, offset, 'invalid-length');
         }
         return tailResult(records, offset);
@@ -154,37 +160,52 @@ function decodePayload(payload: Uint8Array): DecodedPayloadResult {
     };
   }
 
-  const record = parseWalCommitRecord(parsed);
-  if (record === undefined) {
+  try {
+    const record = parseWalCommitRecord(parsed);
+    if (record === undefined) {
+      return {
+        type: 'error',
+        reason: 'invalid-record',
+      };
+    }
+    const canonical = serializeCanonicalJson(record);
+    if (canonical.type === 'error' || canonical.value !== decoded.value) {
+      return {
+        type: 'error',
+        reason: 'non-canonical-payload',
+      };
+    }
+
+    return {
+      type: 'ok',
+      record,
+    };
+  } catch {
     return {
       type: 'error',
       reason: 'invalid-record',
     };
   }
-  const canonical = serializeCanonicalJson(record);
-  if (canonical.type === 'error' || canonical.value !== decoded.value) {
-    return {
-      type: 'error',
-      reason: 'non-canonical-payload',
-    };
-  }
-
-  return {
-    type: 'ok',
-    record,
-  };
 }
 
-function hasCompleteCanonicalFrameAfter(
+type FrameResyncResult = 'complete-frame' | 'not-found' | 'budget-exceeded';
+
+function findCompleteCanonicalFrameAfter(
   bytes: Uint8Array,
   startOffset: number,
   maxPayloadByteLength: number,
-): boolean {
+): FrameResyncResult {
+  let candidateCount = 0;
+  let checksumByteCount = 0;
   for (
     let candidateOffset = startOffset;
     candidateOffset + HEADER_BYTE_LENGTH <= bytes.byteLength;
     candidateOffset += 1
   ) {
+    candidateCount += 1;
+    if (candidateCount > MAX_RESYNC_CANDIDATE_OFFSETS) {
+      return 'budget-exceeded';
+    }
     const payloadLength = readUint32BigEndian(bytes, candidateOffset);
     if (payloadLength > maxPayloadByteLength) {
       continue;
@@ -195,14 +216,18 @@ function hasCompleteCanonicalFrameAfter(
     }
     const expectedChecksum = readUint32BigEndian(bytes, candidateOffset + 4);
     const payload = bytes.subarray(candidateOffset + HEADER_BYTE_LENGTH, recordEnd);
+    checksumByteCount += payload.byteLength;
+    if (checksumByteCount > MAX_RESYNC_CHECKSUM_BYTES) {
+      return 'budget-exceeded';
+    }
     if (crc32(payload) !== expectedChecksum) {
       continue;
     }
     if (decodePayload(payload).type === 'ok') {
-      return true;
+      return 'complete-frame';
     }
   }
-  return false;
+  return 'not-found';
 }
 
 function parseWalCommitRecord(value: unknown): WalCommitRecord | undefined {
@@ -337,21 +362,52 @@ function isPlainRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function isJsonValue(value: unknown): value is JsonValue {
-  if (
+  const pending: { readonly value: unknown; readonly depth: number }[] = [
+    {
+      value,
+      depth: 0,
+    },
+  ];
+  while (pending.length > 0) {
+    const candidate = pending.pop();
+    if (candidate === undefined) {
+      continue;
+    }
+    const item = candidate.value;
+    if (isJsonPrimitive(item)) {
+      continue;
+    }
+    if (candidate.depth > MAX_CANONICAL_JSON_DEPTH) {
+      return false;
+    }
+    const children = readJsonChildren(item);
+    if (children === undefined) {
+      return false;
+    }
+    for (const child of children) {
+      pending.push({
+        value: child,
+        depth: candidate.depth + 1,
+      });
+    }
+  }
+  return true;
+}
+
+function isJsonPrimitive(value: unknown): boolean {
+  return (
     value === null ||
     typeof value === 'string' ||
     typeof value === 'boolean' ||
     (typeof value === 'number' && Number.isFinite(value))
-  ) {
-    return true;
-  }
+  );
+}
+
+function readJsonChildren(value: unknown): readonly unknown[] | undefined {
   if (Array.isArray(value)) {
-    return value.every(isJsonValue);
+    return value as readonly unknown[];
   }
-  if (!isPlainRecord(value)) {
-    return false;
-  }
-  return Object.values(value).every(isJsonValue);
+  return isPlainRecord(value) ? Object.values(value) : undefined;
 }
 
 function isNonNegativeSafeInteger(value: unknown): value is number {

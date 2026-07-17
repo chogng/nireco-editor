@@ -11,6 +11,17 @@ const consumerRoot = path.join(repositoryRoot, 'contracts/comet-integration/come
 
 test('independent Comet consumer matches the committed evidence report', async () => {
   const actual = await runConsumerHarness();
+  assert.equal(actual.bundleContractVersion, '0.4-preview.2');
+  assert.equal(actual.contractVersion, '0.4-preview.1');
+  assert.deepEqual(actual.compatibility, {
+    currentContractVersion: '0.4-preview.2',
+    previousContractVersion: '0.4-preview.1',
+    currentStatus: 'schema-only-no-runtime-conformance-claim',
+    currentRuntimeExitCriteriaSatisfied: false,
+    currentMockSupported: false,
+    currentConsumerValidated: false,
+    gate1ReadServiceCount: 9,
+  });
   const expected = JSON.parse(
     await readFile(path.join(consumerRoot, 'evidence-report.json'), 'utf8'),
   );

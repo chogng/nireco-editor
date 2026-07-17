@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/proposal.schema.json",
+  "$id": "https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/proposal.schema.json",
   "title": "Nireco Proposal Protocol",
   "description": "Revision-bound proposal state with optimistic proposalRevision concurrency.",
   "$ref": "#/$defs/Proposal",

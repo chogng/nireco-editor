@@ -1,8 +1,8 @@
 {
   "name": "minimal-proposal",
-  "contractVersion": "0.4-preview.1",
+  "contractVersion": "0.4-preview.2",
   "schemaVersion": "0.4-preview.1",
-  "payloadSchemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/proposal.schema.json",
+  "payloadSchemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/proposal.schema.json",
   "canonicalizationProfile": "nireco-canonical-json-0.1",
   "hashAlgorithm": "sha256",
   "hashInput": "payload",

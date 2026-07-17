@@ -3,7 +3,7 @@
  * Source: contracts/comet-integration/schemas/diagnostic.schema.json
  * Generator: json-schema-to-typescript
  * Generator version: 15.0.4
- * Source SHA-256: 69deb7876cc3251146d49ea0ea84f07eb50aa4d8d4bec8d46aac5c7793e2756f
+ * Source SHA-256: 6716765646e283adff97699601310bf1e4a5dedac849f56788034eb1cb9a2a56
  */
 
 /**

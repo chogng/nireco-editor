@@ -1,5 +1,6 @@
 import type { Result } from '../base/errors/nireco-error.js';
 import type { ResourceUri } from '../base/uri/resource-uri.js';
+import type { TransactionId } from '../base/ids/identifiers.js';
 import type { Revision } from '../model/revision/revision.js';
 import type { DocumentSnapshot } from '../model/snapshot.js';
 import type {
@@ -24,8 +25,14 @@ export type RecoverySnapshotValidator = (
 
 export type RecoveryReplay = (
   snapshot: DocumentSnapshot,
+  headRevision: Revision,
   record: WalCommitRecord,
-) => Result<DocumentSnapshot, RecoveryValidationError>;
+) => Result<RecoveryReplayResult, RecoveryValidationError>;
+
+export interface RecoveryReplayResult {
+  readonly revision: Revision;
+  readonly snapshot: DocumentSnapshot;
+}
 
 export interface RecoveryBase {
   readonly revision: Revision;
@@ -45,6 +52,7 @@ export interface RecoverDocumentOptions {
 }
 
 export interface RecoverySuccess {
+  readonly headRevision: Revision;
   readonly headRevisionId: Revision['id'];
   readonly headSequence: number;
   readonly snapshot: DocumentSnapshot;
@@ -111,8 +119,7 @@ export async function recoverDocument(
 }
 
 interface ResolvedRecoveryBase {
-  readonly revisionId: Revision['id'];
-  readonly sequence: number;
+  readonly revision: Revision;
   readonly snapshot: DocumentSnapshot;
 }
 
@@ -121,13 +128,18 @@ async function readRecoveryBase(
 ): Promise<Result<ResolvedRecoveryBase, RecoveryFailure>> {
   const latest = await options.snapshots.readLatest(options.uri);
   if (latest.type === 'error') {
-    return recoveryFailure('storage-read-failed', latest.error.safeMessage);
+    return recoveryFailure(
+      latest.error.reason === 'corrupt' ? 'snapshot-invalid' : 'storage-read-failed',
+      latest.error.safeMessage,
+    );
   }
   if (latest.value === undefined) {
     if (
       options.fallback.revision.uri !== options.uri ||
       options.fallback.snapshot.revisionId !== options.fallback.revision.id ||
-      options.fallback.snapshot.documentHash !== options.fallback.revision.documentHash
+      options.fallback.snapshot.documentHash !== options.fallback.revision.documentHash ||
+      options.fallback.revision.durability === 'memory' ||
+      !hasValidLinearRevisionShape(options.fallback.revision)
     ) {
       return recoveryFailure(
         'snapshot-invalid',
@@ -137,8 +149,7 @@ async function readRecoveryBase(
     return {
       type: 'ok',
       value: {
-        revisionId: options.fallback.revision.id,
-        sequence: options.fallback.revision.sequence,
+        revision: options.fallback.revision,
         snapshot: options.fallback.snapshot,
       },
     };
@@ -147,8 +158,7 @@ async function readRecoveryBase(
   return {
     type: 'ok',
     value: {
-      revisionId: latest.value.manifest.revisionId,
-      sequence: latest.value.manifest.sequence,
+      revision: latest.value.revision,
       snapshot: latest.value.snapshot,
     },
   };
@@ -200,56 +210,56 @@ function replayRecords(
     return streamValidation;
   }
 
-  let currentRevisionId = base.revisionId;
-  let currentSequence = base.sequence;
+  let currentRevision = base.revision;
   let currentSnapshot = base.snapshot;
   let appliedRecordCount = 0;
 
   for (const record of records) {
-    if (record.sequence < currentSequence) {
-      continue;
-    }
-    if (record.sequence === currentSequence) {
-      continue;
-    }
-    const continuity = validateContinuity(options.uri, currentRevisionId, currentSequence, record);
-    if (continuity.type === 'error') {
-      return continuity;
-    }
-
     const recordValidation = options.validateRecord(record);
     if (recordValidation.type === 'error') {
       return recoveryFailure('record-invalid', recordValidation.error.safeMessage);
     }
-    const replayed = options.replay(currentSnapshot, record);
+    if (record.sequence < currentRevision.sequence) {
+      continue;
+    }
+    if (record.sequence === currentRevision.sequence) {
+      continue;
+    }
+    const continuity = validateContinuity(options.uri, currentRevision, record);
+    if (continuity.type === 'error') {
+      return continuity;
+    }
+
+    const replayed = options.replay(currentSnapshot, currentRevision, record);
     if (replayed.type === 'error') {
       return recoveryFailure('replay-failed', replayed.error.safeMessage);
     }
     if (
-      replayed.value.revisionId !== record.revisionId ||
-      replayed.value.documentHash !== record.documentHash
+      !replayedRevisionMatchesRecord(replayed.value.revision, record) ||
+      replayed.value.snapshot.revisionId !== replayed.value.revision.id ||
+      replayed.value.snapshot.documentHash !== replayed.value.revision.documentHash
     ) {
       return recoveryFailure(
         'document-hash-mismatch',
         'Replay output does not match the WAL Revision identity and document hash.',
       );
     }
-    const snapshotValidation = options.validateSnapshot(replayed.value);
+    const snapshotValidation = options.validateSnapshot(replayed.value.snapshot);
     if (snapshotValidation.type === 'error') {
       return recoveryFailure('snapshot-invalid', snapshotValidation.error.safeMessage);
     }
 
-    currentRevisionId = record.revisionId;
-    currentSequence = record.sequence;
-    currentSnapshot = replayed.value;
+    currentRevision = replayed.value.revision;
+    currentSnapshot = replayed.value.snapshot;
     appliedRecordCount += 1;
   }
 
   return {
     type: 'ok',
     value: {
-      headRevisionId: currentRevisionId,
-      headSequence: currentSequence,
+      headRevision: currentRevision,
+      headRevisionId: currentRevision.id,
+      headSequence: currentRevision.sequence,
       snapshot: currentSnapshot,
       appliedRecordCount,
       truncatedTail: tail.truncatedTail,
@@ -263,7 +273,11 @@ function validateWalStream(
   base: ResolvedRecoveryBase,
   records: readonly WalCommitRecord[],
 ): Result<void, RecoveryFailure> {
-  const revisionIds = new Set<Revision['id']>();
+  const identityState: WalRevisionIdentityState = {
+    revisionIds: new Set([base.revision.id]),
+    transactionIds: new Set([base.revision.transactionId]),
+    matchedBaseRecord: false,
+  };
   let previous: WalCommitRecord | undefined;
 
   for (const record of records) {
@@ -273,13 +287,10 @@ function validateWalStream(
         'Every WAL record must use the recovered canonical document URI.',
       );
     }
-    if (revisionIds.has(record.revisionId)) {
-      return recoveryFailure(
-        'history-discontinuous',
-        'A Revision ID occurs more than once in the WAL stream.',
-      );
+    const identity = validateWalRevisionIdentity(base, record, identityState);
+    if (identity.type === 'error') {
+      return identity;
     }
-    revisionIds.add(record.revisionId);
 
     if (
       previous !== undefined &&
@@ -293,16 +304,9 @@ function validateWalStream(
     previous = record;
   }
 
-  const baseRecord = records.find((record) => record.sequence === base.sequence);
-  if (
-    baseRecord !== undefined &&
-    (baseRecord.revisionId !== base.revisionId ||
-      baseRecord.documentHash !== base.snapshot.documentHash)
-  ) {
-    return recoveryFailure(
-      'history-discontinuous',
-      'The WAL record at the Snapshot sequence does not match the recovery base.',
-    );
+  const boundary = validateBaseWalBoundary(base, records);
+  if (boundary.type === 'error') {
+    return boundary;
   }
 
   return {
@@ -311,15 +315,85 @@ function validateWalStream(
   };
 }
 
+function validateBaseWalBoundary(
+  base: ResolvedRecoveryBase,
+  records: readonly WalCommitRecord[],
+): Result<void, RecoveryFailure> {
+  const baseRecord = records.find((record) => record.sequence === base.revision.sequence);
+  if (baseRecord !== undefined && !walRecordMatchesRevision(baseRecord, base.revision)) {
+    return recoveryFailure(
+      'history-discontinuous',
+      'The WAL record at the Snapshot sequence does not match the recovery base.',
+    );
+  }
+  if (base.revision.sequence === 0) {
+    return recoverySuccess();
+  }
+  const parentRecord = records.find((record) => record.sequence === base.revision.sequence - 1);
+  if (parentRecord !== undefined && parentRecord.revisionId !== base.revision.parentRevisionId) {
+    return recoveryFailure(
+      'history-discontinuous',
+      'The WAL predecessor at the Snapshot boundary does not match its parent Revision.',
+    );
+  }
+  return recoverySuccess();
+}
+
+function recoverySuccess(): Result<void, RecoveryFailure> {
+  return {
+    type: 'ok',
+    value: undefined,
+  };
+}
+
+interface WalRevisionIdentityState {
+  readonly revisionIds: Set<Revision['id']>;
+  readonly transactionIds: Set<TransactionId>;
+  matchedBaseRecord: boolean;
+}
+
+function validateWalRevisionIdentity(
+  base: ResolvedRecoveryBase,
+  record: WalCommitRecord,
+  state: WalRevisionIdentityState,
+): Result<void, RecoveryFailure> {
+  const isExactBaseRecord =
+    record.sequence === base.revision.sequence && walRecordMatchesRevision(record, base.revision);
+  if (isExactBaseRecord && !state.matchedBaseRecord) {
+    state.matchedBaseRecord = true;
+    return {
+      type: 'ok',
+      value: undefined,
+    };
+  }
+  if (state.transactionIds.has(record.transactionId)) {
+    return recoveryFailure(
+      'history-discontinuous',
+      'A Transaction ID occurs more than once in the Snapshot and WAL history.',
+    );
+  }
+  state.transactionIds.add(record.transactionId);
+  if (state.revisionIds.has(record.revisionId)) {
+    return recoveryFailure(
+      'history-discontinuous',
+      'A Revision ID occurs more than once in the Snapshot and WAL history.',
+    );
+  }
+  state.revisionIds.add(record.revisionId);
+  return {
+    type: 'ok',
+    value: undefined,
+  };
+}
+
 function validateContinuity(
   uri: ResourceUri,
-  currentRevisionId: Revision['id'],
-  currentSequence: number,
+  currentRevision: Revision,
   record: WalCommitRecord,
 ): Result<void, RecoveryFailure> {
   return record.uri === uri &&
-    record.parentRevisionId === currentRevisionId &&
-    record.sequence === currentSequence + 1
+    record.parentRevisionId === currentRevision.id &&
+    record.sequence === currentRevision.sequence + 1
     ? {
         type: 'ok',
         value: undefined,
@@ -328,6 +402,30 @@ function validateContinuity(
         'history-discontinuous',
         'WAL URI, parent Revision, or sequence is not continuous.',
       );
+}
+
+function walRecordMatchesRevision(record: WalCommitRecord, revision: Revision): boolean {
+  return (
+    record.uri === revision.uri &&
+    record.revisionId === revision.id &&
+    record.parentRevisionId === revision.parentRevisionId &&
+    record.transactionId === revision.transactionId &&
+    record.sequence === revision.sequence &&
+    record.documentHash === revision.documentHash
+  );
+}
+
+function replayedRevisionMatchesRecord(revision: Revision, record: WalCommitRecord): boolean {
+  return walRecordMatchesRevision(record, revision) && revision.durability === 'wal';
+}
+
+function hasValidLinearRevisionShape(revision: Revision): boolean {
+  return (
+    Number.isSafeInteger(revision.sequence) &&
+    revision.sequence >= 0 &&
+    (revision.sequence === 0) === (revision.parentRevisionId === null) &&
+    revision.id !== revision.parentRevisionId
+  );
 }
 
 function recoveryFailure(

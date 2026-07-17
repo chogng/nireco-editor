@@ -10,6 +10,7 @@
     "src/base/**/*.ts",
     "src/model/**/*.ts",
     "src/proposal/**/*.ts",
+    "src/services/**/*.ts",
     "src/storage/**/*.ts",
     "src/workspace/**/*.ts"
   ],

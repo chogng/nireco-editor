@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/trace.schema.json",
+  "$id": "https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/trace.schema.json",
   "title": "Nireco–Comet Sample Trace",
   "description": "Low-sensitivity, revision-aware trace used for mock and adapter conformance.",
   "$ref": "#/$defs/IntegrationTrace",
@@ -20,7 +20,7 @@
       ],
       "properties": {
         "contractVersion": {
-          "const": "0.4-preview.1"
+          "const": "0.4-preview.2"
         },
         "traceId": {
           "$ref": "common.schema.json#/$defs/TraceId"

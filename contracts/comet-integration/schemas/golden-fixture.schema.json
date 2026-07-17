@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/golden-fixture.schema.json",
+  "$id": "https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/golden-fixture.schema.json",
   "title": "Nireco–Comet Golden Fixture Envelope",
   "description": "Self-describing fixture envelope. A conformance runner validates payload against payloadSchemaId and hashes only payload.",
   "$ref": "#/$defs/GoldenFixture",
@@ -25,7 +25,7 @@
           "pattern": "^[a-z][a-z0-9-]*$"
         },
         "contractVersion": {
-          "const": "0.4-preview.1"
+          "const": "0.4-preview.2"
         },
         "schemaVersion": {
           "type": "string",
@@ -35,7 +35,7 @@
         "payloadSchemaId": {
           "type": "string",
           "format": "uri",
-          "pattern": "^https://contracts\\.nireco\\.dev/comet-integration/0\\.4-preview\\.1/schemas/[a-z0-9-]+\\.schema\\.json$"
+          "pattern": "^https://contracts\\.nireco\\.dev/comet-integration/0\\.4-preview\\.2/schemas/[a-z0-9-]+\\.schema\\.json$"
         },
         "canonicalizationProfile": {
           "const": "nireco-canonical-json-0.1"

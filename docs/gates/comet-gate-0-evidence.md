@@ -124,9 +124,10 @@ staged edit 始终绑定同一固定 Revision。
 [Gate 0 Bootstrap Plan](../plans/gate-0-bootstrap-plan.md) 的 `G0-L` 达到
 “local reproducible implementation complete”。
 
-它不关闭 [Reference Profile](../performance/reference-profile.md) 的 calibration
-缺口。`G0-B005` 只关闭 Development Spec/Roadmap/Profile 的 S/M/L 规模数值漂移；
-实际 reference-device raw measurements、correctness summary 和 result artifact
-仍由 `R-G0-017` / `G0-M` 阻塞。完成校准后，还必须取得远程 CI 结果、具名 Gate
-Owner 复验和正式 signoff，才能作出 Gate 0 `Exit`、`Conditional Exit` 或 `Hold`
-决定。
+它不替代 [Reference Profile](../performance/reference-profile.md) 中按能力激活的
+后续 calibration。`G0-B005` 关闭 S/M/L 规模、identity 和 staged claim policy
+漂移；Gate 1 Transaction/Read、Gate 2 Proposal 与 N5 Editor 的 raw measurements、
+correctness summary 和 result artifact 在各自能力激活前保持
+`Pending by design`，不是 Gate 0 latency pass，也不是 Gate 0 技术 blocker。
+Gate 0 仍必须取得远程 CI 结果、具名 Gate Owner 复验和正式 signoff，才能作出
+`Exit`、`Conditional Exit` 或 `Hold` 决定。

@@ -1,6 +1,6 @@
 {
-  "contractVersion": "0.4-preview.1",
-  "schemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/error.schema.json",
+  "contractVersion": "0.4-preview.2",
+  "schemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/error.schema.json",
   "errors": [
     {
       "code": "INVALID_RESOURCE_URI",

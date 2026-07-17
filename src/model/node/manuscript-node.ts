@@ -340,6 +340,7 @@ export type DocumentNode =
   | FrontMatterNode
   | BodyNode
   | BlockNode
+  | BibliographyPlaceholderNode
   | FigureAssetNode
   | FigureCaptionNode
   | TableCaptionNode

@@ -11,6 +11,7 @@ import {
 } from '../../src/base/uri/resource-uri.js';
 import {
   COMET_CONTRACT_VERSION,
+  CURRENT_COMET_CONTRACT_VERSION,
   type CreateProposalRequest,
   type OpenCometSessionRequest,
   type StageSemanticEditsRequest,
@@ -31,9 +32,9 @@ import {
 
 const SCHEMA_ROOT = path.resolve('contracts/comet-integration/schemas');
 const INTEGRATION_SCHEMA_ID =
-  'https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/integration.schema.json';
+  'https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/integration.schema.json';
 const ERROR_SCHEMA_ID =
-  'https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/error.schema.json';
+  'https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/error.schema.json';
 
 describe('Gate 0 mock Comet integration conformance', () => {
   let ids: DeterministicIdAllocator;
@@ -231,6 +232,24 @@ describe('Gate 0 mock Comet integration conformance', () => {
   });
 
   it('fails closed for unsupported capabilities, edit capabilities, and policy constraints', () => {
+    expect(CURRENT_COMET_CONTRACT_VERSION).not.toBe(COMET_CONTRACT_VERSION);
+    expect(
+      service.handshake({
+        requestedContractVersion: CURRENT_COMET_CONTRACT_VERSION,
+        cometBuildId: 'comet-test',
+        adapterVersion: 'adapter-test',
+        workflowId: 'workflow-test',
+        requiredCapabilities: [],
+        requiredSemanticEdits: [],
+        requiredTransportFeatures: [],
+      }),
+    ).toMatchObject({
+      type: 'error',
+      error: {
+        code: 'CONTRACT_VERSION_UNSUPPORTED',
+      },
+    });
+
     expect(
       service.handshake({
         requestedContractVersion: '9.0.0',

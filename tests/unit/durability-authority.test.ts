@@ -1,11 +1,20 @@
 import { describe, expect, it } from 'vitest';
 
 import type { Result } from '../../src/base/errors/nireco-error.js';
-import type { RevisionId } from '../../src/base/ids/identifiers.js';
+import { HASH_DOMAINS } from '../../src/base/hashing/hash-preimage.js';
+import { hashCanonicalJsonPortable } from '../../src/base/hashing/portable-sha-256.js';
+import {
+  parseOperationId,
+  parseTransactionId,
+  type OperationId,
+  type RevisionId,
+  type TransactionId,
+} from '../../src/base/ids/identifiers.js';
 import type { DocumentUri } from '../../src/base/uri/resource-uri.js';
 import type { Revision } from '../../src/model/revision/revision.js';
-import type { DocumentSnapshot } from '../../src/model/snapshot.js';
+import { createDocumentHashPayload, type DocumentSnapshot } from '../../src/model/snapshot.js';
 import type { Transaction } from '../../src/model/transaction/transaction.js';
+import { MAX_TRANSACTION_CANONICAL_UTF8_BYTES } from '../../src/model/transaction/transaction-runtime.js';
 import {
   InMemoryDurableStorage,
   type DurabilityFaultPoint,
@@ -24,22 +33,57 @@ import {
   SingleDocumentAuthority,
   type PreparedCommit,
 } from '../../src/workspace/document-authority/single-document-authority.js';
+import { createKernelCommitPreparer } from '../../src/workspace/document-authority/kernel-commit-preparer.js';
 import {
   createMinimalSnapshot,
   DeterministicIdAllocator,
-  validContentHash,
+  MINIMAL_FIXTURE_IDS,
   validDocumentUri,
   validIsoTimestamp,
-  validOperationId,
   validRevisionId,
-  validTransactionId,
+  validUtf16Offset,
 } from '../test-support/fixtures.js';
 
-const TRANSACTION_HASH = validContentHash(
-  'sha256:1111111111111111111111111111111111111111111111111111111111111111',
-);
+const FIXTURE_TRANSACTION_IDS = {
+  genesis: '018f0000-0000-7000-8000-000000000900',
+  'tx-1': '018f0000-0000-7000-8000-000000000901',
+  'tx-2': '018f0000-0000-7000-8000-000000000902',
+} as const;
+const FIXTURE_OPERATION_IDS = {
+  'tx-1': '018f0000-0000-7000-8000-000000000911',
+  'tx-2': '018f0000-0000-7000-8000-000000000912',
+} as const;
 
 describe('SingleDocumentAuthority durability', () => {
+  it('rejects an oversized Transaction before changing head or WAL state', async () => {
+    const harness = createHarness();
+    const transaction = createTransaction(harness.uri, harness.initialRevision.id, 'tx-1');
+    const operation = transaction.operations[0];
+    const oversized = {
+      ...transaction,
+      operations: [
+        {
+          ...operation,
+          replacement: 'x'.repeat(MAX_TRANSACTION_CANONICAL_UTF8_BYTES),
+        },
+      ],
+    } as Transaction;
+
+    await expect(harness.authority.apply(oversized)).resolves.toMatchObject({
+      type: 'error',
+      error: {
+        code: 'REQUEST_TOO_LARGE',
+        category: 'validation',
+        retryable: false,
+      },
+    });
+    await expect(harness.authority.getHead(harness.uri)).resolves.toEqual({
+      type: 'ok',
+      value: harness.initialRevision.id,
+    });
+    expect(harness.storage.durableWalBytes(harness.uri)).toHaveLength(0);
+  });
+
   it('separates memory commit from WAL acknowledgment and permits no second volatile head', async () => {
     const harness = createHarness();
     const fsyncPause = harness.storage.pauseAt('wal.fsync');
@@ -58,6 +102,8 @@ describe('SingleDocumentAuthority durability', () => {
     }
     expect(Object.keys(committed.value).sort()).toEqual([
       'achievedDurability',
+      'inverse',
+      'positionMap',
       'revisionId',
       'snapshot',
       'transactionHash',
@@ -112,6 +158,81 @@ describe('SingleDocumentAuthority durability', () => {
     expect(harness.storage.currentManifest(harness.uri)).toMatchObject({
       revisionId,
     });
+  });
+
+  it('rejects an invalid runtime durability target without registering a waiter', async () => {
+    const harness = createHarness();
+
+    await expect(
+      harness.authority.whenDurable(harness.uri, harness.initialRevision.id, 'remote' as never),
+    ).resolves.toMatchObject({
+      type: 'error',
+      error: {
+        code: 'SCHEMA_INVALID',
+        category: 'validation',
+        retryable: false,
+      },
+    });
+  });
+
+  it('drains a registered Snapshot waiter while disposal seals new durability calls', async () => {
+    const harness = createHarness();
+    const revisionId = await commitAndWaitForWal(harness, harness.initialRevision.id, 'tx-1');
+    const snapshotPause = harness.storage.pauseAt('snapshot.write-temporary');
+    const snapshotDurability = harness.authority.whenDurable(harness.uri, revisionId, 'snapshot');
+
+    const disposing = harness.authority.dispose();
+
+    await expect(
+      harness.authority.whenDurable(harness.uri, revisionId, 'snapshot'),
+    ).resolves.toMatchObject({
+      type: 'error',
+      error: {
+        code: 'MODEL_DISPOSED',
+      },
+    });
+    snapshotPause.release();
+
+    await expect(snapshotDurability).resolves.toMatchObject({
+      type: 'ok',
+      value: {
+        revisionId,
+        achievedDurability: 'snapshot',
+        authorityMode: 'read-only',
+      },
+    });
+    await expect(disposing).resolves.toBeUndefined();
+    expect(harness.storage.currentManifest(harness.uri)).toMatchObject({
+      revisionId,
+    });
+  });
+
+  it('rejects a Snapshot waiter that cannot start before disposal drains WAL', async () => {
+    const harness = createHarness();
+    const fsyncPause = harness.storage.pauseAt('wal.fsync');
+    const committed = await harness.authority.apply(
+      createTransaction(harness.uri, harness.initialRevision.id, 'tx-1'),
+    );
+    if (committed.type === 'error') {
+      throw new Error('Expected the memory commit to succeed.');
+    }
+    const snapshotDurability = harness.authority.whenDurable(
+      harness.uri,
+      committed.value.revisionId,
+      'snapshot',
+    );
+
+    const disposing = harness.authority.dispose();
+
+    await expect(snapshotDurability).resolves.toMatchObject({
+      type: 'error',
+      error: {
+        code: 'MODEL_DISPOSED',
+      },
+    });
+    fsyncPause.release();
+    await expect(disposing).resolves.toBeUndefined();
+    expect(harness.storage.currentManifest(harness.uri)).toBeUndefined();
   });
 
   it.each([
@@ -174,6 +295,42 @@ describe('SingleDocumentAuthority durability', () => {
     },
   );
 
+  it('does not start a Snapshot write after a terminal WAL failure', async () => {
+    const harness = createHarness();
+    const walSafeRevision = await commitAndWaitForWal(harness, harness.initialRevision.id, 'tx-1');
+    harness.storage.failNext('wal.fsync');
+    const failed = await harness.authority.apply(
+      createTransaction(harness.uri, walSafeRevision, 'tx-2'),
+    );
+    if (failed.type === 'error') {
+      throw new Error('Expected the second memory commit before its WAL failure.');
+    }
+    await expect(
+      harness.authority.whenDurable(harness.uri, failed.value.revisionId, 'wal'),
+    ).resolves.toMatchObject({
+      type: 'error',
+      error: {
+        code: 'WAL_FSYNC_FAILED',
+      },
+    });
+
+    await expect(harness.authority.checkpoint(walSafeRevision)).resolves.toMatchObject({
+      type: 'error',
+      error: {
+        code: 'DURABILITY_UNREACHABLE',
+      },
+    });
+    await expect(
+      harness.authority.whenDurable(harness.uri, walSafeRevision, 'snapshot'),
+    ).resolves.toMatchObject({
+      type: 'error',
+      error: {
+        code: 'DURABILITY_UNREACHABLE',
+      },
+    });
+    expect(harness.storage.currentManifest(harness.uri)).toBeUndefined();
+  });
+
   it('retains the previous manifest when the atomic switch fails and allows Snapshot retry', async () => {
     const harness = createHarness();
     const first = await commitAndWaitForWal(harness, harness.initialRevision.id, 'tx-1');
@@ -193,8 +350,12 @@ describe('SingleDocumentAuthority durability', () => {
         manifestVersion: firstManifest.manifestVersion,
         uri: firstManifest.uri,
         revisionId: firstManifest.revisionId,
+        parentRevisionId: firstManifest.parentRevisionId,
+        transactionId: firstManifest.transactionId,
         sequence: firstManifest.sequence,
         documentHash: firstManifest.documentHash,
+        actor: firstManifest.actor,
+        createdAt: firstManifest.createdAt,
         snapshotKey: firstManifest.snapshotKey,
       }),
     ).resolves.toMatchObject({
@@ -356,12 +517,121 @@ describe('SingleDocumentAuthority durability', () => {
     expect(harness.storage.durableWalBytes(harness.uri)).toHaveLength(0);
   });
 
+  it('rejects prepared replay input that cannot reproduce the committed Transaction', async () => {
+    const harness = createHarness();
+    const transaction = createTransaction(harness.uri, harness.initialRevision.id, 'tx-1');
+    const prepared = harness.prepare(transaction, harness.initialRevision, harness.initialSnapshot);
+    if (prepared.type === 'error') {
+      throw new Error('Expected the production commit preparer to succeed.');
+    }
+    const invalid: PreparedCommit = {
+      ...prepared.value,
+      replayInput: {
+        profile: 'nireco-transaction-replay-1',
+        transaction: {
+          futureField: true,
+        },
+      },
+    };
+
+    await expect(harness.authority.applyPrepared(transaction, invalid)).resolves.toMatchObject({
+      type: 'error',
+      error: {
+        code: 'SCHEMA_INVALID',
+      },
+    });
+    await expect(harness.authority.getHead(harness.uri)).resolves.toEqual({
+      type: 'ok',
+      value: harness.initialRevision.id,
+    });
+    expect(harness.storage.durableWalBytes(harness.uri)).toHaveLength(0);
+  });
+
+  it('rejects a valid but transaction-divergent prepared Snapshot', async () => {
+    const harness = createHarness();
+    const transaction = createTransaction(harness.uri, harness.initialRevision.id, 'tx-1');
+    const prepared = harness.prepare(transaction, harness.initialRevision, harness.initialSnapshot);
+    if (prepared.type === 'error') {
+      throw new Error('Expected the production commit preparer to succeed.');
+    }
+    const divergentSnapshot: DocumentSnapshot = {
+      ...prepared.value.snapshot,
+      metadata: {
+        ...prepared.value.snapshot.metadata,
+        title: 'Content not produced by the persisted Transaction',
+      },
+    };
+    const hashed = hashCanonicalJsonPortable(
+      HASH_DOMAINS.documentContent,
+      createDocumentHashPayload(divergentSnapshot),
+    );
+    if (hashed.type === 'error') {
+      throw new Error('Expected the divergent Snapshot to remain canonical.');
+    }
+    const invalid: PreparedCommit = {
+      ...prepared.value,
+      revision: {
+        ...prepared.value.revision,
+        documentHash: hashed.hash,
+      },
+      snapshot: {
+        ...divergentSnapshot,
+        documentHash: hashed.hash,
+      },
+    };
+
+    await expect(harness.authority.applyPrepared(transaction, invalid)).resolves.toMatchObject({
+      type: 'error',
+      error: {
+        code: 'SCHEMA_INVALID',
+      },
+    });
+    await expect(harness.authority.getHead(harness.uri)).resolves.toEqual({
+      type: 'ok',
+      value: harness.initialRevision.id,
+    });
+    expect(harness.storage.durableWalBytes(harness.uri)).toHaveLength(0);
+  });
+
   it('rejects a memory-only Revision as an Authority recovery base', () => {
     expect(() =>
       createHarness({
         initialDurability: 'memory',
       }),
     ).toThrow(/must agree and be durable/);
+  });
+
+  it('fails closed for durability and Revision reads after disposal', async () => {
+    const harness = createHarness();
+
+    await harness.authority.dispose();
+
+    expect(harness.authority.getDurability(harness.uri, harness.initialRevision.id)).toMatchObject({
+      type: 'error',
+      error: {
+        code: 'MODEL_DISPOSED',
+      },
+    });
+    await expect(
+      harness.authority.whenDurable(harness.uri, harness.initialRevision.id, 'snapshot'),
+    ).resolves.toMatchObject({
+      type: 'error',
+      error: {
+        code: 'MODEL_DISPOSED',
+      },
+    });
+    expect(harness.authority.getRevision(harness.initialRevision.id)).toMatchObject({
+      type: 'error',
+      error: {
+        code: 'MODEL_DISPOSED',
+      },
+    });
+    await expect(harness.authority.checkpoint(harness.initialRevision.id)).resolves.toMatchObject({
+      type: 'error',
+      error: {
+        code: 'MODEL_DISPOSED',
+      },
+    });
   });
 });
 
@@ -386,7 +656,7 @@ interface HarnessOptions {
 
 function createHarness(options: HarnessOptions = {}): Harness {
   const uri = validDocumentUri('nireco://workspace-01/document/durability');
-  const initialSnapshot = createMinimalSnapshot(validRevisionId('rev-0'));
+  const initialSnapshot = createMinimalSnapshot();
   const initialRevision = createInitialRevision(
     uri,
     initialSnapshot,
@@ -405,7 +675,9 @@ function createHarness(options: HarnessOptions = {}): Harness {
     codec: new CanonicalSnapshotCodec(new FixtureSnapshotDecoder()),
   });
   const ids = new DeterministicIdAllocator();
-  const prepare = createCommitPreparer();
+  const prepare = createKernelCommitPreparer({
+    ids,
+  });
   const authority = new SingleDocumentAuthority({
     uri,
     initialRevision,
@@ -415,7 +687,6 @@ function createHarness(options: HarnessOptions = {}): Harness {
     walCodec: new PortableWalRecordCodec(),
     snapshots: snapshotStore,
     ids,
-    prepareCommit: prepare,
   });
 
   return {
@@ -430,39 +701,6 @@ function createHarness(options: HarnessOptions = {}): Harness {
   };
 }
 
-function createCommitPreparer(): Harness['prepare'] {
-  let revisionSequence = 0;
-  return (transaction, headRevision, headSnapshot) => {
-    revisionSequence += 1;
-    const revisionId = validRevisionId(`rev-${revisionSequence}`);
-    const snapshot: DocumentSnapshot = {
-      ...headSnapshot,
-      revisionId,
-    };
-    return {
-      type: 'ok',
-      value: {
-        revision: {
-          id: revisionId,
-          uri: transaction.target.uri,
-          parentRevisionId: headRevision.id,
-          transactionId: transaction.id,
-          sequence: headRevision.sequence + 1,
-          documentHash: snapshot.documentHash,
-          actor: transaction.actor,
-          createdAt: transaction.createdAt,
-          durability: 'memory',
-        },
-        snapshot,
-        transactionHash: TRANSACTION_HASH,
-        replayInput: {
-          nextRevisionId: revisionId,
-        },
-      },
-    };
-  };
-}
-
 function createInitialRevision(
   uri: DocumentUri,
   snapshot: DocumentSnapshot,
@@ -472,7 +710,7 @@ function createInitialRevision(
     id: snapshot.revisionId,
     uri,
     parentRevisionId: null,
-    transactionId: validTransactionId('tx-genesis'),
+    transactionId: productionTransactionId(FIXTURE_TRANSACTION_IDS.genesis),
     sequence: 0,
     documentHash: snapshot.documentHash,
     actor: {
@@ -488,10 +726,10 @@ function createInitialRevision(
 function createTransaction(
   uri: DocumentUri,
   baseRevisionId: RevisionId,
-  transactionId: string,
+  transactionLabel: keyof typeof FIXTURE_OPERATION_IDS,
 ): Transaction {
   return {
-    id: validTransactionId(transactionId),
+    id: productionTransactionId(FIXTURE_TRANSACTION_IDS[transactionLabel]),
     target: {
       uri,
       baseRevisionId,
@@ -502,12 +740,12 @@ function createTransaction(
     },
     operations: [
       {
-        id: validOperationId(`op-${transactionId}`),
-        type: 'set-node-attributes',
-        nodeId: createMinimalSnapshot().root.id,
-        attributes: {
-          testSequence: transactionId,
-        },
+        id: productionOperationId(FIXTURE_OPERATION_IDS[transactionLabel]),
+        type: 'replace-text',
+        textNodeId: MINIMAL_FIXTURE_IDS.text,
+        startUtf16Offset: validUtf16Offset(0),
+        endUtf16Offset: validUtf16Offset(0),
+        replacement: `${transactionLabel} `,
       },
     ],
     preconditions: [],
@@ -521,7 +759,7 @@ function createTransaction(
 async function commitAndWaitForWal(
   harness: Harness,
   baseRevisionId: RevisionId,
-  transactionId: string,
+  transactionId: keyof typeof FIXTURE_OPERATION_IDS,
 ): Promise<RevisionId> {
   const committed = await harness.authority.apply(
     createTransaction(harness.uri, baseRevisionId, transactionId),
@@ -538,6 +776,22 @@ async function commitAndWaitForWal(
     throw new Error('Expected the Revision to reach WAL durability.');
   }
   return committed.value.revisionId;
+}
+
+function productionTransactionId(value: string): TransactionId {
+  const parsed = parseTransactionId(value);
+  if (parsed.type === 'invalid') {
+    throw new Error('Expected a production Transaction ID.');
+  }
+  return parsed.value;
+}
+
+function productionOperationId(value: string): OperationId {
+  const parsed = parseOperationId(value);
+  if (parsed.type === 'invalid') {
+    throw new Error('Expected a production Operation ID.');
+  }
+  return parsed.value;
 }
 
 class FixtureSnapshotDecoder implements IDocumentSnapshotDecoder {

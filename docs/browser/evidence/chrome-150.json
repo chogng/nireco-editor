@@ -33,7 +33,7 @@
         "observed": {
           "fixture": {
             "path": "contracts/comet-integration/fixtures/hash-preimages.json",
-            "sha256": "sha256:1349ec49c10944b08e6f8ccb87c994d89cb447fce7150964e3ad506c7aff28f1"
+            "sha256": "sha256:5cce2af87cc5493e2a6380f07eaef6da0d27c964a47b0eab73e1578434c67f35"
           },
           "profile": "nireco-hash-preimage-1",
           "vectorsMatched": 7

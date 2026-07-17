@@ -1,6 +1,6 @@
 {
   "name": "recovery-middle-corruption",
-  "contractVersion": "0.4-preview.1",
+  "contractVersion": "0.4-preview.2",
   "walFrame": {
     "lengthPrefix": "uint32-big-endian",
     "checksum": "crc32-iso-hdlc",

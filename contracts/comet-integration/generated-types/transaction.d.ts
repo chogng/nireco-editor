@@ -3,7 +3,7 @@
  * Source: contracts/comet-integration/schemas/transaction.schema.json
  * Generator: json-schema-to-typescript
  * Generator version: 15.0.4
- * Source SHA-256: c2fc6834e0cd6fa360665ba47f3bae4973dff80bd9d1d63ded96a35e6294d446
+ * Source SHA-256: afe57e70f8380df61ceab2cc5f8ad51484f78cd74c4440fcd4e130103821fcbf
  */
 
 /**
@@ -270,6 +270,9 @@ export type TransactionMetadata = {
   proposalId?: AllocatedId;
   proposalRevision?: number;
   cometTaskId?: OpaqueId;
+  /**
+   * @maxItems 1024
+   */
   toolInvocationIds?: OpaqueId[];
   idempotencyKey?: string;
 };
@@ -355,8 +358,12 @@ export interface Transaction {
   intent?: string;
   /**
    * @minItems 1
+   * @maxItems 1024
    */
   operations: [Operation, ...Operation[]];
+  /**
+   * @maxItems 4096
+   */
   preconditions: TransactionPrecondition[];
   metadata: TransactionMetadata;
   createdAt: Rfc3339Timestamp;

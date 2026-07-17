@@ -1,0 +1,54 @@
+{
+  "profileId": "nireco-g0-r1-2026-07-16",
+  "generatorVersion": "1.1.0",
+  "corpora": {
+    "S": {
+      "profileId": "nireco-g0-r1-2026-07-16",
+      "name": "S",
+      "generatorVersion": "1.1.0",
+      "seed": "nireco-reference-corpus-s-2026-07-16",
+      "rawChecksum": "sha256:bdbe4711ea5fc09a620ccf06b87c78dac05ea52029f8689d66e3dbed204f2044",
+      "documentHash": "sha256:c30c819b21879008477da03d77c53269e97a72577b3985ccc50c55bb8b8ae2c6",
+      "counts": {
+        "words": 15000,
+        "documentNodes": 1500,
+        "citations": 100,
+        "tables": 5,
+        "figures": 5,
+        "equations": 20
+      }
+    },
+    "M": {
+      "profileId": "nireco-g0-r1-2026-07-16",
+      "name": "M",
+      "generatorVersion": "1.1.0",
+      "seed": "nireco-reference-corpus-m-2026-07-16",
+      "rawChecksum": "sha256:6793ef5b784e5441dd6a43dc62a4b4b4a88ad5f2a5171c25a1d8af51164603ef",
+      "documentHash": "sha256:f8aa430eea668ac38a111c32924297c7b26f1b852beffccaff76f81804485f3b",
+      "counts": {
+        "words": 75000,
+        "documentNodes": 8000,
+        "citations": 500,
+        "tables": 20,
+        "figures": 20,
+        "equations": 100
+      }
+    },
+    "L": {
+      "profileId": "nireco-g0-r1-2026-07-16",
+      "name": "L",
+      "generatorVersion": "1.1.0",
+      "seed": "nireco-reference-corpus-l-2026-07-16",
+      "rawChecksum": "sha256:f7f989cf53c7bf80a72282e49d3c3fdebbd121749bbf1026283b9d161ac6125f",
+      "documentHash": "sha256:22b3e3c1798bd6cdb0e4d31c688a7684fc7048008f9de13d39e5d2821ea5d601",
+      "counts": {
+        "words": 200000,
+        "documentNodes": 25000,
+        "citations": 1500,
+        "tables": 60,
+        "figures": 60,
+        "equations": 500
+      }
+    }
+  }
+}

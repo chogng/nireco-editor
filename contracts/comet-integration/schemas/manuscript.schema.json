@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/manuscript.schema.json",
+  "$id": "https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/manuscript.schema.json",
   "title": "Nireco Canonical Manuscript Snapshot",
   "description": "Gate 0 preview of the immutable canonical manuscript snapshot. Title, authors, abstract, and keywords are semantic metadata rather than content nodes.",
   "$ref": "#/$defs/DocumentSnapshot",

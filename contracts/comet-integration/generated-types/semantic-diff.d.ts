@@ -3,7 +3,7 @@
  * Source: contracts/comet-integration/schemas/semantic-diff.schema.json
  * Generator: json-schema-to-typescript
  * Generator version: 15.0.4
- * Source SHA-256: ecc5eab38fa8657f083c9fe2b8af12975a2154f7ec45733037f0420636c6ea53
+ * Source SHA-256: 0d62c0f89f545831d56923104be27e4ce5d023fff885d0b4e9a0d976722873dc
  */
 
 /**

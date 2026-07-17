@@ -3,7 +3,7 @@
  * Source: contracts/comet-integration/schemas/semantic-edit.schema.json
  * Generator: json-schema-to-typescript
  * Generator version: 15.0.4
- * Source SHA-256: 9295154319fb7a166c15b2cd3f8a0f995b10dfca73d73488bc1bc3b3ba4d92a7
+ * Source SHA-256: bfe21d287b1d4e99c80405591756fc517fa3e1f1551c04f1db03417840b889b0
  */
 
 /**
@@ -430,6 +430,9 @@ export type TransactionMetadata = {
   proposalId?: AllocatedId;
   proposalRevision?: number;
   cometTaskId?: OpaqueId;
+  /**
+   * @maxItems 1024
+   */
   toolInvocationIds?: OpaqueId[];
   idempotencyKey?: string;
 };
@@ -1603,8 +1606,12 @@ export interface Transaction {
   intent?: string;
   /**
    * @minItems 1
+   * @maxItems 1024
    */
   operations: [Operation, ...Operation[]];
+  /**
+   * @maxItems 4096
+   */
   preconditions: SemanticPrecondition[];
   metadata: TransactionMetadata;
   createdAt: Rfc3339Timestamp;

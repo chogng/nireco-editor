@@ -1,6 +1,6 @@
 {
   "name": "nireco-comet-integration-contract",
-  "contractVersion": "0.4-preview.1",
+  "contractVersion": "0.4-preview.2",
   "status": "preview",
   "releasedAt": "2026-07-16",
   "normativeSources": {
@@ -21,12 +21,13 @@
   "protocolVersions": {
     "documentFormatVersion": "1.0.0-preview.1",
     "manuscriptSchemaVersion": "1.0.0-preview.1",
+    "integrationReadProtocolVersion": "0.4-preview.2",
     "transactionProtocolVersion": "0.4-preview.1",
     "durabilityProtocolVersion": "0.4-preview.1",
     "proposalProtocolVersion": "0.4-preview.1",
     "semanticEditProtocolVersion": "0.4-preview.1",
     "semanticDiffProtocolVersion": "0.4-preview.1",
-    "traceProtocolVersion": "0.4-preview.1"
+    "traceProtocolVersion": "0.4-preview.2"
   },
   "wireFormat": {
     "fieldNaming": "camelCase",
@@ -121,94 +122,264 @@
       "bibliographyPlaceholder"
     ]
   },
+  "runtimeConformance": {
+    "supplementsJsonSchema": true,
+    "wellFormedUnicodeStrings": true,
+    "maximumManuscriptTreeDepth": 256,
+    "maximumInertJsonDepth": 1008,
+    "canonicalMarkOrder": [
+      "bold",
+      "italic",
+      "underline",
+      "strike",
+      "code",
+      "link",
+      "subscript",
+      "superscript"
+    ],
+    "maximumMarksPerType": 1,
+    "mutuallyExclusiveMarkSets": [["subscript", "superscript"]],
+    "maximumCometDocumentScopeIdsTotal": 1000,
+    "maximumCometDocumentContextDistance": 1000000,
+    "gate1ScopeVerificationCommand": "pnpm vitest run tests/unit/document-read-session-store.test.ts tests/unit/document-read-service.test.ts tests/unit/document-read-cursor.test.ts",
+    "maximumTransactionCanonicalUtf8Bytes": 8388608,
+    "maximumTransactionJsonValues": 262144,
+    "maximumTransactionOperations": 1024,
+    "maximumTransactionPreconditions": 4096,
+    "maximumTransactionToolInvocationIds": 1024,
+    "verificationCommand": "pnpm vitest run tests/conformance/runtime-boundaries.conformance.ts"
+  },
+  "gate1RevisionBoundRead": {
+    "maturity": "schema-only",
+    "runtimeExitCriteriaSatisfied": false,
+    "readConformanceStatus": "not-run",
+    "services": [
+      {
+        "name": "workspace.resolve_model",
+        "contract": "defined",
+        "mock": "not-implemented",
+        "real": "not-implemented"
+      },
+      {
+        "name": "document.get_head",
+        "contract": "defined",
+        "mock": "not-implemented",
+        "real": "not-implemented"
+      },
+      {
+        "name": "document.get_snapshot",
+        "contract": "defined",
+        "mock": "not-implemented",
+        "real": "not-implemented"
+      },
+      {
+        "name": "document.get_outline",
+        "contract": "defined",
+        "mock": "not-implemented",
+        "real": "not-implemented"
+      },
+      {
+        "name": "document.read_nodes",
+        "contract": "defined",
+        "mock": "not-implemented",
+        "real": "not-implemented"
+      },
+      {
+        "name": "document.read_node_neighborhood",
+        "contract": "defined",
+        "mock": "not-implemented",
+        "real": "not-implemented"
+      },
+      {
+        "name": "document.search",
+        "contract": "defined",
+        "mock": "not-implemented",
+        "real": "not-implemented"
+      },
+      {
+        "name": "document.get_changes_since",
+        "contract": "defined",
+        "mock": "not-implemented",
+        "real": "not-implemented"
+      },
+      {
+        "name": "document.get_diagnostics",
+        "contract": "defined",
+        "mock": "not-implemented",
+        "real": "not-implemented"
+      }
+    ],
+    "resultProfile": {
+      "everyResultRequiresBasedOnRevisionId": true,
+      "successfulStatuses": ["current", "stale"],
+      "fixedResourceRefResolutionMayBeStale": true,
+      "fixedSessionSnapshotMayBeStale": true,
+      "computingOrFailedReturnedAsSuccessfulPage": false,
+      "pagedFields": ["items", "nextCursor", "truncated", "basedOnRevisionId", "approximateBytes"],
+      "silentTruncationAllowed": false,
+      "domOffsetsAllowed": false,
+      "readableNodeProjection": "shallow-scope-filtered",
+      "readableNodeHash": "complete-authorized-subtree-or-exact-text-leaf-only",
+      "partialExactNonTextNodeHashAllowed": false,
+      "nestedDocumentNodeChildrenAllowed": false,
+      "childIds": "authorized-only",
+      "parentMetadata": "authorized-only"
+    },
+    "scopeProfile": {
+      "authority": "session-grant",
+      "requestFilters": "narrow-only",
+      "outsideScopeBehavior": "fail-closed",
+      "outsideScopeNodeExistenceDisclosureAllowed": false,
+      "maximumCombinedAllowedIds": 1000,
+      "maximumContextDistance": 1000000,
+      "cursorScopeBinding": "complete-canonical-granted-scope"
+    },
+    "cursorProfile": {
+      "version": 1,
+      "pagedServices": [
+        "document.get_outline",
+        "document.read_nodes",
+        "document.read_node_neighborhood",
+        "document.search",
+        "document.get_changes_since",
+        "document.get_diagnostics"
+      ],
+      "wireEncoding": "unpadded-canonical-base64url",
+      "wireFrame": "32-byte-signature-plus-canonical-ascii-json-body",
+      "wireBodyFields": ["b", "e", "p", "v"],
+      "rawIdsOrStorageKeysOnWire": false,
+      "authenticationProfile": "domain-separated-double-hash-keyed-sha256-v1",
+      "hmac": false,
+      "keyedDomains": ["BINDING", "AUTHENTICATION"],
+      "minimumSigningKeyBytes": 32,
+      "maximumSigningKeyBytes": 128,
+      "bindingFields": ["sessionId", "revisionId", "service", "scope", "queryHash"],
+      "positionMeaning": "logical-page-offset-not-storage-primary-key",
+      "maximumCharacters": 1024,
+      "defaultTtlSeconds": 900,
+      "maximumTtlSeconds": 86400,
+      "expiryPolicy": "reject-at-or-after-expiry",
+      "revisionOrScopeChangePolicy": "reject"
+    },
+    "queryHashProfile": {
+      "canonicalization": "nireco-canonical-json-0.1",
+      "unknownFields": "reject",
+      "cursorAndPositionIncluded": false,
+      "serviceIncludedInCursorBinding": true,
+      "fieldsByService": {
+        "workspace.resolve_model": [],
+        "document.get_head": [],
+        "document.get_snapshot": [],
+        "document.get_outline": ["maxDepth", "maxResults"],
+        "document.read_nodes": ["nodeIds", "maxResults"],
+        "document.read_node_neighborhood": ["nodeId", "beforeBlocks", "afterBlocks", "maxResults"],
+        "document.search": ["query", "sectionIds", "kinds", "maxResults"],
+        "document.get_changes_since": ["sinceRevisionId", "maxResults"],
+        "document.get_diagnostics": ["severities", "codes", "maxResults"]
+      }
+    },
+    "hardLimits": {
+      "maxCursorCharacters": 1024,
+      "maxOutlineDepth": 256,
+      "maxPageItems": 1000,
+      "maxReadNodeIds": 1000,
+      "maxScopeIds": 1000,
+      "maxContextDistance": 1000000,
+      "maxNeighborhoodBlocksPerDirection": 100,
+      "maxSearchQueryUtf16Units": 4096,
+      "maxSearchSectionIds": 256,
+      "maxDiagnosticCodes": 256,
+      "negotiatedLimitsMustNotExceedHardLimits": true
+    }
+  },
   "schemas": [
     {
       "name": "common",
-      "id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/common.schema.json",
+      "id": "https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/common.schema.json",
       "path": "schemas/common.schema.json",
       "role": "shared identity, hash, timestamp, actor, and JSON scalar definitions"
     },
     {
       "name": "resource-ref",
-      "id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/resource-ref.schema.json",
+      "id": "https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/resource-ref.schema.json",
       "path": "schemas/resource-ref.schema.json",
       "role": "canonical URI and revision-bound resource references"
     },
     {
       "name": "position-anchor",
-      "id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/position-anchor.schema.json",
+      "id": "https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/position-anchor.schema.json",
       "path": "schemas/position-anchor.schema.json",
       "role": "UTF-16 semantic positions, ranges, targets, and persistent anchors"
     },
     {
       "name": "diagnostic",
-      "id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/diagnostic.schema.json",
+      "id": "https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/diagnostic.schema.json",
       "path": "schemas/diagnostic.schema.json",
       "role": "revision-bound diagnostics"
     },
     {
       "name": "manuscript",
-      "id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/manuscript.schema.json",
+      "id": "https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/manuscript.schema.json",
       "path": "schemas/manuscript.schema.json",
       "role": "canonical immutable manuscript snapshot"
     },
     {
       "name": "operation",
-      "id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/operation.schema.json",
+      "id": "https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/operation.schema.json",
       "path": "schemas/operation.schema.json",
       "role": "deterministic internal operation algebra"
     },
     {
       "name": "transaction",
-      "id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/transaction.schema.json",
+      "id": "https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/transaction.schema.json",
       "path": "schemas/transaction.schema.json",
       "role": "atomic transaction protocol"
     },
     {
       "name": "revision",
-      "id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/revision.schema.json",
+      "id": "https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/revision.schema.json",
       "path": "schemas/revision.schema.json",
       "role": "single-parent immutable revision protocol"
     },
     {
       "name": "semantic-edit",
-      "id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/semantic-edit.schema.json",
+      "id": "https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/semantic-edit.schema.json",
       "path": "schemas/semantic-edit.schema.json",
       "role": "high-level proposal-only Agent edit protocol"
     },
     {
       "name": "proposal",
-      "id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/proposal.schema.json",
+      "id": "https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/proposal.schema.json",
       "path": "schemas/proposal.schema.json",
       "role": "proposal state and optimistic proposal revision protocol"
     },
     {
       "name": "semantic-diff",
-      "id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/semantic-diff.schema.json",
+      "id": "https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/semantic-diff.schema.json",
       "path": "schemas/semantic-diff.schema.json",
       "role": "deterministic proposal review groups and dependencies"
     },
     {
       "name": "integration",
-      "id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/integration.schema.json",
+      "id": "https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/integration.schema.json",
       "path": "schemas/integration.schema.json",
-      "role": "trusted adapter handshake, session, scope, limits, and Gate 0 service messages"
+      "role": "trusted adapter handshake/session plus schema-only Gate 1 revision-bound read messages"
     },
     {
       "name": "error",
-      "id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/error.schema.json",
+      "id": "https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/error.schema.json",
       "path": "schemas/error.schema.json",
       "role": "typed contract error envelope"
     },
     {
       "name": "trace",
-      "id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/trace.schema.json",
+      "id": "https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/trace.schema.json",
       "path": "schemas/trace.schema.json",
       "role": "low-sensitivity integration trace"
     },
     {
       "name": "golden-fixture",
-      "id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/golden-fixture.schema.json",
+      "id": "https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/golden-fixture.schema.json",
       "path": "schemas/golden-fixture.schema.json",
       "role": "self-describing golden fixture envelope"
     }
@@ -217,7 +388,7 @@
     {
       "name": "error-codes",
       "path": "error-codes.json",
-      "schemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/error.schema.json"
+      "schemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/error.schema.json"
     },
     {
       "name": "capability-matrix",
@@ -226,38 +397,38 @@
     {
       "name": "semantic-edits",
       "path": "semantic-edits.json",
-      "schemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/semantic-edit.schema.json"
+      "schemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/semantic-edit.schema.json"
     }
   ],
   "fixtures": [
     {
       "name": "minimal-manuscript",
       "path": "fixtures/minimal-manuscript.json",
-      "payloadSchemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/manuscript.schema.json",
+      "payloadSchemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/manuscript.schema.json",
       "expectedCanonicalSha256": "sha256:81486a15d4a6f2c7f214cb2c9eaea6bb0b0b6fe47c6885f168fd77b42d4748a2"
     },
     {
       "name": "minimal-transaction",
       "path": "fixtures/minimal-transaction.json",
-      "payloadSchemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/transaction.schema.json",
+      "payloadSchemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/transaction.schema.json",
       "expectedCanonicalSha256": "sha256:41ab9dc428896bde1e7004bdeee77668d0f538702300380e102736ac13938cd2"
     },
     {
       "name": "minimal-proposal",
       "path": "fixtures/minimal-proposal.json",
-      "payloadSchemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/proposal.schema.json",
+      "payloadSchemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/proposal.schema.json",
       "expectedCanonicalSha256": "sha256:eab71b575f5bd11b29429fc00c6b7dc18243dde97c489b28fcb72ccb17ca97a7"
     },
     {
       "name": "minimal-semantic-diff",
       "path": "fixtures/minimal-semantic-diff.json",
-      "payloadSchemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/semantic-diff.schema.json",
+      "payloadSchemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/semantic-diff.schema.json",
       "expectedCanonicalSha256": "sha256:d4f6f8181be88936e4ec8add29ac23840f8019771734c8f820c9af31e40517de"
     }
   ],
   "hashConformanceVectors": {
     "path": "fixtures/hash-preimages.json",
-    "schemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/common.schema.json#/$defs/HashConformanceVectorSet",
+    "schemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/common.schema.json#/$defs/HashConformanceVectorSet",
     "command": "pnpm vitest run tests/conformance/hash-runtime.conformance.ts"
   },
   "recoveryFixtures": [
@@ -276,18 +447,22 @@
     {
       "name": "read-only-session",
       "path": "sample-traces/read-only-session.json",
-      "schemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/trace.schema.json"
+      "schemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/trace.schema.json"
     },
     {
       "name": "draft-proposal",
       "path": "sample-traces/draft-proposal.json",
-      "schemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/trace.schema.json"
+      "schemaId": "https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/trace.schema.json"
     }
   ],
   "mockService": {
+    "implementedContractVersion": "0.4-preview.1",
+    "currentContractVersionSupported": false,
+    "compatibilityStatus": "previous-contract-only",
     "packageExport": "@comet-internal/nireco-editor/comet-internal",
     "className": "MockCometIntegrationService",
     "documentationPath": "mock-service/README.md",
+    "supportedOperationsContractVersion": "0.4-preview.1",
     "supportedOperations": [
       "integration.handshake",
       "integration.open_session",
@@ -307,27 +482,43 @@
     "profileId": "nireco-g0-r1-2026-07-16",
     "profilePath": "../../docs/performance/reference-profile.md",
     "closureEvidencePath": "../../docs/performance/g0-b005-closure-evidence.md",
+    "corpusIdentityPath": "performance/reference-corpus-lock.json",
+    "corpusGeneratorVersion": "1.1.0",
     "closureEvidenceVersion": 1,
     "verificationCommand": "pnpm check:performance-profile",
+    "corpusVerificationCommand": "pnpm check:reference-corpora",
+    "corpusHistoryVerificationCommand": "pnpm check:reference-corpus-history",
     "corpora": {
       "S": {
         "words": 15000,
         "documentNodes": 1500,
-        "citations": 100
+        "citations": 100,
+        "tables": 5,
+        "figures": 5,
+        "equations": 20
       },
       "M": {
         "words": 75000,
         "documentNodes": 8000,
-        "citations": 500
+        "citations": 500,
+        "tables": 20,
+        "figures": 20,
+        "equations": 100
       },
       "L": {
         "words": 200000,
         "documentNodes": 25000,
-        "citations": 1500
+        "citations": 1500,
+        "tables": 60,
+        "figures": 60,
+        "equations": 500
       }
     }
   },
   "independentConsumerEvidence": {
+    "validatedContractVersion": "0.4-preview.1",
+    "currentContractVersionValidated": false,
+    "status": "previous-contract-compatibility-evidence-only",
     "decisionPath": "../../adr/019-contract-bundle-and-cross-repo-conformance.md",
     "harnessPath": "comet-consumer/harness.mjs",
     "generatedTypeConsumerPath": "comet-consumer/type-consumer.ts",
@@ -378,6 +569,11 @@
     "policy": "Generated TypeScript or Rust types must be regenerated from the manifest schemas and must never be hand-edited."
   },
   "compatibility": {
+    "currentContractVersion": "0.4-preview.2",
+    "previousContractVersion": "0.4-preview.1",
+    "currentStatus": "schema-only-no-runtime-conformance-claim",
+    "previousStatus": "Gate-0-Mock-and-consumer-evidence-retained",
+    "negotiationPolicy": "exact-version-only-unless-an-explicit-adapter-is-registered",
     "majorMismatchPolicy": "reject",
     "requiredCapabilityPolicy": "all-required-must-be-confirmed",
     "unknownFieldPolicy": "reject",

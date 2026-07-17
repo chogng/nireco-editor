@@ -9,6 +9,8 @@ import {
 import {
   PortableSha256ContentHasher,
   encodeUtf8,
+  hashCanonicalJsonPortable,
+  hashCanonicalJsonTextPortable,
   sha256Utf8,
 } from '../../src/base/hashing/portable-sha-256.js';
 
@@ -41,5 +43,21 @@ describe('domain-separated SHA-256 preimages', () => {
     if (nodeHash.type === 'ok' && transactionHash.type === 'ok') {
       expect(nodeHash.hash).not.toBe(transactionHash.hash);
     }
+  });
+
+  it('hashes trusted canonical text with the exact full-serializer byte oracle', () => {
+    const payload = {
+      nested: ['A🌍', { combining: 'e\u0301' }],
+      value: '\u0000 canonical separators stay escaped',
+    };
+    const full = hashCanonicalJsonPortable(HASH_DOMAINS.documentContent, payload);
+    expect(full.type).toBe('ok');
+    if (full.type === 'error') {
+      return;
+    }
+
+    expect(hashCanonicalJsonTextPortable(HASH_DOMAINS.documentContent, full.canonicalJson)).toEqual(
+      full,
+    );
   });
 });

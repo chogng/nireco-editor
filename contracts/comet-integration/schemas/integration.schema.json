@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/integration.schema.json",
-  "title": "Nireco–Comet Integration Handshake and Session Protocol",
-  "description": "Trusted adapter protocol. Model-generated tool input is not represented by this schema.",
+  "$id": "https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/integration.schema.json",
+  "title": "Nireco–Comet Integration and Revision-bound Read Protocol",
+  "description": "Trusted adapter protocol and Gate 1 revision-bound read service messages. Model-generated tool input is not represented by this schema.",
   "$ref": "#/$defs/CometIntegrationHandshakeRequest",
   "$defs": {
     "IntegrationCapability": {
@@ -226,6 +226,7 @@
           "items": {
             "$ref": "common.schema.json#/$defs/NodeId"
           },
+          "maxItems": 1000,
           "uniqueItems": true
         },
         "allowedNodeIds": {
@@ -233,6 +234,7 @@
           "items": {
             "$ref": "common.schema.json#/$defs/NodeId"
           },
+          "maxItems": 1000,
           "uniqueItems": true
         },
         "allowReadOutsideScopeForContext": {
@@ -240,9 +242,11 @@
         },
         "maxContextDistance": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "maximum": 1000000
         }
-      }
+      },
+      "description": "Each ID array is capped at 1000 entries. The combined allowedSectionIds plus allowedNodeIds count is also capped at 1000 as a runtime cross-field invariant. maxContextDistance is capped at 1000000 at every Session, service, and cursor boundary."
     },
     "CometIntegrationConstraints": {
       "type": "object",
@@ -389,6 +393,898 @@
           "$ref": "common.schema.json#/$defs/Rfc3339Timestamp"
         }
       }
+    },
+    "Gate1ReadService": {
+      "enum": [
+        "workspace.resolve_model",
+        "document.get_head",
+        "document.get_snapshot",
+        "document.get_outline",
+        "document.read_nodes",
+        "document.read_node_neighborhood",
+        "document.search",
+        "document.get_changes_since",
+        "document.get_diagnostics"
+      ]
+    },
+    "RevisionBoundConsistency": {
+      "enum": ["exact", "eventual"]
+    },
+    "RevisionBoundStatus": {
+      "enum": ["current", "stale", "computing", "failed"]
+    },
+    "SuccessfulRevisionBoundStatus": {
+      "enum": ["current", "stale"]
+    },
+    "ReadCursor": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024,
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "description": "Opaque, unpadded canonical base64url cursor. The authenticated server-side binding covers the Session, Revision, granted Scope, service and canonical query hash; the wire value contains no raw IDs, Scope or storage key."
+    },
+    "ReadMaxResults": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1000
+    },
+    "RevisionBoundReadResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["document", "basedOnRevisionId", "consistency", "status"],
+      "properties": {
+        "document": {
+          "$ref": "resource-ref.schema.json#/$defs/DocumentRef"
+        },
+        "basedOnRevisionId": {
+          "$ref": "common.schema.json#/$defs/RevisionId"
+        },
+        "consistency": {
+          "$ref": "#/$defs/RevisionBoundConsistency"
+        },
+        "status": {
+          "$ref": "#/$defs/RevisionBoundStatus"
+        }
+      }
+    },
+    "ReadPageRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "cursor": {
+          "$ref": "#/$defs/ReadCursor"
+        },
+        "maxResults": {
+          "$ref": "#/$defs/ReadMaxResults"
+        }
+      },
+      "description": "A requested maxResults is additionally capped by the negotiated Session maxPageItems."
+    },
+    "PageResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "document",
+        "basedOnRevisionId",
+        "consistency",
+        "status",
+        "items",
+        "truncated",
+        "approximateBytes"
+      ],
+      "properties": {
+        "document": {
+          "$ref": "resource-ref.schema.json#/$defs/DocumentRef"
+        },
+        "basedOnRevisionId": {
+          "$ref": "common.schema.json#/$defs/RevisionId"
+        },
+        "consistency": {
+          "$ref": "#/$defs/RevisionBoundConsistency"
+        },
+        "status": {
+          "$ref": "#/$defs/SuccessfulRevisionBoundStatus"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/PageItem"
+          },
+          "maxItems": 1000
+        },
+        "nextCursor": {
+          "$ref": "#/$defs/ReadCursor"
+        },
+        "truncated": {
+          "type": "boolean"
+        },
+        "approximateBytes": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": ["truncated"],
+            "properties": {
+              "truncated": {
+                "const": true
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "nextCursor": {
+                "$ref": "#/$defs/ReadCursor"
+              }
+            },
+            "required": ["nextCursor"]
+          },
+          "else": {
+            "properties": {
+              "nextCursor": false
+            }
+          }
+        }
+      ],
+      "description": "No silent truncation: truncated=true requires a continuation cursor and truncated=false forbids one. approximateBytes is capped at runtime by the negotiated maxResponseBytes."
+    },
+    "PageItem": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/OutlineItem"
+        },
+        {
+          "$ref": "#/$defs/ReadableDocumentNode"
+        },
+        {
+          "$ref": "#/$defs/DocumentSearchHit"
+        },
+        {
+          "$ref": "#/$defs/DocumentRevisionChange"
+        },
+        {
+          "$ref": "diagnostic.schema.json#/$defs/Diagnostic"
+        }
+      ]
+    },
+    "ResolveModelRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["document"],
+      "properties": {
+        "document": {
+          "$ref": "resource-ref.schema.json#/$defs/DocumentRef"
+        }
+      }
+    },
+    "ResolveModelResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["document", "basedOnRevisionId", "consistency", "status"],
+      "properties": {
+        "document": {
+          "$ref": "resource-ref.schema.json#/$defs/DocumentRef"
+        },
+        "basedOnRevisionId": {
+          "$ref": "common.schema.json#/$defs/RevisionId"
+        },
+        "consistency": {
+          "const": "exact"
+        },
+        "status": {
+          "$ref": "#/$defs/SuccessfulRevisionBoundStatus"
+        }
+      }
+    },
+    "GetDocumentHeadRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sessionId", "document"],
+      "properties": {
+        "sessionId": {
+          "$ref": "common.schema.json#/$defs/SessionId"
+        },
+        "document": {
+          "$ref": "resource-ref.schema.json#/$defs/DocumentRef"
+        }
+      }
+    },
+    "GetDocumentHeadResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["document", "basedOnRevisionId", "consistency", "status", "headRevisionId"],
+      "properties": {
+        "document": {
+          "$ref": "resource-ref.schema.json#/$defs/DocumentRef"
+        },
+        "basedOnRevisionId": {
+          "$ref": "common.schema.json#/$defs/RevisionId"
+        },
+        "consistency": {
+          "const": "exact"
+        },
+        "status": {
+          "const": "current"
+        },
+        "headRevisionId": {
+          "$ref": "common.schema.json#/$defs/RevisionId"
+        }
+      }
+    },
+    "GetDocumentSnapshotRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sessionId", "document"],
+      "properties": {
+        "sessionId": {
+          "$ref": "common.schema.json#/$defs/SessionId"
+        },
+        "document": {
+          "$ref": "resource-ref.schema.json#/$defs/DocumentRef"
+        }
+      }
+    },
+    "GetDocumentSnapshotResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["document", "basedOnRevisionId", "consistency", "status", "snapshot"],
+      "properties": {
+        "document": {
+          "$ref": "resource-ref.schema.json#/$defs/DocumentRef"
+        },
+        "basedOnRevisionId": {
+          "$ref": "common.schema.json#/$defs/RevisionId"
+        },
+        "consistency": {
+          "const": "exact"
+        },
+        "status": {
+          "$ref": "#/$defs/SuccessfulRevisionBoundStatus"
+        },
+        "snapshot": {
+          "$ref": "manuscript.schema.json#/$defs/DocumentSnapshot"
+        }
+      }
+    },
+    "OutlineItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nodeId", "nodeType", "depth", "title", "authorizedChildCount", "nodeHash"],
+      "properties": {
+        "nodeId": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        },
+        "parentNodeId": {
+          "$ref": "common.schema.json#/$defs/NodeId",
+          "description": "Present only when the parent itself is authorized by the granted Scope."
+        },
+        "nodeType": {
+          "$ref": "#/$defs/NodeKind"
+        },
+        "depth": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 256
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 2048
+        },
+        "authorizedChildCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991,
+          "description": "Counts only children authorized by the granted Scope."
+        },
+        "nodeHash": {
+          "$ref": "common.schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "NodeKind": {
+      "enum": [
+        "bibliographyPlaceholder",
+        "blockQuote",
+        "body",
+        "citation",
+        "codeBlock",
+        "crossReference",
+        "displayEquation",
+        "figure",
+        "figureAsset",
+        "figureCaption",
+        "footnote",
+        "footnoteReference",
+        "frontMatter",
+        "hardBreak",
+        "heading",
+        "horizontalRule",
+        "inlineEquation",
+        "list",
+        "listItem",
+        "manuscript",
+        "paragraph",
+        "section",
+        "table",
+        "tableCaption",
+        "tableCell",
+        "tableRow",
+        "text"
+      ]
+    },
+    "GetDocumentOutlineRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sessionId", "document"],
+      "properties": {
+        "sessionId": {
+          "$ref": "common.schema.json#/$defs/SessionId"
+        },
+        "document": {
+          "$ref": "resource-ref.schema.json#/$defs/DocumentRef"
+        },
+        "maxDepth": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 256
+        },
+        "cursor": {
+          "$ref": "#/$defs/ReadCursor"
+        },
+        "maxResults": {
+          "$ref": "#/$defs/ReadMaxResults"
+        }
+      }
+    },
+    "GetDocumentOutlineResult": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/PageResult"
+        },
+        {
+          "type": "object",
+          "required": ["items"],
+          "properties": {
+            "items": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/OutlineItem"
+              },
+              "maxItems": 1000
+            }
+          }
+        }
+      ]
+    },
+    "ReadableDocumentNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nodeId", "nodeType", "childIds"],
+      "properties": {
+        "nodeId": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        },
+        "nodeType": {
+          "$ref": "#/$defs/NodeKind"
+        },
+        "attrs": {
+          "$ref": "common.schema.json#/$defs/JsonObject",
+          "description": "Exact canonical attributes of an attributed source node; never model-supplied attributes."
+        },
+        "text": {
+          "type": "string"
+        },
+        "marks": {
+          "type": "array",
+          "items": {
+            "$ref": "manuscript.schema.json#/$defs/Mark"
+          },
+          "maxItems": 8,
+          "uniqueItems": true
+        },
+        "childIds": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/NodeId"
+          },
+          "uniqueItems": true,
+          "description": "Non-recursive child references filtered to IDs authorized by the granted Scope."
+        },
+        "nodeHash": {
+          "$ref": "common.schema.json#/$defs/ContentHash",
+          "description": "Present only when the complete canonical subtree covered by the hash is authorized (document-wide or allowed-Section context), or for an exact authorized Text leaf. It is omitted from partial exact non-Text projections to avoid a hidden-subtree hash oracle."
+        },
+        "parentNodeId": {
+          "$ref": "common.schema.json#/$defs/NodeId",
+          "description": "Present only when the parent itself is authorized by the granted Scope."
+        },
+        "authorizedChildIndex": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991,
+          "description": "Index among authorized siblings only; never exposes the position of hidden siblings."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": ["nodeType"],
+            "properties": {
+              "nodeType": {
+                "const": "text"
+              }
+            }
+          },
+          "then": {
+            "required": ["text", "marks"],
+            "properties": {
+              "text": {
+                "type": "string"
+              },
+              "marks": {
+                "type": "array",
+                "items": {
+                  "$ref": "manuscript.schema.json#/$defs/Mark"
+                },
+                "maxItems": 8,
+                "uniqueItems": true
+              },
+              "childIds": {
+                "type": "array",
+                "maxItems": 0
+              },
+              "attrs": false
+            }
+          },
+          "else": {
+            "required": ["attrs"],
+            "properties": {
+              "attrs": {
+                "$ref": "common.schema.json#/$defs/JsonObject"
+              },
+              "text": false,
+              "marks": false
+            }
+          }
+        }
+      ],
+      "description": "A scope-filtered shallow projection. It cannot recursively embed DocumentNode children, expose DOM positions, or expose a hash of hidden subtree content."
+    },
+    "ReadDocumentNodesRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sessionId", "document", "nodeIds"],
+      "properties": {
+        "sessionId": {
+          "$ref": "common.schema.json#/$defs/SessionId"
+        },
+        "document": {
+          "$ref": "resource-ref.schema.json#/$defs/DocumentRef"
+        },
+        "nodeIds": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/NodeId"
+          },
+          "minItems": 1,
+          "maxItems": 1000,
+          "uniqueItems": true
+        },
+        "cursor": {
+          "$ref": "#/$defs/ReadCursor"
+        },
+        "maxResults": {
+          "$ref": "#/$defs/ReadMaxResults"
+        }
+      }
+    },
+    "ReadDocumentNodesResult": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/PageResult"
+        },
+        {
+          "type": "object",
+          "required": ["items"],
+          "properties": {
+            "items": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/ReadableDocumentNode"
+              },
+              "maxItems": 1000
+            }
+          }
+        }
+      ]
+    },
+    "ReadDocumentNodeNeighborhoodRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sessionId", "document", "nodeId", "beforeBlocks", "afterBlocks"],
+      "properties": {
+        "sessionId": {
+          "$ref": "common.schema.json#/$defs/SessionId"
+        },
+        "document": {
+          "$ref": "resource-ref.schema.json#/$defs/DocumentRef"
+        },
+        "nodeId": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        },
+        "beforeBlocks": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "afterBlocks": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "cursor": {
+          "$ref": "#/$defs/ReadCursor"
+        },
+        "maxResults": {
+          "$ref": "#/$defs/ReadMaxResults"
+        }
+      }
+    },
+    "ReadDocumentNodeNeighborhoodResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "document",
+        "basedOnRevisionId",
+        "consistency",
+        "status",
+        "items",
+        "truncated",
+        "approximateBytes",
+        "centerNodeId"
+      ],
+      "properties": {
+        "document": {
+          "$ref": "resource-ref.schema.json#/$defs/DocumentRef"
+        },
+        "basedOnRevisionId": {
+          "$ref": "common.schema.json#/$defs/RevisionId"
+        },
+        "consistency": {
+          "$ref": "#/$defs/RevisionBoundConsistency"
+        },
+        "status": {
+          "$ref": "#/$defs/SuccessfulRevisionBoundStatus"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ReadableDocumentNode"
+          },
+          "maxItems": 201
+        },
+        "nextCursor": {
+          "$ref": "#/$defs/ReadCursor"
+        },
+        "truncated": {
+          "type": "boolean"
+        },
+        "approximateBytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "centerNodeId": {
+          "$ref": "common.schema.json#/$defs/NodeId"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": ["truncated"],
+            "properties": {
+              "truncated": {
+                "const": true
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "nextCursor": {
+                "$ref": "#/$defs/ReadCursor"
+              }
+            },
+            "required": ["nextCursor"]
+          },
+          "else": {
+            "properties": {
+              "nextCursor": false
+            }
+          }
+        }
+      ]
+    },
+    "DocumentSearchKind": {
+      "enum": ["text", "citation", "claim", "heading"]
+    },
+    "DocumentSearchMatch": {
+      "enum": ["exact", "prefix", "substring", "token"]
+    },
+    "DocumentSearchTarget": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "nodeId"],
+          "properties": {
+            "kind": {
+              "const": "node"
+            },
+            "nodeId": {
+              "$ref": "common.schema.json#/$defs/NodeId"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "entityId"],
+          "properties": {
+            "kind": {
+              "const": "academic-entity"
+            },
+            "entityId": {
+              "$ref": "common.schema.json#/$defs/EntityId"
+            }
+          }
+        }
+      ],
+      "description": "A stable semantic target. DOM nodes and raw DOM offsets are not part of the contract."
+    },
+    "DocumentSearchHit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "target", "match", "snippet"],
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/DocumentSearchKind"
+        },
+        "target": {
+          "$ref": "#/$defs/DocumentSearchTarget"
+        },
+        "match": {
+          "$ref": "#/$defs/DocumentSearchMatch"
+        },
+        "snippet": {
+          "type": "string",
+          "maxLength": 4096,
+          "description": "Scope-authorized text only. It never carries a DOM offset."
+        }
+      }
+    },
+    "SearchDocumentRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sessionId", "document", "query"],
+      "properties": {
+        "sessionId": {
+          "$ref": "common.schema.json#/$defs/SessionId"
+        },
+        "document": {
+          "$ref": "resource-ref.schema.json#/$defs/DocumentRef"
+        },
+        "query": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "sectionIds": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/NodeId"
+          },
+          "maxItems": 256,
+          "uniqueItems": true,
+          "description": "An optional narrowing intersected with the granted Scope; it can never broaden the Session grant."
+        },
+        "kinds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/DocumentSearchKind"
+          },
+          "maxItems": 4,
+          "uniqueItems": true
+        },
+        "cursor": {
+          "$ref": "#/$defs/ReadCursor"
+        },
+        "maxResults": {
+          "$ref": "#/$defs/ReadMaxResults"
+        }
+      }
+    },
+    "SearchDocumentResult": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/PageResult"
+        },
+        {
+          "type": "object",
+          "required": ["items"],
+          "properties": {
+            "items": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/DocumentSearchHit"
+              },
+              "maxItems": 1000
+            }
+          }
+        }
+      ]
+    },
+    "DocumentRevisionChange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["revision"],
+      "properties": {
+        "revision": {
+          "$ref": "revision.schema.json#/$defs/Revision"
+        }
+      }
+    },
+    "GetDocumentChangesSinceRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sessionId", "document", "sinceRevisionId"],
+      "properties": {
+        "sessionId": {
+          "$ref": "common.schema.json#/$defs/SessionId"
+        },
+        "document": {
+          "$ref": "resource-ref.schema.json#/$defs/DocumentRef"
+        },
+        "sinceRevisionId": {
+          "$ref": "common.schema.json#/$defs/RevisionId"
+        },
+        "cursor": {
+          "$ref": "#/$defs/ReadCursor"
+        },
+        "maxResults": {
+          "$ref": "#/$defs/ReadMaxResults"
+        }
+      }
+    },
+    "GetDocumentChangesSinceResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "document",
+        "basedOnRevisionId",
+        "consistency",
+        "status",
+        "items",
+        "truncated",
+        "approximateBytes",
+        "fromRevisionId"
+      ],
+      "properties": {
+        "document": {
+          "$ref": "resource-ref.schema.json#/$defs/DocumentRef"
+        },
+        "basedOnRevisionId": {
+          "$ref": "common.schema.json#/$defs/RevisionId"
+        },
+        "consistency": {
+          "$ref": "#/$defs/RevisionBoundConsistency"
+        },
+        "status": {
+          "$ref": "#/$defs/SuccessfulRevisionBoundStatus"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/DocumentRevisionChange"
+          },
+          "maxItems": 1000
+        },
+        "nextCursor": {
+          "$ref": "#/$defs/ReadCursor"
+        },
+        "truncated": {
+          "type": "boolean"
+        },
+        "approximateBytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "fromRevisionId": {
+          "$ref": "common.schema.json#/$defs/RevisionId"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": ["truncated"],
+            "properties": {
+              "truncated": {
+                "const": true
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "nextCursor": {
+                "$ref": "#/$defs/ReadCursor"
+              }
+            },
+            "required": ["nextCursor"]
+          },
+          "else": {
+            "properties": {
+              "nextCursor": false
+            }
+          }
+        }
+      ]
+    },
+    "GetDocumentDiagnosticsRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sessionId", "document"],
+      "properties": {
+        "sessionId": {
+          "$ref": "common.schema.json#/$defs/SessionId"
+        },
+        "document": {
+          "$ref": "resource-ref.schema.json#/$defs/DocumentRef"
+        },
+        "severities": {
+          "type": "array",
+          "items": {
+            "enum": ["info", "warning", "error"]
+          },
+          "maxItems": 3,
+          "uniqueItems": true
+        },
+        "codes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_]*$",
+            "maxLength": 128
+          },
+          "maxItems": 256,
+          "uniqueItems": true
+        },
+        "cursor": {
+          "$ref": "#/$defs/ReadCursor"
+        },
+        "maxResults": {
+          "$ref": "#/$defs/ReadMaxResults"
+        }
+      }
+    },
+    "GetDocumentDiagnosticsResult": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/PageResult"
+        },
+        {
+          "type": "object",
+          "required": ["items"],
+          "properties": {
+            "items": {
+              "type": "array",
+              "items": {
+                "$ref": "diagnostic.schema.json#/$defs/Diagnostic"
+              },
+              "maxItems": 1000
+            }
+          }
+        }
+      ]
     },
     "GetSnapshotRequest": {
       "type": "object",

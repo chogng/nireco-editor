@@ -24,9 +24,9 @@ import {
 const VECTOR_PATH = 'contracts/comet-integration/fixtures/hash-preimages.json';
 const SCHEMA_ROOT = 'contracts/comet-integration/schemas';
 const COMMON_SCHEMA_ID =
-  'https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/common.schema.json';
+  'https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/common.schema.json';
 const CONTRACT_SCHEMA_BASE =
-  'https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/';
+  'https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/';
 const PAYLOAD_SCHEMA_BY_DOMAIN: Readonly<Record<HashDomain, string>> = {
   [HASH_DOMAINS.academicEntity]: `${CONTRACT_SCHEMA_BASE}operation.schema.json#/$defs/AcademicEntity`,
   [HASH_DOMAINS.documentContent]: `${CONTRACT_SCHEMA_BASE}manuscript.schema.json#/$defs/DocumentHashPayload`,

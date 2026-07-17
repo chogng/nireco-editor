@@ -227,6 +227,7 @@ export class MockCometIntegrationService {
     };
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-deprecated -- Preview.1 Mock compatibility.
   readSnapshot(request: GetSnapshotRequest): Result<GetSnapshotResult> {
     const session = this.#getActiveSession(request.sessionId, 'document.content.read');
     if (session.type === 'error') {

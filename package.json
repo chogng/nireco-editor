@@ -1,6 +1,6 @@
 {
   "name": "@comet-internal/nireco-editor",
-  "version": "0.4.0-preview.1",
+  "version": "0.4.0-preview.2",
   "private": true,
   "license": "UNLICENSED",
   "description": "URI-addressed, revisioned semantic document core for Comet.",
@@ -59,9 +59,11 @@
     "check:browser-spike-evidence": "node ./scripts/check-browser-spike-evidence.mjs",
     "check:document-versions": "node ./scripts/check-document-versions.mjs",
     "check:performance-profile": "node ./scripts/check-performance-profile.mjs",
+    "check:reference-corpora": "pnpm build && node ./scripts/check-reference-corpora.mjs",
+    "check:reference-corpus-history": "node ./scripts/check-reference-corpus-history.mjs",
     "check:dependencies": "pnpm audit --audit-level high",
     "check:licenses": "pnpm licenses list --prod",
-    "check": "pnpm format:check && pnpm lint && pnpm check:architecture && pnpm typecheck && pnpm test && pnpm build && pnpm contract:check && pnpm check:document-versions && pnpm check:performance-profile && pnpm check:browser-spike-evidence"
+    "check": "pnpm format:check && pnpm lint && pnpm check:architecture && pnpm typecheck && pnpm test && pnpm build && node ./scripts/check-reference-corpora.mjs && pnpm check:reference-corpus-history && pnpm contract:check && pnpm check:document-versions && pnpm check:performance-profile && pnpm check:browser-spike-evidence"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
@@ -85,20 +87,29 @@
         "S": {
           "words": 15000,
           "documentNodes": 1500,
-          "citations": 100
+          "citations": 100,
+          "tables": 5,
+          "figures": 5,
+          "equations": 20
         },
         "M": {
           "words": 75000,
           "documentNodes": 8000,
-          "citations": 500
+          "citations": 500,
+          "tables": 20,
+          "figures": 20,
+          "equations": 100
         },
         "L": {
           "words": 200000,
           "documentNodes": 25000,
-          "citations": 1500
+          "citations": 1500,
+          "tables": 60,
+          "figures": 60,
+          "equations": 500
         }
       }
     },
-    "configurationHash": "sha256-d7bef3c8c3db6146fa0eeb666ce6a8e39fc6c4f860dafdd1c91b5ed364573ebe"
+    "configurationHash": "sha256-417d8758ed41799ff1c658fddb3bce10442d46c9e602f5caddaaab1abd7dc661"
   }
 }

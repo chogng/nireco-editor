@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/position-anchor.schema.json",
+  "$id": "https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/position-anchor.schema.json",
   "title": "Nireco Semantic Position and Persistent Anchor",
   "description": "Revision-bound semantic positions using UTF-16 code-unit offsets.",
   "$ref": "#/$defs/PersistentAnchor",

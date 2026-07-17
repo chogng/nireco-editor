@@ -1,5 +1,5 @@
 {
-  "contractVersion": "0.4-preview.1",
+  "contractVersion": "0.4-preview.2",
   "traceId": "trace-proposal-0001",
   "taskId": "task-0001",
   "workflowId": "draft-paragraph",
@@ -7,7 +7,7 @@
     "uri": "nireco://workspace-01/document/DocCaseA",
     "revisionId": "018f0000-0000-7000-8000-000000000001"
   },
-  "scenario": "Handshake, open a scoped session, create a draft proposal, and stage one high-level insert-block edit.",
+  "scenario": "Illustrative previous-protocol proposal sequence carried by the preview.2 Bundle; not preview.2 runtime-conformance evidence.",
   "status": "ok",
   "sessionId": "018f0000-0000-7000-8000-000000000003",
   "capabilityGrantId": "grant-0001",
@@ -19,7 +19,7 @@
     {
       "sequence": 1,
       "at": "2026-07-16T17:05:00Z",
-      "component": "comet-adapter",
+      "component": "nireco-contract",
       "type": "handshake",
       "service": "integration.handshake",
       "requestId": "request-proposal-0001",
@@ -32,7 +32,7 @@
     {
       "sequence": 2,
       "at": "2026-07-16T17:05:01Z",
-      "component": "nireco-mock",
+      "component": "nireco-contract",
       "type": "session.open",
       "service": "integration.open_session",
       "requestId": "request-proposal-0002",
@@ -48,7 +48,7 @@
     {
       "sequence": 3,
       "at": "2026-07-16T17:05:02Z",
-      "component": "nireco-proposal-service",
+      "component": "nireco-contract",
       "type": "proposal.create",
       "service": "proposal.create",
       "requestId": "request-proposal-0003",
@@ -68,7 +68,7 @@
     {
       "sequence": 4,
       "at": "2026-07-16T17:05:03Z",
-      "component": "nireco-proposal-service",
+      "component": "nireco-contract",
       "type": "proposal.stage-edits",
       "service": "proposal.stage_semantic_edits",
       "requestId": "request-proposal-0004",

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/revision.schema.json",
+  "$id": "https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/revision.schema.json",
   "title": "Nireco Linear Revision Protocol",
   "description": "Immutable, single-parent mainline revision identity and durability state.",
   "$ref": "#/$defs/Revision",

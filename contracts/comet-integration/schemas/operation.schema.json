@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/operation.schema.json",
+  "$id": "https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/operation.schema.json",
   "title": "Nireco Operation Algebra",
   "description": "Deterministic, DOM-independent operations. Operations are never directly available as Comet Agent capabilities.",
   "$ref": "#/$defs/Operation",

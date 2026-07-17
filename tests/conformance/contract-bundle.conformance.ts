@@ -13,6 +13,10 @@ import {
   isCanonicalResourceUri,
 } from '../../src/base/uri/resource-uri.js';
 import {
+  COMET_CONTRACT_VERSION,
+  CURRENT_COMET_CONTRACT_VERSION,
+  GATE_1_READ_HARD_LIMITS,
+  GATE_1_READ_SERVICES,
   INTEGRATION_CAPABILITIES,
   MOCK_SUPPORTED_SEMANTIC_EDIT_KINDS,
 } from '../../src/integration/comet/contract-types.js';
@@ -30,13 +34,15 @@ const SCHEMA_ROOT = path.join(CONTRACT_ROOT, 'schemas');
 const FIXTURE_ROOT = path.join(CONTRACT_ROOT, 'fixtures');
 const TRACE_ROOT = path.join(CONTRACT_ROOT, 'sample-traces');
 const GOLDEN_FIXTURE_SCHEMA_ID =
-  'https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/golden-fixture.schema.json';
+  'https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/golden-fixture.schema.json';
 const TRACE_SCHEMA_ID =
-  'https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/trace.schema.json';
+  'https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/trace.schema.json';
 const RESOURCE_REF_SCHEMA_ID =
-  'https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/resource-ref.schema.json';
+  'https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/resource-ref.schema.json';
 const MANUSCRIPT_SCHEMA_ID =
-  'https://contracts.nireco.dev/comet-integration/0.4-preview.1/schemas/manuscript.schema.json';
+  'https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/manuscript.schema.json';
+const INTEGRATION_SCHEMA_ID =
+  'https://contracts.nireco.dev/comet-integration/0.4-preview.2/schemas/integration.schema.json';
 
 interface GoldenFixture {
   readonly name: string;
@@ -153,6 +159,300 @@ describe('Gate 0 contract bundle conformance', () => {
     expect(
       readObjectStringFieldListWhereTrue(semanticEditCatalog, 'edits', 'kind', 'agentAvailable'),
     ).toEqual(MOCK_SUPPORTED_SEMANTIC_EDIT_KINDS);
+  });
+
+  it('publishes preview.2 schemas without claiming preview.2 runtime support', async () => {
+    const manifest = asRecord(
+      await readJson(path.join(CONTRACT_ROOT, 'contract.manifest.json')),
+      'contract manifest',
+    );
+    expect(manifest['contractVersion']).toBe(CURRENT_COMET_CONTRACT_VERSION);
+
+    const compatibility = asRecord(manifest['compatibility'], 'manifest compatibility');
+    expect(compatibility).toMatchObject({
+      currentContractVersion: CURRENT_COMET_CONTRACT_VERSION,
+      previousContractVersion: COMET_CONTRACT_VERSION,
+      currentStatus: 'schema-only-no-runtime-conformance-claim',
+      previousStatus: 'Gate-0-Mock-and-consumer-evidence-retained',
+    });
+
+    const gate1Read = asRecord(manifest['gate1RevisionBoundRead'], 'manifest Gate 1 read contract');
+    expect(gate1Read).toMatchObject({
+      maturity: 'schema-only',
+      runtimeExitCriteriaSatisfied: false,
+      readConformanceStatus: 'not-run',
+    });
+    const services = gate1Read['services'];
+    if (!Array.isArray(services)) {
+      throw new Error('manifest Gate 1 services is not an array.');
+    }
+    expect(services.map((value, index) => asRecord(value, `services[${index}]`)['name'])).toEqual(
+      GATE_1_READ_SERVICES,
+    );
+    for (const [index, value] of services.entries()) {
+      expect(asRecord(value, `services[${index}]`)).toMatchObject({
+        contract: 'defined',
+        mock: 'not-implemented',
+        real: 'not-implemented',
+      });
+    }
+    expect(asRecord(gate1Read['hardLimits'], 'manifest Gate 1 hard limits')).toMatchObject({
+      maxReadNodeIds: GATE_1_READ_HARD_LIMITS.maxReadNodeIds,
+      maxScopeIds: GATE_1_READ_HARD_LIMITS.maxScopeIds,
+      maxContextDistance: GATE_1_READ_HARD_LIMITS.maxContextDistance,
+    });
+    expect(asRecord(gate1Read['scopeProfile'], 'manifest Gate 1 Scope profile')).toMatchObject({
+      maximumCombinedAllowedIds: GATE_1_READ_HARD_LIMITS.maxScopeIds,
+      maximumContextDistance: GATE_1_READ_HARD_LIMITS.maxContextDistance,
+    });
+    expect(asRecord(manifest['runtimeConformance'], 'manifest runtime conformance')).toMatchObject({
+      maximumCometDocumentScopeIdsTotal: GATE_1_READ_HARD_LIMITS.maxScopeIds,
+      maximumCometDocumentContextDistance: GATE_1_READ_HARD_LIMITS.maxContextDistance,
+    });
+
+    const mockService = asRecord(manifest['mockService'], 'manifest Mock service');
+    expect(mockService).toMatchObject({
+      implementedContractVersion: COMET_CONTRACT_VERSION,
+      currentContractVersionSupported: false,
+      compatibilityStatus: 'previous-contract-only',
+      supportedOperationsContractVersion: COMET_CONTRACT_VERSION,
+    });
+
+    const consumerEvidence = asRecord(
+      manifest['independentConsumerEvidence'],
+      'manifest consumer evidence',
+    );
+    expect(consumerEvidence).toMatchObject({
+      validatedContractVersion: COMET_CONTRACT_VERSION,
+      currentContractVersionValidated: false,
+      status: 'previous-contract-compatibility-evidence-only',
+    });
+
+    const schemas = manifest['schemas'];
+    if (!Array.isArray(schemas)) {
+      throw new Error('manifest schemas is not an array.');
+    }
+    for (const [index, value] of schemas.entries()) {
+      const schema = asRecord(value, `schemas[${index}]`);
+      expect(schema['id']).toContain(`/comet-integration/${CURRENT_COMET_CONTRACT_VERSION}/`);
+    }
+  });
+
+  it('keeps every specialized PageResult satisfiable, closed, and success-only', async () => {
+    const ajv = await createContractValidator();
+    const revisionId = '018f0000-0000-7000-8000-000000000001';
+    const nodeId = '018f0000-0000-7000-8000-000000000101';
+    const document = {
+      uri: 'nireco://workspace-01/document/DocCaseA',
+      revisionId,
+    };
+    const basePage = {
+      document,
+      basedOnRevisionId: revisionId,
+      consistency: 'exact',
+      status: 'current',
+      items: [],
+      truncated: false,
+      approximateBytes: 128,
+    } as const;
+    const cases = [
+      ['GetDocumentOutlineResult', basePage],
+      ['ReadDocumentNodesResult', basePage],
+      ['SearchDocumentResult', basePage],
+      ['GetDocumentDiagnosticsResult', basePage],
+      ['ReadDocumentNodeNeighborhoodResult', { ...basePage, centerNodeId: nodeId }],
+      ['GetDocumentChangesSinceResult', { ...basePage, fromRevisionId: revisionId }],
+    ] as const;
+
+    for (const [definitionName, validPage] of cases) {
+      const validate = requireDefinition(ajv, INTEGRATION_SCHEMA_ID, definitionName);
+      expect(validate(validPage), `${definitionName}: ${JSON.stringify(validate.errors)}`).toBe(
+        true,
+      );
+      expect(validate({ ...validPage, status: 'stale' }), definitionName).toBe(true);
+      expect(validate({ ...validPage, status: 'computing' }), definitionName).toBe(false);
+      expect(validate({ ...validPage, status: 'failed' }), definitionName).toBe(false);
+      expect(validate({ ...validPage, unknownField: true }), definitionName).toBe(false);
+      expect(validate({ ...validPage, truncated: true }), definitionName).toBe(false);
+      expect(validate({ ...validPage, nextCursor: 'AQ' }), definitionName).toBe(false);
+      expect(
+        validate({ ...validPage, truncated: true, nextCursor: 'AQ' }),
+        `${definitionName}: ${JSON.stringify(validate.errors)}`,
+      ).toBe(true);
+    }
+
+    const validateOutline = requireDefinition(
+      ajv,
+      INTEGRATION_SCHEMA_ID,
+      'GetDocumentOutlineResult',
+    );
+    expect(
+      validateOutline({
+        ...basePage,
+        items: [
+          {
+            nodeId,
+            nodeType: 'section',
+            depth: 1,
+            title: 'Introduction',
+            authorizedChildCount: 1_001,
+            nodeHash: `sha256:${'0'.repeat(64)}`,
+          },
+        ],
+      }),
+      JSON.stringify(validateOutline.errors),
+    ).toBe(true);
+
+    const nodeHash = `sha256:${'0'.repeat(64)}`;
+    const readableNode = {
+      nodeId,
+      nodeType: 'paragraph',
+      attrs: { alignment: 'start' },
+      childIds: [],
+      nodeHash,
+    } as const;
+    const validateNodes = requireDefinition(ajv, INTEGRATION_SCHEMA_ID, 'ReadDocumentNodesResult');
+    expect(
+      validateNodes({ ...basePage, items: [readableNode] }),
+      JSON.stringify(validateNodes.errors),
+    ).toBe(true);
+    expect(validateNodes({ ...basePage, items: [{ ...readableNode, children: [] }] })).toBe(false);
+    expect(
+      validateNodes({
+        ...basePage,
+        items: [
+          {
+            nodeId,
+            nodeType: 'paragraph',
+            attrs: { alignment: 'start' },
+            childIds: [],
+          },
+        ],
+      }),
+      JSON.stringify(validateNodes.errors),
+    ).toBe(true);
+    const manyChildIds = Array.from(
+      { length: 1_001 },
+      (_, index) => `018f0000-0000-7000-8002-${index.toString(16).padStart(12, '0')}`,
+    );
+    expect(
+      validateNodes({
+        ...basePage,
+        items: [
+          {
+            ...readableNode,
+            parentNodeId: '018f0000-0000-7000-8000-000000000102',
+            authorizedChildIndex: 1_000,
+            childIds: manyChildIds,
+          },
+        ],
+      }),
+      JSON.stringify(validateNodes.errors),
+    ).toBe(true);
+    const readableTextNode = {
+      nodeId,
+      nodeType: 'text',
+      text: 'Nireco',
+      marks: [],
+      childIds: [],
+      nodeHash,
+    } as const;
+    expect(
+      validateNodes({ ...basePage, items: [readableTextNode] }),
+      JSON.stringify(validateNodes.errors),
+    ).toBe(true);
+    expect(validateNodes({ ...basePage, items: [{ ...readableTextNode, attrs: {} }] })).toBe(false);
+
+    const validateSearch = requireDefinition(ajv, INTEGRATION_SCHEMA_ID, 'SearchDocumentResult');
+    expect(
+      validateSearch({
+        ...basePage,
+        items: [
+          {
+            kind: 'text',
+            target: { kind: 'node', nodeId },
+            match: 'substring',
+            snippet: 'Nireco',
+          },
+        ],
+      }),
+      JSON.stringify(validateSearch.errors),
+    ).toBe(true);
+    expect(
+      validateSearch({
+        ...basePage,
+        items: [
+          {
+            kind: 'text',
+            target: { kind: 'range', utf16Offset: 1 },
+            match: 'substring',
+            snippet: 'Nireco',
+          },
+        ],
+      }),
+    ).toBe(false);
+  });
+
+  it('caps each Scope ID array at 1000 while the aggregate cap remains a runtime invariant', async () => {
+    const ajv = await createContractValidator();
+    const validate = requireDefinition(ajv, INTEGRATION_SCHEMA_ID, 'CometDocumentScope');
+    const ids = Array.from(
+      { length: GATE_1_READ_HARD_LIMITS.maxScopeIds + 1 },
+      (_, index) => `018f0000-0000-7000-8003-${index.toString(16).padStart(12, '0')}`,
+    );
+    expect(validate({ allowedNodeIds: ids.slice(0, -1) }), JSON.stringify(validate.errors)).toBe(
+      true,
+    );
+    expect(validate({ allowedNodeIds: ids })).toBe(false);
+    expect(validate({ allowedSectionIds: ids })).toBe(false);
+    expect(
+      validate({ maxContextDistance: GATE_1_READ_HARD_LIMITS.maxContextDistance }),
+      JSON.stringify(validate.errors),
+    ).toBe(true);
+    expect(validate({ maxContextDistance: GATE_1_READ_HARD_LIMITS.maxContextDistance + 1 })).toBe(
+      false,
+    );
+  });
+
+  it('allows fixed ResourceRef and Session Snapshot reads to report stale', async () => {
+    const ajv = await createContractValidator();
+    const fixture = asRecord(
+      await readJson(path.join(FIXTURE_ROOT, 'minimal-manuscript.json')),
+      'minimal manuscript fixture',
+    );
+    const snapshot = asRecord(fixture['payload'], 'minimal manuscript payload');
+    const revisionId = snapshot['revisionId'];
+    if (typeof revisionId !== 'string') {
+      throw new Error('minimal manuscript revisionId is not a string.');
+    }
+    const document = {
+      uri: 'nireco://workspace-01/document/DocCaseA',
+      revisionId,
+    };
+    const resolveResult = {
+      document,
+      basedOnRevisionId: revisionId,
+      consistency: 'exact',
+      status: 'stale',
+    };
+    const validateResolve = requireDefinition(ajv, INTEGRATION_SCHEMA_ID, 'ResolveModelResult');
+    expect(validateResolve(resolveResult), JSON.stringify(validateResolve.errors)).toBe(true);
+    expect(validateResolve({ ...resolveResult, status: 'current' })).toBe(true);
+    expect(validateResolve({ ...resolveResult, status: 'computing' })).toBe(false);
+    expect(validateResolve({ ...resolveResult, status: 'failed' })).toBe(false);
+
+    const result = {
+      document,
+      basedOnRevisionId: revisionId,
+      consistency: 'exact',
+      status: 'stale',
+      snapshot,
+    };
+    const validate = requireDefinition(ajv, INTEGRATION_SCHEMA_ID, 'GetDocumentSnapshotResult');
+    expect(validate(result), JSON.stringify(validate.errors)).toBe(true);
+    expect(validate({ ...result, status: 'current' })).toBe(true);
+    expect(validate({ ...result, status: 'computing' })).toBe(false);
+    expect(validate({ ...result, status: 'failed' })).toBe(false);
   });
 
   it('rejects non-canonical document URI spellings', async () => {

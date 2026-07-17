@@ -1,4 +1,5 @@
 import type { Result } from '../base/errors/nireco-error.js';
+import { deepFreeze } from '../base/immutability/deep-freeze.js';
 import type { ResourceUri } from '../base/uri/resource-uri.js';
 import type {
   AuthorityFence,
@@ -43,8 +44,12 @@ interface SnapshotManifestDraft {
   readonly manifestVersion: 1;
   readonly uri: ResourceUri;
   readonly revisionId: SnapshotManifest['revisionId'];
+  readonly parentRevisionId: SnapshotManifest['parentRevisionId'];
+  readonly transactionId: SnapshotManifest['transactionId'];
   readonly sequence: number;
   readonly documentHash: SnapshotManifest['documentHash'];
+  readonly actor: SnapshotManifest['actor'];
+  readonly createdAt: SnapshotManifest['createdAt'];
   readonly snapshotKey: string;
 }
 
@@ -278,10 +283,13 @@ export class InMemoryDurableStorage implements IWriteAheadLog, ISnapshotByteStor
       );
     }
 
-    const manifest: SnapshotManifest = {
+    const manifest = deepFreeze<SnapshotManifest>({
       ...draft,
+      actor: {
+        ...draft.actor,
+      },
       generation: expectedGeneration + 1,
-    };
+    });
     this.#manifests.set(fence.uri, manifest);
     return {
       type: 'ok',

@@ -1,5 +1,8 @@
 # Gate 0 Conformance Runner
 
+The existing runner validates the previous `0.4-preview.1` Gate 0 surface. It
+does not satisfy the preview.2 joint Read Conformance exit criterion.
+
 From a clean repository checkout, run:
 
 ```sh

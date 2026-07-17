@@ -6,7 +6,9 @@ import type { JsonValue } from '../base/serialization/canonical-json.js';
 import type { IClock } from '../base/time/clock.js';
 import type { ResourceUri } from '../base/uri/resource-uri.js';
 import type { DocumentSnapshot } from '../model/snapshot.js';
+import type { PositionMap } from '../model/mapping/position-map.js';
 import type { DurabilityLevel } from '../model/revision/revision.js';
+import type { TransactionInversePlan } from '../model/transaction/transaction-kernel.js';
 import type { Transaction } from '../model/transaction/transaction.js';
 import type { IIdAllocator } from './id-allocator.js';
 import type { IModelRegistry } from './model-registry.js';
@@ -54,6 +56,8 @@ export interface CommitResult {
   readonly revisionId: RevisionId;
   readonly snapshot: DocumentSnapshot;
   readonly transactionHash: ContentHash;
+  readonly positionMap: PositionMap;
+  readonly inverse: TransactionInversePlan;
   readonly achievedDurability: 'memory';
 }
 
@@ -68,6 +72,7 @@ export interface DurabilityAcknowledgement {
 export interface IDocumentAuthority {
   open(uri: ResourceUri): Promise<Result<DocumentHandle>>;
   getHead(uri: ResourceUri): Promise<Result<RevisionId>>;
+  getSnapshot(uri: ResourceUri, revisionId?: RevisionId): Result<DocumentSnapshot>;
   apply(transaction: Transaction): Promise<Result<CommitResult>>;
   getDurability(uri: ResourceUri, revisionId: RevisionId): Result<DurabilityLevel>;
   whenDurable(

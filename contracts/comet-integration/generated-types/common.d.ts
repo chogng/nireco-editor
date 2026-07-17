@@ -3,7 +3,7 @@
  * Source: contracts/comet-integration/schemas/common.schema.json
  * Generator: json-schema-to-typescript
  * Generator version: 15.0.4
- * Source SHA-256: 1bbc326f48cee2556697930812d0051115769536b61e4c52514c6f62f9cd4d29
+ * Source SHA-256: 42dd511c0b6ad3b8db4d5fea5aa9283cf574579e1db8ac95980c590305e023fc
  */
 
 /**

@@ -3,7 +3,7 @@
  * Source: contracts/comet-integration/schemas/integration.schema.json
  * Generator: json-schema-to-typescript
  * Generator version: 15.0.4
- * Source SHA-256: d47705fc41aeaa01b60ba7c06284247a43c2a165239fde7af5c944fc8400a4ae
+ * Source SHA-256: 7fd01d5b39a47f573e4b505d36128c68a243095a3fa2b0fc01c8b1287ed6057c
  */
 
 /**
@@ -194,6 +194,193 @@ export type SemanticPosition = TextPosition | NodeBoundaryPosition;
 export type Affinity = 'before' | 'after';
 /**
  * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
+ * via the `definition` "Gate1ReadService".
+ */
+export type Gate1ReadService =
+  | 'workspace.resolve_model'
+  | 'document.get_head'
+  | 'document.get_snapshot'
+  | 'document.get_outline'
+  | 'document.read_nodes'
+  | 'document.read_node_neighborhood'
+  | 'document.search'
+  | 'document.get_changes_since'
+  | 'document.get_diagnostics';
+/**
+ * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
+ * via the `definition` "RevisionBoundConsistency".
+ */
+export type RevisionBoundConsistency = 'exact' | 'eventual';
+/**
+ * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
+ * via the `definition` "RevisionBoundStatus".
+ */
+export type RevisionBoundStatus = 'current' | 'stale' | 'computing' | 'failed';
+/**
+ * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
+ * via the `definition` "SuccessfulRevisionBoundStatus".
+ */
+export type SuccessfulRevisionBoundStatus = 'current' | 'stale';
+/**
+ * Opaque, unpadded canonical base64url cursor. The authenticated server-side binding covers the Session, Revision, granted Scope, service and canonical query hash; the wire value contains no raw IDs, Scope or storage key.
+ *
+ * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
+ * via the `definition` "ReadCursor".
+ */
+export type ReadCursor = string;
+/**
+ * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
+ * via the `definition` "ReadMaxResults".
+ */
+export type ReadMaxResults = number;
+/**
+ * No silent truncation: truncated=true requires a continuation cursor and truncated=false forbids one. approximateBytes is capped at runtime by the negotiated maxResponseBytes.
+ *
+ * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
+ * via the `definition` "PageResult".
+ */
+export type PageResult = {
+  [k: string]: unknown | undefined;
+} & {
+  document: DocumentRef;
+  basedOnRevisionId: AllocatedId;
+  consistency: RevisionBoundConsistency;
+  status: SuccessfulRevisionBoundStatus;
+  /**
+   * @maxItems 1000
+   */
+  items: PageItem[];
+  nextCursor?: ReadCursor;
+  truncated: boolean;
+  approximateBytes: number;
+};
+/**
+ * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
+ * via the `definition` "PageItem".
+ */
+export type PageItem =
+  OutlineItem | ReadableDocumentNode | DocumentSearchHit | DocumentRevisionChange | Diagnostic;
+/**
+ * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
+ * via the `definition` "NodeKind".
+ */
+export type NodeKind =
+  | 'bibliographyPlaceholder'
+  | 'blockQuote'
+  | 'body'
+  | 'citation'
+  | 'codeBlock'
+  | 'crossReference'
+  | 'displayEquation'
+  | 'figure'
+  | 'figureAsset'
+  | 'figureCaption'
+  | 'footnote'
+  | 'footnoteReference'
+  | 'frontMatter'
+  | 'hardBreak'
+  | 'heading'
+  | 'horizontalRule'
+  | 'inlineEquation'
+  | 'list'
+  | 'listItem'
+  | 'manuscript'
+  | 'paragraph'
+  | 'section'
+  | 'table'
+  | 'tableCaption'
+  | 'tableCell'
+  | 'tableRow'
+  | 'text';
+/**
+ * A scope-filtered shallow projection. It cannot recursively embed DocumentNode children, expose DOM positions, or expose a hash of hidden subtree content.
+ *
+ * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
+ * via the `definition` "ReadableDocumentNode".
+ */
+export type ReadableDocumentNode = {
+  [k: string]: unknown | undefined;
+} & {
+  nodeId: AllocatedId;
+  nodeType: NodeKind;
+  attrs?: JsonObject1;
+  text?: string;
+  /**
+   * @maxItems 8
+   */
+  marks?:
+    | []
+    | [Mark]
+    | [Mark, Mark]
+    | [Mark, Mark, Mark]
+    | [Mark, Mark, Mark, Mark]
+    | [Mark, Mark, Mark, Mark, Mark]
+    | [Mark, Mark, Mark, Mark, Mark, Mark]
+    | [Mark, Mark, Mark, Mark, Mark, Mark, Mark]
+    | [Mark, Mark, Mark, Mark, Mark, Mark, Mark, Mark];
+  /**
+   * Non-recursive child references filtered to IDs authorized by the granted Scope.
+   */
+  childIds: AllocatedId[];
+  /**
+   * Present only when the complete canonical subtree covered by the hash is authorized (document-wide or allowed-Section context), or for an exact authorized Text leaf. It is omitted from partial exact non-Text projections to avoid a hidden-subtree hash oracle.
+   */
+  nodeHash?: string;
+  /**
+   * Canonical lowercase RFC 9562 UUIDv7 allocated by a trusted Nireco boundary before reducer entry.
+   */
+  parentNodeId?: string;
+  /**
+   * Index among authorized siblings only; never exposes the position of hidden siblings.
+   */
+  authorizedChildIndex?: number;
+};
+/**
+ * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
+ * via the `definition` "Mark".
+ */
+export type Mark = SimpleMark | LinkMark;
+/**
+ * ASCII-visible canonical wire URI. Raw Unicode is forbidden and must be UTF-8 percent-encoded; percent escapes use uppercase hexadecimal. Nireco and Comet logical URIs are further constrained by LogicalResourceUri.
+ *
+ * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
+ * via the `definition` "ResourceUri".
+ */
+export type ResourceUri = string;
+/**
+ * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
+ * via the `definition` "DocumentSearchKind".
+ */
+export type DocumentSearchKind = 'text' | 'citation' | 'claim' | 'heading';
+/**
+ * A stable semantic target. DOM nodes and raw DOM offsets are not part of the contract.
+ *
+ * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
+ * via the `definition` "DocumentSearchTarget".
+ */
+export type DocumentSearchTarget =
+  | {
+      kind: 'node';
+      nodeId: AllocatedId;
+    }
+  | {
+      kind: 'academic-entity';
+      entityId: AllocatedId;
+    };
+/**
+ * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
+ * via the `definition` "DocumentSearchMatch".
+ */
+export type DocumentSearchMatch = 'exact' | 'prefix' | 'substring' | 'token';
+/**
+ * Highest acknowledged durability level. State advances monotonically.
+ *
+ * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
+ * via the `definition` "DurabilityLevel".
+ */
+export type DurabilityLevel = 'memory' | 'wal' | 'snapshot';
+/**
+ * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
  * via the `definition` "BlockNode".
  */
 export type BlockNode =
@@ -221,18 +408,6 @@ export type InlineNode =
   | HardBreakNode;
 /**
  * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
- * via the `definition` "Mark".
- */
-export type Mark = SimpleMark | LinkMark;
-/**
- * ASCII-visible canonical wire URI. Raw Unicode is forbidden and must be UTF-8 percent-encoded; percent escapes use uppercase hexadecimal. Nireco and Comet logical URIs are further constrained by LogicalResourceUri.
- *
- * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
- * via the `definition` "ResourceUri".
- */
-export type ResourceUri = string;
-/**
- * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
  * via the `definition` "LimitedCellBlockNode".
  */
 export type LimitedCellBlockNode = ParagraphNode | BlockQuoteNode | CodeBlockNode | ListNode;
@@ -258,6 +433,64 @@ export type EvidenceLocator =
   | TextQuoteEvidenceLocator
   | TimeEvidenceLocator
   | RecordEvidenceLocator;
+/**
+ * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
+ * via the `definition` "GetDocumentOutlineResult".
+ */
+export type GetDocumentOutlineResult = PageResult & {
+  /**
+   * @maxItems 1000
+   */
+  items: OutlineItem[];
+  [k: string]: unknown | undefined;
+};
+/**
+ * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
+ * via the `definition` "ReadDocumentNodesResult".
+ */
+export type ReadDocumentNodesResult = PageResult & {
+  /**
+   * @maxItems 1000
+   */
+  items: ReadableDocumentNode[];
+  [k: string]: unknown | undefined;
+};
+/**
+ * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
+ * via the `definition` "ReadDocumentNodeNeighborhoodResult".
+ */
+export type ReadDocumentNodeNeighborhoodResult = {
+  [k: string]: unknown | undefined;
+};
+/**
+ * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
+ * via the `definition` "SearchDocumentResult".
+ */
+export type SearchDocumentResult = PageResult & {
+  /**
+   * @maxItems 1000
+   */
+  items: DocumentSearchHit[];
+  [k: string]: unknown | undefined;
+};
+/**
+ * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
+ * via the `definition` "GetDocumentChangesSinceResult".
+ */
+export type GetDocumentChangesSinceResult = {
+  [k: string]: unknown | undefined;
+};
+/**
+ * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
+ * via the `definition` "GetDocumentDiagnosticsResult".
+ */
+export type GetDocumentDiagnosticsResult = PageResult & {
+  /**
+   * @maxItems 1000
+   */
+  items: Diagnostic[];
+  [k: string]: unknown | undefined;
+};
 /**
  * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
  * via the `definition` "Proposal".
@@ -530,6 +763,11 @@ export type CanonicalSegment = string;
 export type LogicalResourceUri = string;
 /**
  * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
+ * via the `definition` "AuthorityMode".
+ */
+export type AuthorityMode = 'read-write' | 'read-only' | 'recovery-required';
+/**
+ * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
  * via the `definition` "TransactionMetadata".
  */
 export type TransactionMetadata = {
@@ -540,6 +778,9 @@ export type TransactionMetadata = {
   proposalId?: AllocatedId;
   proposalRevision?: number;
   cometTaskId?: OpaqueId;
+  /**
+   * @maxItems 1024
+   */
   toolInvocationIds?: OpaqueId[];
   idempotencyKey?: string;
 };
@@ -785,11 +1026,19 @@ export interface ContractLimits {
   cursorTtlSeconds: number;
 }
 /**
+ * Each ID array is capped at 1000 entries. The combined allowedSectionIds plus allowedNodeIds count is also capped at 1000 as a runtime cross-field invariant. maxContextDistance is capped at 1000000 at every Session, service, and cursor boundary.
+ *
  * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
  * via the `definition` "CometDocumentScope".
  */
 export interface CometDocumentScope {
+  /**
+   * @maxItems 1000
+   */
   allowedSectionIds?: AllocatedId[];
+  /**
+   * @maxItems 1000
+   */
   allowedNodeIds?: AllocatedId[];
   allowReadOutsideScopeForContext?: boolean;
   maxContextDistance?: number;
@@ -842,18 +1091,153 @@ export interface OpenCometSessionResult {
 }
 /**
  * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
- * via the `definition` "GetSnapshotRequest".
+ * via the `definition` "RevisionBoundReadResult".
  */
-export interface GetSnapshotRequest {
+export interface RevisionBoundReadResult {
+  document: DocumentRef;
+  basedOnRevisionId: AllocatedId;
+  consistency: RevisionBoundConsistency;
+  status: RevisionBoundStatus;
+}
+/**
+ * A requested maxResults is additionally capped by the negotiated Session maxPageItems.
+ *
+ * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
+ * via the `definition` "ReadPageRequest".
+ */
+export interface ReadPageRequest {
+  cursor?: ReadCursor;
+  maxResults?: ReadMaxResults;
+}
+/**
+ * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
+ * via the `definition` "OutlineItem".
+ */
+export interface OutlineItem {
+  nodeId: AllocatedId;
+  /**
+   * Canonical lowercase RFC 9562 UUIDv7 allocated by a trusted Nireco boundary before reducer entry.
+   */
+  parentNodeId?: string;
+  nodeType: NodeKind;
+  depth: number;
+  title: string;
+  /**
+   * Counts only children authorized by the granted Scope.
+   */
+  authorizedChildCount: number;
+  nodeHash: ContentHash;
+}
+/**
+ * Exact canonical attributes of an attributed source node; never model-supplied attributes.
+ */
+export interface JsonObject1 {
+  [k: string]: JsonValue;
+}
+/**
+ * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
+ * via the `definition` "SimpleMark".
+ */
+export interface SimpleMark {
+  type: 'bold' | 'italic' | 'underline' | 'strike' | 'code' | 'subscript' | 'superscript';
+}
+/**
+ * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
+ * via the `definition` "LinkMark".
+ */
+export interface LinkMark {
+  type: 'link';
+  href: ResourceUri;
+  title?: string;
+}
+/**
+ * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
+ * via the `definition` "DocumentSearchHit".
+ */
+export interface DocumentSearchHit {
+  kind: DocumentSearchKind;
+  target: DocumentSearchTarget;
+  match: DocumentSearchMatch;
+  /**
+   * Scope-authorized text only. It never carries a DOM offset.
+   */
+  snippet: string;
+}
+/**
+ * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
+ * via the `definition` "DocumentRevisionChange".
+ */
+export interface DocumentRevisionChange {
+  revision: Revision;
+}
+/**
+ * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
+ * via the `definition` "Revision".
+ */
+export interface Revision {
+  id: AllocatedId;
+  uri: DocumentUri;
+  parentRevisionId: AllocatedId | null;
+  transactionId: AllocatedId;
+  sequence: number;
+  documentHash: ContentHash;
+  actor: ActorRef;
+  createdAt: Rfc3339Timestamp;
+  durability: DurabilityLevel;
+}
+/**
+ * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
+ * via the `definition` "ResolveModelRequest".
+ */
+export interface ResolveModelRequest {
+  document: DocumentRef;
+}
+/**
+ * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
+ * via the `definition` "ResolveModelResult".
+ */
+export interface ResolveModelResult {
+  document: DocumentRef;
+  basedOnRevisionId: AllocatedId;
+  consistency: 'exact';
+  status: SuccessfulRevisionBoundStatus;
+}
+/**
+ * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
+ * via the `definition` "GetDocumentHeadRequest".
+ */
+export interface GetDocumentHeadRequest {
   sessionId: AllocatedId;
   document: DocumentRef;
 }
 /**
  * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
- * via the `definition` "GetSnapshotResult".
+ * via the `definition` "GetDocumentHeadResult".
  */
-export interface GetSnapshotResult {
+export interface GetDocumentHeadResult {
   document: DocumentRef;
+  basedOnRevisionId: AllocatedId;
+  consistency: 'exact';
+  status: 'current';
+  headRevisionId: AllocatedId;
+}
+/**
+ * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
+ * via the `definition` "GetDocumentSnapshotRequest".
+ */
+export interface GetDocumentSnapshotRequest {
+  sessionId: AllocatedId;
+  document: DocumentRef;
+}
+/**
+ * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
+ * via the `definition` "GetDocumentSnapshotResult".
+ */
+export interface GetDocumentSnapshotResult {
+  document: DocumentRef;
+  basedOnRevisionId: AllocatedId;
+  consistency: 'exact';
+  status: SuccessfulRevisionBoundStatus;
   snapshot: DocumentSnapshot;
 }
 /**
@@ -970,22 +1354,6 @@ export interface TextNode {
   type: 'text';
   value: string;
   marks: Mark[];
-}
-/**
- * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
- * via the `definition` "SimpleMark".
- */
-export interface SimpleMark {
-  type: 'bold' | 'italic' | 'underline' | 'strike' | 'code' | 'subscript' | 'superscript';
-}
-/**
- * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
- * via the `definition` "LinkMark".
- */
-export interface LinkMark {
-  type: 'link';
-  href: ResourceUri;
-  title?: string;
 }
 /**
  * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
@@ -1416,6 +1784,120 @@ export interface DocumentSemanticSettings {
   citationStyle: string;
   headingNumbering: boolean;
   bibliographyEnabled: boolean;
+}
+/**
+ * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
+ * via the `definition` "GetDocumentOutlineRequest".
+ */
+export interface GetDocumentOutlineRequest {
+  sessionId: AllocatedId;
+  document: DocumentRef;
+  maxDepth?: number;
+  cursor?: ReadCursor;
+  maxResults?: ReadMaxResults;
+}
+/**
+ * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
+ * via the `definition` "ReadDocumentNodesRequest".
+ */
+export interface ReadDocumentNodesRequest {
+  sessionId: AllocatedId;
+  document: DocumentRef;
+  /**
+   * @minItems 1
+   * @maxItems 1000
+   */
+  nodeIds: [AllocatedId, ...AllocatedId[]];
+  cursor?: ReadCursor;
+  maxResults?: ReadMaxResults;
+}
+/**
+ * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
+ * via the `definition` "ReadDocumentNodeNeighborhoodRequest".
+ */
+export interface ReadDocumentNodeNeighborhoodRequest {
+  sessionId: AllocatedId;
+  document: DocumentRef;
+  nodeId: AllocatedId;
+  beforeBlocks: number;
+  afterBlocks: number;
+  cursor?: ReadCursor;
+  maxResults?: ReadMaxResults;
+}
+/**
+ * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
+ * via the `definition` "SearchDocumentRequest".
+ */
+export interface SearchDocumentRequest {
+  sessionId: AllocatedId;
+  document: DocumentRef;
+  query: string;
+  /**
+   * An optional narrowing intersected with the granted Scope; it can never broaden the Session grant.
+   *
+   * @maxItems 256
+   */
+  sectionIds?: AllocatedId[];
+  /**
+   * @maxItems 4
+   */
+  kinds?:
+    | []
+    | [DocumentSearchKind]
+    | [DocumentSearchKind, DocumentSearchKind]
+    | [DocumentSearchKind, DocumentSearchKind, DocumentSearchKind]
+    | [DocumentSearchKind, DocumentSearchKind, DocumentSearchKind, DocumentSearchKind];
+  cursor?: ReadCursor;
+  maxResults?: ReadMaxResults;
+}
+/**
+ * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
+ * via the `definition` "GetDocumentChangesSinceRequest".
+ */
+export interface GetDocumentChangesSinceRequest {
+  sessionId: AllocatedId;
+  document: DocumentRef;
+  sinceRevisionId: AllocatedId;
+  cursor?: ReadCursor;
+  maxResults?: ReadMaxResults;
+}
+/**
+ * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
+ * via the `definition` "GetDocumentDiagnosticsRequest".
+ */
+export interface GetDocumentDiagnosticsRequest {
+  sessionId: AllocatedId;
+  document: DocumentRef;
+  /**
+   * @maxItems 3
+   */
+  severities?:
+    | []
+    | ['info' | 'warning' | 'error']
+    | ['info' | 'warning' | 'error', 'info' | 'warning' | 'error']
+    | ['info' | 'warning' | 'error', 'info' | 'warning' | 'error', 'info' | 'warning' | 'error'];
+  /**
+   * @maxItems 256
+   */
+  codes?: string[];
+  cursor?: ReadCursor;
+  maxResults?: ReadMaxResults;
+}
+/**
+ * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
+ * via the `definition` "GetSnapshotRequest".
+ */
+export interface GetSnapshotRequest {
+  sessionId: AllocatedId;
+  document: DocumentRef;
+}
+/**
+ * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
+ * via the `definition` "GetSnapshotResult".
+ */
+export interface GetSnapshotResult {
+  document: DocumentRef;
+  snapshot: DocumentSnapshot;
 }
 /**
  * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
@@ -2004,6 +2486,28 @@ export interface MutableDocumentTarget {
 }
 /**
  * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
+ * via the `definition` "DurabilityAcknowledgement".
+ */
+export interface DurabilityAcknowledgement {
+  revisionId: AllocatedId;
+  achievedDurability: DurabilityLevel;
+  authorityMode: AuthorityMode;
+}
+/**
+ * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
+ * via the `definition` "CommitResult".
+ */
+export interface CommitResult {
+  revisionId: AllocatedId;
+  snapshot: DocumentSnapshot;
+  transactionHash: ContentHash;
+  /**
+   * apply() acknowledges only the in-memory commit; callers use whenDurable() for WAL or Snapshot.
+   */
+  achievedDurability: 'memory';
+}
+/**
+ * This interface was referenced by `IntegrationSchemaTypes`'s JSON-Schema
  * via the `definition` "ProposalChangeGroupIdentityPayload".
  */
 export interface ProposalChangeGroupIdentityPayload {
@@ -2033,8 +2537,12 @@ export interface Transaction {
   intent?: string;
   /**
    * @minItems 1
+   * @maxItems 1024
    */
   operations: [Operation, ...Operation[]];
+  /**
+   * @maxItems 4096
+   */
   preconditions: SemanticPrecondition[];
   metadata: TransactionMetadata;
   createdAt: Rfc3339Timestamp;

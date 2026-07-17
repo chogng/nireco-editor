@@ -3,7 +3,7 @@
  * Source: contracts/comet-integration/schemas/golden-fixture.schema.json
  * Generator: json-schema-to-typescript
  * Generator version: 15.0.4
- * Source SHA-256: 3f15c088917c610ae6149dd3d529eeb1f01e5a34bc7837a510637b3ed2d9ed20
+ * Source SHA-256: 03f0ea03f166f5b5972f8f08cc2128014364f9bdbfac2d745a85b002a9fa4597
  */
 
 /**
@@ -142,7 +142,7 @@ export interface GoldenFixtureSchemaTypes {
  */
 export interface GoldenFixture {
   name: string;
-  contractVersion: '0.4-preview.1';
+  contractVersion: '0.4-preview.2';
   schemaVersion: string;
   payloadSchemaId: string;
   canonicalizationProfile: 'nireco-canonical-json-0.1';
